@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1
+    }
+  },
+
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "category_code": {
+          "type": "keyword"
+        },
+        "category_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "service_code": {
+          "type": "keyword"
+        },
+        "service_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "service_description": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}
