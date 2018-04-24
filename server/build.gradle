@@ -1,0 +1,57 @@
+plugins {
+    id "net.ltgt.apt" version "0.15"
+}
+
+apply plugin: 'java'
+apply plugin: 'net.ltgt.apt'
+apply plugin: 'net.ltgt.apt-idea'
+apply plugin: 'checkstyle'
+
+
+group 'com.github.ssullivan'
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    annotationProcessor 'com.google.auto.value:auto-value:1.6'
+    compile 'com.google.auto.value:auto-value-annotations:1.6'
+    compile "io.dropwizard:dropwizard-core:1.3.1"
+    compile "org.elasticsearch.client:elasticsearch-rest-client-sniffer:6.2.4"
+    compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.2.4'
+    compile 'com.google.inject:guice:4.2.0'
+    compile 'com.google.inject.extensions:guice-servlet:4.2.0'
+    compile 'org.glassfish.jersey.ext:jersey-bean-validation:2.25.1'
+    compile 'org.glassfish.hk2:guice-bridge:2.5.0-b61'
+}
+
+
+
+checkstyle {
+    toolVersion = "8.9"
+}
+
+
+idea {
+    project {
+        // experimental: whether annotation processing will be configured in the IDE; only actually used with the 'idea' task.
+        configureAnnotationProcessing = true
+    }
+    module {
+        apt {
+            // whether generated sources dirs are added as generated sources root
+            addGeneratedSourcesDirs = true
+            // whether the annotationProcessor/apt and testAnnotationProcessor/testApt dependencies are added as module dependencies
+            addAptDependencies = true
+
+            // The following are mostly internal details; you shouldn't ever need to configure them.
+            // whether the compileOnly and testCompileOnly dependencies are added as module dependencies
+            addCompileOnlyDependencies = false // defaults to true in Gradle < 2.12
+            // the dependency scope used for apt and/or compileOnly dependencies (when enabled above)
+            mainDependenciesScope = "PROVIDED"
+            // defaults to "COMPILE" in Gradle < 3.4, or when using the Gradle integration in IntelliJ IDEA
+        }
+    }
+}
