@@ -6,9 +6,19 @@ apply plugin: 'java'
 apply plugin: 'net.ltgt.apt'
 apply plugin: 'net.ltgt.apt-idea'
 apply plugin: 'checkstyle'
-
+apply plugin: 'application'
+apply plugin: 'com.bmuschko.docker-remote-api'
 
 group 'com.github.ssullivan'
+
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.bmuschko:gradle-docker-plugin:3.2.7'
+	}
+}
 
 repositories {
     mavenCentral()
