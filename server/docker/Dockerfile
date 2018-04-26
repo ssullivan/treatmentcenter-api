@@ -3,7 +3,7 @@ ARG UID=7999
 ARG GID=7999
 
 ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-RUN apk --no-cache update \ 
+RUN apk --no-cache update \
     && apk --no-cache upgrade \
     && apk --no-cache add \
 	ca-certificates \
@@ -14,9 +14,7 @@ RUN apk --no-cache update \
     && addgroup -g $GID app_user \
     && adduser -D -s /bin/false -H -u $UID -G app_user app_user
 
-EXPOSE 8080
-EXPOSE 8081
-# HEALTHCHECK --intertval=30s --retries=3 CMD curl --fail http://localhost:8081 || exit 1
+
 COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
