@@ -65,6 +65,8 @@ nebulaDocker {
                 '    && adduser -D -s /bin/false -H -u $UID -G app_user app_user')
         copyFile('docker-entrypoint.sh', '/')
         entryPoint('/docker-entrypoint.sh')
+        runCommand('chown -R app_user.app_user /server-latest')
+        defaultCommand "/server-latest/bin/server"
     }
     afterEvaluate {
         task copyResources(type: Copy) {
