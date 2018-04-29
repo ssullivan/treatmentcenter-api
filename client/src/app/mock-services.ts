@@ -1,0 +1,22 @@
+export const SERVICE_NAMES: String[] = [
+  'Assessment/Pre-treatment', 'Other Addictions',
+  'License/Certification/Accreditation',
+  'Counseling Services and Education',
+  'Special Programs/Groups Offered',
+  'Payment Assistance Available',
+  'Screening/Testing', 'Detoxification',
+  'Age Groups Accepted',
+  'Tobacco/Screening Services',
+  'Language Services', 'Type of Care', 'Ancillary Services',
+  'Other Languages', 'Opioid Medications used in Treatment',
+  'Transitional Services', 'Facility Smoking Policy',
+  'Service Settings (e.g.', 'Outpatient', 'Residential', 'etc.)',
+  'Pharmacotherapies',
+  'Payment/Insurance/Funding Accepted',
+  'Treatment Approaches', 'Hospitals',
+  'American Indian or Alaskan Native Languages',
+  'Exclusive Services',
+  'Facility Operation (e.g. Private', 'Public)',
+  'Gender Accepted',
+  'Type of Opioid Treatment'
+];
