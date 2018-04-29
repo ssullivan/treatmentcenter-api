@@ -1,3 +1,18 @@
+import {Category} from "./category";
+
+export const CATEGORIES: Category[] = [
+  {
+    code: 'TC',
+    name: 'Type of Care',
+    serviceCodes: ['DT', 'HH', 'SA']
+  },
+  {
+    code: 'DETOX',
+    name: 'Detoxification',
+    serviceCodes: ['ADTX', 'BDTX', 'CDTX', 'MDTX', 'ODTX']
+  }
+];
+
 export const CATEGORY_NAMES: String[] = [
   'Assessment/Pre-treatment', 'Other Addictions',
   'License/Certification/Accreditation',
