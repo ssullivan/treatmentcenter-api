@@ -1,7 +1,11 @@
 FROM docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
 ENV REGION=us-east-1
+ENV STACK=prod
 COPY --chown=elasticsearch:elasticsearch elasticsearch.yml /usr/share/elasticsearch/config/
 WORKDIR /usr/share/elasticsearch
+USER root
 RUN bin/elasticsearch-plugin install discovery-ec2 && \ 
 	bin/elasticsearch-plugin install repository-s3 && \
 	sed -e '/^-Xm/s/^/#/g' -i /usr/share/elasticsearch/config/jvm.options
+
+USER elasticsearch
