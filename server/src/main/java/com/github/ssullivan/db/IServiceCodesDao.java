@@ -1,33 +1,35 @@
 package com.github.ssullivan.db;
 
-import com.github.ssullivan.model.SearchResults;
+import com.github.ssullivan.db.redis.RedisServiceCodeDao;
+import com.github.ssullivan.model.Service;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
-@ImplementedBy(ElasticServiceCodesDao.class)
+@ImplementedBy(RedisServiceCodeDao.class)
 public interface IServiceCodesDao {
 
   /**
-   * Fetches the service code record from elasticsearch with the provided id.
+   * Fetches the service code record from the database with the provided id.
    *
    * @param id the id of the record to fetch
    * @return null if it doesn't exist
    * @throws IOException failed to get from elasticsearch (reasons various)
    */
-  Map<String, Object> get(final String id) throws IOException;
+  Service get(final String id) throws IOException;
 
   /**
-   * Fetches the service code record from elasticsearch.
+   * Fetches the service code record from the db.
    *
    * @param serviceCode the service code to retrieve
    * @return null if it doesn't exist
    * @throws IOException failed to query elasticsearch (reasons various)
    */
-  Map<String, Object> getByServiceCode(final String serviceCode) throws IOException;
+  Service getByServiceCode(final String serviceCode) throws IOException;
 
-  SearchResults listServiceCodes() throws IOException;
+  List<String> listServiceCodes() throws IOException;
 
-  SearchResults listServiceCodesInCategory(final String category) throws IOException;
+  List<String> listServiceCodesInCategory(final String category) throws IOException;
 
+  boolean addService(final Service service) throws IOException;
 }

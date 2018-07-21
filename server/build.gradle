@@ -36,6 +36,8 @@ dependencies {
     implementation 'com.google.inject.extensions:guice-servlet:4.2.0'
     implementation 'org.glassfish.jersey.ext:jersey-bean-validation:2.25.1'
     implementation 'org.glassfish.hk2:guice-bridge:2.5.0-b61'
+    implementation 'io.lettuce:lettuce-core:5.0.4.RELEASE'
+
 }
 
 

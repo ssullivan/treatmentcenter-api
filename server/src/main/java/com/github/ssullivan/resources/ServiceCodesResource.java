@@ -3,7 +3,7 @@ package com.github.ssullivan.resources;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.github.ssullivan.api.IServiceCodesService;
+import com.github.ssullivan.api.ICategoryAndServiceService;
 import com.github.ssullivan.model.SearchResults;
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class ServiceCodesResource {
       new TypeReference<Map<String, Set<String>>>() {
       };
 
-  private final IServiceCodesService serviceCodesService;
+  private final ICategoryAndServiceService serviceCodesService;
   private final ObjectMapper objectMapper;
   private final ObjectReader mapSetReader;
 
@@ -49,7 +49,7 @@ public class ServiceCodesResource {
    * @param objectMapper an instance of {@link ObjectMapper}
    */
   @Inject
-  public ServiceCodesResource(final IServiceCodesService serviceCodesService,
+  public ServiceCodesResource(final ICategoryAndServiceService serviceCodesService,
       ObjectMapper objectMapper) {
     this.serviceCodesService = serviceCodesService;
     this.objectMapper = objectMapper;

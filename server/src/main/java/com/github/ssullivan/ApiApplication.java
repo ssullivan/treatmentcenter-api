@@ -3,11 +3,14 @@ package com.github.ssullivan;
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.ElasticClientModule;
+import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.servlets.tasks.Task;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import java.io.PrintWriter;
 
 public class ApiApplication extends Application<AppConfig> {
 
