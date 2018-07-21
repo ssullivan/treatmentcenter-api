@@ -37,7 +37,7 @@ dependencies {
     implementation 'org.glassfish.jersey.ext:jersey-bean-validation:2.25.1'
     implementation 'org.glassfish.hk2:guice-bridge:2.5.0-b61'
     implementation 'io.lettuce:lettuce-core:5.0.4.RELEASE'
-
+    implementation 'org.apache.commons:commons-pool2:2.4.3'
 }
 
 
