@@ -38,6 +38,7 @@ dependencies {
     implementation 'org.glassfish.hk2:guice-bridge:2.5.0-b61'
     implementation 'io.lettuce:lettuce-core:5.0.4.RELEASE'
     implementation 'org.apache.commons:commons-pool2:2.4.3'
+    implementation 'com.fasterxml.uuid:java-uuid-generator:3.1.5'
 }
 
 
