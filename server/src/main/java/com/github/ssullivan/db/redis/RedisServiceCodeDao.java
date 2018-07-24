@@ -46,6 +46,15 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   }
 
   @Override
+  public List<Service> listServices() throws IOException {
+    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
+      return deserializeSuccessfulAsList(connection.sync().hvals(KEY));
+    } catch (Exception e) {
+      throw new IOException("Failed to connect to REDIS", e);
+    }
+  }
+
+  @Override
   public List<String> listServiceCodes() throws IOException {
     try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
       return connection.sync().hkeys(KEY);
@@ -94,5 +103,19 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   private Service deserialize(@Nonnull final String json) throws IOException {
     return serviceReader.readValue(json);
+  }
+
+  private List<Service> deserializeSuccessfulAsList(@Nonnull final List<String> jsons) {
+    return jsons.stream().map(it -> {
+      try {
+        return deserialize(it);
+      }
+      catch (IOException e) {
+        LOGGER.error("Failed to deserialize service json", e);
+        return null;
+      }
+    })
+    .filter(Objects::nonNull)
+    .collect(Collectors.toList());
   }
 }

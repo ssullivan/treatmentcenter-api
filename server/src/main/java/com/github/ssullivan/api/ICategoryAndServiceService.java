@@ -1,6 +1,5 @@
 package com.github.ssullivan.api;
 
-import com.github.ssullivan.core.ServiceCodesService;
 import com.github.ssullivan.model.SearchResults;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;

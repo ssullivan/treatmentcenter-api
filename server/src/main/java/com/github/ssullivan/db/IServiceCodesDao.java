@@ -27,6 +27,8 @@ public interface IServiceCodesDao {
    */
   Service getByServiceCode(final String serviceCode) throws IOException;
 
+  List<Service> listServices() throws IOException;
+
   List<String> listServiceCodes() throws IOException;
 
   List<String> listServiceCodesInCategory(final String category) throws IOException;

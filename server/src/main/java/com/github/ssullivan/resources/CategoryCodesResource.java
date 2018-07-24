@@ -1,6 +1,7 @@
 package com.github.ssullivan.resources;
 
-import com.github.ssullivan.db.IServiceCodesDao;
+import com.github.ssullivan.db.ICategoryCodesDao;
+import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import java.io.IOException;
 import java.util.List;
@@ -21,22 +22,23 @@ import org.slf4j.LoggerFactory;
 
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces({MediaType.APPLICATION_JSON})
-@Path("services")
-public class ServiceCodesResource {
+@Path("categories")
+public class CategoryCodesResource {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CategoryCodesResource.class);
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCodesResource.class);
-  private final IServiceCodesDao serviceCodesDao;
+  private final ICategoryCodesDao categoryCodesDao;
+
 
   @Inject
-  public ServiceCodesResource(IServiceCodesDao serviceCodesDao) {
-    this.serviceCodesDao = serviceCodesDao;
+  public CategoryCodesResource(ICategoryCodesDao categoryCodesDao) {
+    this.categoryCodesDao = categoryCodesDao;
   }
 
   @GET
   @ManagedAsync
-  public void listServices(@Suspended AsyncResponse asyncResponse) {
+  public void listCategories(@Suspended AsyncResponse asyncResponse) {
     try {
-      final List<Service> services = this.serviceCodesDao.listServices();
+      final List<Category> services = this.categoryCodesDao.listCategories();
       final CacheControl cacheControl = new CacheControl();
       cacheControl.setMaxAge((int) TimeUnit.DAYS.toSeconds(1));
 
