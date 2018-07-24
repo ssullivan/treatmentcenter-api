@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.model.Category;
-import com.github.ssullivan.model.Service;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.IOException;
 import java.util.List;

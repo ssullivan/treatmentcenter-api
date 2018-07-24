@@ -1,7 +1,6 @@
 package com.github.ssullivan.db.elastic;
 
 import com.github.ssullivan.db.IFacilityDao;
-import com.github.ssullivan.db.elastic.AbstractElasticDao;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;

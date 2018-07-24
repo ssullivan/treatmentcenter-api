@@ -2,6 +2,8 @@ package com.github.ssullivan.resources;
 
 import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.Service;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,7 @@ import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Api(tags = "services")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces({MediaType.APPLICATION_JSON})
 @Path("services")
@@ -32,6 +35,10 @@ public class ServiceCodesResource {
     this.serviceCodesDao = serviceCodesDao;
   }
 
+  @ApiOperation(value = "List services that a treatment facility can provide.",
+      responseContainer = "list",
+      response = Service.class
+  )
   @GET
   @ManagedAsync
   public void listServices(@Suspended AsyncResponse asyncResponse) {
