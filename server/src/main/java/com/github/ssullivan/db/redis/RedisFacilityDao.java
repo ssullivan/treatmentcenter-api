@@ -100,7 +100,7 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
 
-    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lat(), facility.getLocation().lon(),  Long.toString(facility.getId(), 10));
+    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),  Long.toString(facility.getId(), 10));
   }
 
   public void indexFacilityByCategoryCodes(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
