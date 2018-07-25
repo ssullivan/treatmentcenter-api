@@ -1,11 +1,17 @@
 package com.github.ssullivan.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel
 public class Service {
   private String code;
   private String name;
   private String description;
   private String categoryCode;
 
+
+  @ApiModelProperty(value = "The code of the category that this service belongs in", example = "EDU")
   public String getCategoryCode() {
     return categoryCode;
   }
@@ -14,6 +20,7 @@ public class Service {
     this.categoryCode = categoryCode;
   }
 
+  @ApiModelProperty(value = "The unique code for this service", example = "FCO")
   public String getCode() {
     return code;
   }
@@ -22,6 +29,7 @@ public class Service {
     this.code = code;
   }
 
+  @ApiModelProperty(example = "Training and Education")
   public String getName() {
     return name;
   }

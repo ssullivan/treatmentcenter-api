@@ -36,7 +36,7 @@ public class ServiceCodesResource {
   }
 
   @ApiOperation(value = "List services that a treatment facility can provide.",
-      responseContainer = "list",
+      responseContainer = "List",
       response = Service.class
   )
   @GET

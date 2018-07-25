@@ -37,7 +37,7 @@ public class CategoryCodesResource {
   }
 
   @ApiOperation(value = "List categories of treatments that a facility can provide",
-      responseContainer = "list",
+      responseContainer = "List",
       response = Category.class
   )
   @GET
