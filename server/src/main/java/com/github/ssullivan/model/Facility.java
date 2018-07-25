@@ -6,6 +6,10 @@ public class Facility {
   private long id;
   private String name1;
   private String name2;
+  private String zip;
+  private String street;
+  private String city;
+  private String state;
   private String googlePlaceId;
   private GeoPoint location;
   private String formattedAddress;
@@ -13,6 +17,38 @@ public class Facility {
   private Set<String> phoneNumbers;
   private Set<String> categoryCodes;
   private Set<String> serviceCodes;
+
+  public String getStreet() {
+    return street;
+  }
+
+  public void setStreet(String street) {
+    this.street = street;
+  }
+
+  public String getZip() {
+    return zip;
+  }
+
+  public void setZip(String zip) {
+    this.zip = zip;
+  }
+
+  public String getCity() {
+    return city;
+  }
+
+  public void setCity(String city) {
+    this.city = city;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
 
   public long getId() {
     return id;

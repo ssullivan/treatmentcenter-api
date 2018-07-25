@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.elastic;
 
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
@@ -20,6 +21,11 @@ public class ElasticFacilityDao extends AbstractElasticDao implements IFacilityD
   @Inject
   public ElasticFacilityDao(final RestHighLevelClient elasticClient) {
     this.elasticClient = elasticClient;
+  }
+
+  @Override
+  public void addFacility(Facility facility) throws IOException {
+
   }
 
   @Override

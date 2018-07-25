@@ -100,7 +100,7 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
 
-    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lat(), facility.getLocation().lon(), facility.getId());
+    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lat(), facility.getLocation().lon(),  Long.toString(facility.getId(), 10));
   }
 
   public void indexFacilityByCategoryCodes(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
@@ -139,6 +139,7 @@ public class RedisFacilityDao implements IFacilityDao {
   @Override
   public SearchResults findByServiceCodes(ImmutableSet<String> mustServiceCodes,
       Page page) throws IOException {
+
     return null;
   }
 
