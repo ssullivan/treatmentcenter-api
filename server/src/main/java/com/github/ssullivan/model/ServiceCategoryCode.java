@@ -1,5 +1,7 @@
 package com.github.ssullivan.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ServiceCategoryCode {
 
   private String categoryCode;
@@ -12,6 +14,7 @@ public class ServiceCategoryCode {
 
   }
 
+  @JsonProperty("category_code")
   public String getCategoryCode() {
     return categoryCode;
   }
@@ -20,6 +23,7 @@ public class ServiceCategoryCode {
     this.categoryCode = categoryCode;
   }
 
+  @JsonProperty("category_name")
   public String getCategoryName() {
     return categoryName;
   }
@@ -28,6 +32,7 @@ public class ServiceCategoryCode {
     this.categoryName = categoryName;
   }
 
+  @JsonProperty("service_code")
   public String getServiceCode() {
     return serviceCode;
   }
@@ -36,6 +41,7 @@ public class ServiceCategoryCode {
     this.serviceCode = serviceCode;
   }
 
+  @JsonProperty("service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -44,6 +50,7 @@ public class ServiceCategoryCode {
     this.serviceName = serviceName;
   }
 
+  @JsonProperty("service_description")
   public String getServiceDescription() {
     return serviceDescription;
   }

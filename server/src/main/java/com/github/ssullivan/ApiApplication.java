@@ -4,6 +4,7 @@ import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.ElasticClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.tasks.LoadCategoriesAndServices;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -23,6 +24,8 @@ public class ApiApplication extends Application<AppConfig> {
 
   @Override
   public void initialize(Bootstrap<AppConfig> bootstrap) {
+    bootstrap.addCommand(new LoadCategoriesAndServices());
+
     // Enable variable substitution with environment variables
     bootstrap.setConfigurationSourceProvider(
         new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
