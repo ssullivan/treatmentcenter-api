@@ -1,19 +1,18 @@
 package com.github.ssullivan.resources;
 
-import com.github.ssullivan.api.ISearchService;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.db.IFacilityDao;
-import com.github.ssullivan.model.FacilitySearchQuery;
 import com.github.ssullivan.model.Page;
-import com.github.ssullivan.model.SearchResults;
-import com.google.common.collect.ImmutableList;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -25,6 +24,7 @@ import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Api(tags = "search")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 @Path("facilities")
@@ -38,33 +38,23 @@ public class FacilitySearchResource {
   public FacilitySearchResource(final IFacilityDao facilityDao) {
     this.facilityDao = facilityDao;
   }
-//
-//  public void listFacilities() {
-//    facilityDao.findByServiceCodes()
-//  }
 
 
-//  /**
-//   * Find facilities that have the matching service codes.
-//   *
-//   * @param asyncResponse an instance of {@link AsyncResponse}
-//   * @param facilitySearchQuery the query to search by
-//   * @param offset how many documents to skip
-//   * @param size how many documents to return
-//   */
-//  @POST
-//  @ManagedAsync
-//  public void find(@Suspended final AsyncResponse asyncResponse,
-//      final FacilitySearchQuery facilitySearchQuery,
-//      @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
-//      @Min(0) @Max(9999) @DefaultValue("25") @QueryParam("size") final int size) {
-//    try {
-//      asyncResponse.resume(this.searchService.find(facilitySearchQuery, Page.page(offset, size)));
-//    } catch (IOException e) {
-//      LOGGER.error("Failed to find facilities because an I/O error occurred", e);
-//      asyncResponse.resume(Response.serverError()
-//          .entity(SearchResults.searchResults(0, ImmutableList.of())));
-//
-//    }
-//  }
+  @ApiOperation(value = "Find treatment facilities with any ")
+  @GET
+  @Path("/services")
+  @ManagedAsync
+  public void findFacilitiesByServiceCodes(final @Suspended AsyncResponse asyncResponse,
+      @QueryParam("serviceCode") final List<String> serviceCodes,
+      @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
+    try {
+      asyncResponse.resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
+    } catch (IOException e) {
+      LOGGER.error("Failed to find facilities with service codes", e);
+      asyncResponse.resume(Response.serverError().build());
+    }
+
+  }
+
 }

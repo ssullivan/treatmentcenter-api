@@ -6,6 +6,7 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -26,6 +27,11 @@ public class ElasticFacilityDao extends AbstractElasticDao implements IFacilityD
   @Override
   public void addFacility(Facility facility) throws IOException {
 
+  }
+
+  @Override
+  public List<Facility> findByServiceCodes(List<String> serviceCodes, Page page) {
+    return null;
   }
 
   @Override

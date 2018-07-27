@@ -1,19 +1,34 @@
 package com.github.ssullivan.db.redis;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.Pair;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
+import com.spotify.futures.CompletableFutures;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.ScoredValueScanCursor;
+import io.lettuce.core.ZStoreArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import org.slf4j.Logger;
@@ -22,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class RedisFacilityDao implements IFacilityDao {
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);
 
+  private static final String SEARCH_REQ = "search:counter";
 
   private static final String KEY = "treatment:facilities";
   private static final String PK_KEY = "treatment:facilities:counter";
@@ -30,12 +46,14 @@ public class RedisFacilityDao implements IFacilityDao {
   private static final String INDEX_BY_GEO = "index:facility_by_geo";
 
   private IRedisConnectionPool redis;
+  private ObjectMapper objectMapper;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
 
   @Inject
   public RedisFacilityDao(IRedisConnectionPool connectionPool, ObjectMapper objectMapper) {
     this.redis = connectionPool;
+    this.objectMapper = objectMapper;
     this.objectReader = objectMapper.readerFor(Facility.class);
     this.objectWriter = objectMapper.writerFor(Facility.class);
   }
@@ -57,10 +75,48 @@ public class RedisFacilityDao implements IFacilityDao {
     facility.setId(pk);
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      connection.sync().set(KEY + ":" + pk, serialize(facility));
+      final Map<String, String> stringStringMap = toStringMap(facility);
+      connection.sync().hmset(KEY + ":" + pk, stringStringMap);
       indexFacility(connection.sync(), facility);
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+
+  public Facility getFacility(final StatefulRedisConnection<String, String> connection, final String pk) {
+    List<KeyValue<String, String>> fields = connection.sync().hmget(KEY + ":" + pk, "_source");
+    if (fields != null && !fields.isEmpty()) {
+      return deserialize(fields.get(0).getValue(), null);
+    }
+    return null;
+  }
+
+  @Override
+  public List<Facility> findByServiceCodes(List<String> serviceCodes, Page page)
+      throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+
+      final String searchKey = "search:" + connection.sync().incr(SEARCH_REQ);
+
+
+      final String[] serviceCodeSets = serviceCodes
+          .stream()
+          .map(code -> INDEX_BY_SERVICES + ":" + code)
+          .collect(Collectors.toList()).toArray(new String[]{});
+
+      final Long numResults = connection.sync().zunionstore(searchKey, serviceCodeSets);
+      final List<String> ids = connection.sync().zrange(searchKey, page.offset(), page.offset() + page.size());
+      final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+
+      connection.async().del(searchKey);
+
+      return searchResults;
+    } catch (Exception e) {
+      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes, page);
+      throw new IOException("Failed to find any matching results", e);
     }
   }
 
@@ -115,8 +171,8 @@ public class RedisFacilityDao implements IFacilityDao {
         .stream()
         .filter(Objects::nonNull)
         .filter(it -> !it.isEmpty())
-        .forEach(serviceCode -> {
-          sync.set(INDEX_BY_CATEGORIES + ":" + serviceCode, Long.toString(facility.getId(), 10));
+        .forEach(code -> {
+          sync.sadd(INDEX_BY_CATEGORIES + ":" + code, Long.toString(facility.getId(), 10));
         });
   }
 
@@ -131,8 +187,8 @@ public class RedisFacilityDao implements IFacilityDao {
             .stream()
             .filter(Objects::nonNull)
             .filter(it -> !it.isEmpty())
-            .forEach(serviceCode -> {
-              sync.set(INDEX_BY_SERVICES + ":" + serviceCode, Long.toString(facility.getId(), 10));
+            .forEach(code -> {
+              sync.sadd(INDEX_BY_SERVICES + ":" + code, Long.toString(facility.getId(), 10));
             });
   }
 
@@ -141,6 +197,31 @@ public class RedisFacilityDao implements IFacilityDao {
       Page page) throws IOException {
 
     return null;
+  }
+
+  private Map<String, String> toStringMap(final Facility facility) throws JsonProcessingException {
+    final Map<String, String> toReturn = new HashMap<>();
+    toReturn.put("id", "" + facility.getId());
+    toReturn.put("_source", objectWriter.writeValueAsString(facility));
+    toReturn.put("name1", facility.getName1());
+    toReturn.put("name2", facility.getName2());
+    toReturn.put("zip", facility.getZip());
+    toReturn.put("street", facility.getStreet());
+    toReturn.put("city", facility.getCity());
+    toReturn.put("state", facility.getState());
+    toReturn.put("googlePlaceId", facility.getGooglePlaceId());
+    toReturn.put("formattedAddress", facility.getFormattedAddress());
+    toReturn.put("website", facility.getWebsite());
+    toReturn.put("phoneNumbers", objectMapper.writeValueAsString(facility.getPhoneNumbers()));
+    facility.getCategoryCodes()
+        .forEach(code -> toReturn.put("c:" + code, "1"));
+    facility.getServiceCodes()
+        .forEach(code -> toReturn.put("s:" + code, "1"));
+
+    toReturn.put("location.lat", "" + facility.getLocation().lat());
+    toReturn.put("location.lon", "" + facility.getLocation().lon());
+
+    return toReturn;
   }
 
   private String serialize(@Nonnull final Facility category) throws IOException {
