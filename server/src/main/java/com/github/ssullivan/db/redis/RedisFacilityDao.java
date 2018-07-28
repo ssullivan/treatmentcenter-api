@@ -11,6 +11,8 @@ import com.github.ssullivan.model.Pair;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
+import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.ScanArgs;
@@ -93,7 +95,7 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   @Override
-  public List<Facility> findByServiceCodes(List<String> serviceCodes, Page page)
+  public SearchResults<Facility> findByServiceCodes(List<String> serviceCodes, Page page)
       throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
@@ -103,17 +105,79 @@ public class RedisFacilityDao implements IFacilityDao {
       final String[] serviceCodeSets = serviceCodes
           .stream()
           .map(code -> INDEX_BY_SERVICES + ":" + code)
-          .collect(Collectors.toList()).toArray(new String[]{});
+          .collect(Collectors.toSet()).toArray(new String[]{});
 
       final Long numResults = connection.sync().zunionstore(searchKey, serviceCodeSets);
+
       final List<String> ids = connection.sync().zrange(searchKey, page.offset(), page.offset() + page.size());
+      connection.sync().expire(searchKey, 5);
+
       final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
 
-      connection.async().del(searchKey);
+      connection.sync().del(searchKey);
 
-      return searchResults;
+
+      return SearchResults.searchResults(numResults, searchResults);
+    } catch (Exception e) {
+      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes, page);
+      throw new IOException("Failed to find any matching results", e);
+    }
+  }
+
+  @Override
+  public SearchResults<Facility> findByServiceCodesWithin(List<String> serviceCodes,
+      double longitude, double latitude, double distance, String geoUnit, Page page)
+      throws IOException {
+
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+
+      final String searchId = connection.sync().incr(SEARCH_REQ) + "";
+      final String searchKey = "search:" + searchId;
+      final String radiusKey = "search:geo:" + searchId;
+
+
+      final String[] serviceCodeSets = serviceCodes
+          .stream()
+          .map(code -> INDEX_BY_SERVICES + ":" + code)
+          .collect(Collectors.toSet()).toArray(new String[]{});
+
+      connection.sync().multi();
+      // TODO: I think we can do a lua script here to reduce round trips
+      // #1 Find all of the centers within a certain radius
+      connection.sync().sadd(radiusKey, connection.sync()
+          .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit))
+          .toArray(new String[]{}));
+
+      // #2 Find all of the centers with the specified services
+      connection.sync().zunionstore(searchKey, serviceCodeSets);
+
+      // #3 Find the intersection of the places that have our services we want and
+      //    are within a specific radius
+      final Long numResults = connection.sync()
+          .zinterstore(searchKey + ":" + 1, searchKey, radiusKey);
+
+      // #4 Fetch the results
+      final List<String> ids = connection.sync()
+          .zrange(searchKey, page.offset(), page.offset() + page.size());
+
+      // #5 Fetch each facility
+      final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+
+      // #6 Ensure the keys get deleted
+      connection.sync().expire(searchKey, 5);
+      connection.sync().expire(searchKey + ":1", 5);
+      connection.sync().expire(radiusKey, 5);
+      connection.sync().exec();
+
+      // #7 Explicitly delete the keys
+      connection.sync().del(searchKey, searchKey + ":1", radiusKey);
+
+      return SearchResults.searchResults(numResults, searchResults);
+
     } catch (Exception e) {
       LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes, page);
       throw new IOException("Failed to find any matching results", e);

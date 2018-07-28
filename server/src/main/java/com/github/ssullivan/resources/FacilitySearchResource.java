@@ -3,6 +3,7 @@ package com.github.ssullivan.resources;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.SearchResults;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class FacilitySearchResource {
   }
 
 
-  @ApiOperation(value = "Find treatment facilities with any ")
+  @ApiOperation(value = "Find treatment facilities with any", response = SearchResults.class)
   @GET
   @Path("/services")
   @ManagedAsync

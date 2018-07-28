@@ -30,7 +30,14 @@ public class ElasticFacilityDao extends AbstractElasticDao implements IFacilityD
   }
 
   @Override
-  public List<Facility> findByServiceCodes(List<String> serviceCodes, Page page) {
+  public SearchResults<Facility> findByServiceCodes(List<String> serviceCodes, Page page) {
+    return null;
+  }
+
+  @Override
+  public SearchResults<Facility> findByServiceCodesWithin(List<String> serviceCodes,
+      double longitude, double latitude, double distance, String geoUnit, Page page)
+      throws IOException {
     return null;
   }
 
