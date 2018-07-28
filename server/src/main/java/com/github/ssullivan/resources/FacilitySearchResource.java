@@ -24,6 +24,8 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import io.swagger.annotations.ApiParam;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +51,12 @@ public class FacilitySearchResource {
   @Path("/search")
   @ManagedAsync
   public void findFacilitiesByServiceCodes(final @Suspended AsyncResponse asyncResponse,
-      @QueryParam("serviceCode") final List<String> serviceCodes,
-      @QueryParam("lat") final Double lat,
-      @QueryParam("lon") final Double lon,
-      @DefaultValue("10") @QueryParam("distance") final Double distance,
-      @Pattern (regexp = "m|km|ft|mi") @DefaultValue("m") @QueryParam("distanceUnit") final String distanceUnit,
+      @ApiParam(value = "the SAMSHA service code", allowMultiple = true) @QueryParam("serviceCode") final List<String> serviceCodes,
+      @ApiParam(value = "the latitude coordinate according to WGS84") @QueryParam("lat") final Double lat,
+      @ApiParam(value = "the longitude coordinate according to WGS84") @QueryParam("lon") final Double lon,
+      @ApiParam(value = "the radius distance") @DefaultValue("15") @QueryParam("distance") final Double distance,
+      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)", allowableValues = "m,km,ft,mi")
+                                             @Pattern (regexp = "m|km|ft|mi") @DefaultValue("mi") @QueryParam("distanceUnit") final String distanceUnit,
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
       @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
     try {
@@ -61,9 +64,9 @@ public class FacilitySearchResource {
           asyncResponse.resume(
               Response.status(400)
               .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
-          return;
       }
-      else if (lat != null && lon != null) { asyncResponse.resume(this.facilityDao.findByServiceCodesWithin(serviceCodes, lon, lat, Page.page(offset, size)));
+      else if (lat != null && lon != null) {
+        asyncResponse.resume(this.facilityDao.findByServiceCodesWithin(serviceCodes, lon, lat, distance, distanceUnit, Page.page(offset, size)));
       }
       else {
         asyncResponse.resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
