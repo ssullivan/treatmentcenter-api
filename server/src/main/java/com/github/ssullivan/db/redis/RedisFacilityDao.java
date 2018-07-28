@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs;
 import io.lettuce.core.GeoArgs.Unit;
+import io.lettuce.core.GeoRadiusStoreArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.ScanArgs;
@@ -144,11 +145,12 @@ public class RedisFacilityDao implements IFacilityDao {
           .collect(Collectors.toSet()).toArray(new String[]{});
 
       connection.sync().multi();
+
       // TODO: I think we can do a lua script here to reduce round trips
       // #1 Find all of the centers within a certain radius
-      connection.sync().sadd(radiusKey, connection.sync()
-          .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit))
-          .toArray(new String[]{}));
+
+      connection.sync().georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
+          GeoRadiusStoreArgs.Builder.store(INDEX_BY_GEO));
 
       // #2 Find all of the centers with the specified services
       connection.sync().zunionstore(searchKey, serviceCodeSets);

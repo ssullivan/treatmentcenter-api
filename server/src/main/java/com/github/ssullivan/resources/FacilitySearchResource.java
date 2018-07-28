@@ -2,8 +2,10 @@ package com.github.ssullivan.resources;
 
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
+import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -41,21 +44,36 @@ public class FacilitySearchResource {
   }
 
 
-  @ApiOperation(value = "Find treatment facilities with any", response = SearchResults.class)
+  @ApiOperation(value = "Find treatment facilities by their services and location", response = SearchResults.class)
   @GET
-  @Path("/services")
+  @Path("/search")
   @ManagedAsync
   public void findFacilitiesByServiceCodes(final @Suspended AsyncResponse asyncResponse,
       @QueryParam("serviceCode") final List<String> serviceCodes,
+      @QueryParam("lat") final Double lat,
+      @QueryParam("lon") final Double lon,
+      @DefaultValue("10") @QueryParam("distance") final Double distance,
+      @Pattern (regexp = "m|km|ft|mi") @DefaultValue("m") @QueryParam("distanceUnit") final String distanceUnit,
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
       @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
     try {
-      asyncResponse.resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
+      if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon)) {
+          asyncResponse.resume(
+              Response.status(400)
+              .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
+          return;
+      }
+      else if (lat != null && lon != null) { asyncResponse.resume(this.facilityDao.findByServiceCodesWithin(serviceCodes, lon, lat, Page.page(offset, size)));
+      }
+      else {
+        asyncResponse.resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
+      }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes", e);
       asyncResponse.resume(Response.serverError().build());
     }
-
   }
+
+
 
 }
