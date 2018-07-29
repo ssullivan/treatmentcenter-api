@@ -1,5 +1,7 @@
 {
   "swagger" : "2.0",
+  "title": "Treatment Center API",
+  "version": "0.1.0",
   "info" : { },
   "tags" : [ {
     "name" : "categories"
