@@ -1,9 +1,10 @@
-dist: trusty
 # Override default travis gradle steps
 # Per docs: https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step
 install: true
 jdk:
   - openjdk8
+node_js:
+  - "node"
 matrix:
   include:
     - language: java
@@ -14,8 +15,6 @@ matrix:
       after_success:
         - bash <(curl -s https://codecov.io/bash)
     - language: node_js
-      node_js:
-        - "node"
       deploy:
         - skip_cleanup: true
           provider: script
