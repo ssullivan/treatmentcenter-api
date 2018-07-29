@@ -9,9 +9,10 @@ matrix:
   include:
     - language: java
       script:
-        - ./server/gradlew assemble
-        - ./server/gradlew check
-        - ./server/gradlew build
+        - cd ./server
+        - gradlew assemble
+        - gradlew check
+        - gradlew build
       after_success:
         - bash <(curl -s https://codecov.io/bash)
     - language: node_js
