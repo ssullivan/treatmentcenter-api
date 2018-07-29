@@ -1,33 +1,15 @@
-# Override default travis gradle steps
-# Per docs: https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step
-install: true
-jdk:
-  - openjdk8
-
+language: node_js
 node_js:
   - "node"
-
-matrix:
-  include:
-#    - language: java
-#      script:
-#        - ./gradlew assemble
-#        - ./gradlew check
-#        - ./gradlew build
-#      after_success:
-#        - bash <(curl -s https://codecov.io/bash)
-    - language: node_js
-      script:
-        - npm install
-      deploy:
-        - skip_cleanup: true
-          provider: script
-          script: npm run deploy
-          on:
-            branch: master
-        - skip_cleanup: true
-          provider: script
-          script: npm run deploy-branch
-          on:
-            all_branches: true
-            condition: '"$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "gh-pages"'
+deploy:
+  - skip_cleanup: true
+    provider: script
+    script: npm run deploy
+    on:
+      branch: master
+  - skip_cleanup: true
+    provider: script
+    script: npm run deploy-branch
+    on:
+      all_branches: true
+      condition: '"$TRAVIS_BRANCH" != "master" && "$TRAVIS_BRANCH" != "gh-pages"'
