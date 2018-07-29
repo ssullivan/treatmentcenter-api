@@ -8,8 +8,6 @@ jdk:
 matrix:
   include:
     - language: java
-      before_script:
-        - cd ./server
       script:
         - ./gradlew assemble
         - ./gradlew check
