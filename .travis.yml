@@ -3,17 +3,19 @@
 install: true
 jdk:
   - openjdk8
+
 node_js:
   - "node"
+
 matrix:
   include:
-    - language: java
-      script:
-        - ./gradlew assemble
-        - ./gradlew check
-        - ./gradlew build
-      after_success:
-        - bash <(curl -s https://codecov.io/bash)
+#    - language: java
+#      script:
+#        - ./gradlew assemble
+#        - ./gradlew check
+#        - ./gradlew build
+#      after_success:
+#        - bash <(curl -s https://codecov.io/bash)
     - language: node_js
       script:
         - npm install
