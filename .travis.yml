@@ -6,6 +6,14 @@ install: true
 matrix:
   include:
     - language: java
+      jdk:
+        - oraclejdk8
+        - openjdk8
+      addons:
+        apt:
+          packages:
+            - oracle-java8-installer
+            - openjdk-8-jdk
       script:
         - ./server/gradlew assemble
         - ./server/gradlew check
