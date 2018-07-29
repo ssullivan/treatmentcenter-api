@@ -1,9 +1,12 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.db.elastic;
 
+import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -19,6 +22,23 @@ public class ElasticFacilityDao extends AbstractElasticDao implements IFacilityD
   @Inject
   public ElasticFacilityDao(final RestHighLevelClient elasticClient) {
     this.elasticClient = elasticClient;
+  }
+
+  @Override
+  public void addFacility(Facility facility) throws IOException {
+
+  }
+
+  @Override
+  public SearchResults<Facility> findByServiceCodes(List<String> serviceCodes, Page page) {
+    return null;
+  }
+
+  @Override
+  public SearchResults<Facility> findByServiceCodesWithin(List<String> serviceCodes,
+      double longitude, double latitude, double distance, String geoUnit, Page page)
+      throws IOException {
+    return null;
   }
 
   @Override

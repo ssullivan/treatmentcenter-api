@@ -1,4 +1,4 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.db.elastic;
 
 import com.github.ssullivan.model.SearchResults;
 import java.util.Collection;

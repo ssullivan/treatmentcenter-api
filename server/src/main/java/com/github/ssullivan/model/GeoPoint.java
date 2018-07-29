@@ -18,4 +18,16 @@ public abstract class GeoPoint {
 
   @JsonProperty("long")
   public abstract double lon();
+
+  public static boolean isValidLat(final double lat) {
+    return !(lat > 90) && !(lat < -90);
+  }
+
+  public static boolean isValidLon(final double lon) {
+    return !(lon > 180) && !(lon < -180);
+  }
+
+  public static boolean isValidLatLong(final double lat, final double lon) {
+    return isValidLat(lat) && isValidLon(lon);
+  }
 }

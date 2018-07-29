@@ -1,7 +1,7 @@
 package com.github.ssullivan.resources;
 
-import com.github.ssullivan.db.IServiceCodesDao;
-import com.github.ssullivan.model.Service;
+import com.github.ssullivan.db.ICategoryCodesDao;
+import com.github.ssullivan.model.Category;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -21,29 +21,30 @@ import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Api(tags = "services")
+@Api(tags = "categories")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces({MediaType.APPLICATION_JSON})
-@Path("services")
-public class ServiceCodesResource {
+@Path("categories")
+public class CategoryCodesResource {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CategoryCodesResource.class);
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCodesResource.class);
-  private final IServiceCodesDao serviceCodesDao;
+  private final ICategoryCodesDao categoryCodesDao;
+
 
   @Inject
-  public ServiceCodesResource(IServiceCodesDao serviceCodesDao) {
-    this.serviceCodesDao = serviceCodesDao;
+  public CategoryCodesResource(ICategoryCodesDao categoryCodesDao) {
+    this.categoryCodesDao = categoryCodesDao;
   }
 
-  @ApiOperation(value = "List services that a treatment facility can provide.",
+  @ApiOperation(value = "List categories of treatments that a facility can provide",
       responseContainer = "List",
-      response = Service.class
+      response = Category.class
   )
   @GET
   @ManagedAsync
-  public void listServices(@Suspended AsyncResponse asyncResponse) {
+  public void listCategories(@Suspended AsyncResponse asyncResponse) {
     try {
-      final List<Service> services = this.serviceCodesDao.listServices();
+      final List<Category> services = this.categoryCodesDao.listCategories();
       final CacheControl cacheControl = new CacheControl();
       cacheControl.setMaxAge((int) TimeUnit.DAYS.toSeconds(1));
 
