@@ -43,6 +43,10 @@ public class ApiApplication extends Application<AppConfig> {
           swaggerBundleConfiguration = new SwaggerBundleConfiguration();
         }
         swaggerBundleConfiguration.setSchemes(new String[]{"http", "https"});
+        swaggerBundleConfiguration.setVersion("0.10");
+        swaggerBundleConfiguration.setIsPrettyPrint(true);
+        swaggerBundleConfiguration.setTitle("Treatmentcenter API");
+        swaggerBundleConfiguration.setDescription("An OpenAPI to find treatment centers for substance abuse");
         swaggerBundleConfiguration.setResourcePackage("com.github.ssullivan.resources");
 
         return swaggerBundleConfiguration;
