@@ -1,6 +1,10 @@
 {
   "swagger" : "2.0",
-  "info" : { },
+  "info" : {
+    "description" : "An OpenAPI to find treatment centers for substance abuse",
+    "version" : "0.1.0",
+    "title" : "TreatmentCenter API"
+  },
   "tags" : [ {
     "name" : "categories"
   }, {
