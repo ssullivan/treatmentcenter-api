@@ -1,5 +1,12 @@
 matrix:
   include:
+    - language: java
+      jdk:
+        - oraclejdk8
+      script:
+        - ./server/gradlew build
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
     - language: node_js
       node_js:
         - "node"
