@@ -2,17 +2,13 @@ dist: trusty
 # Override default travis gradle steps
 # Per docs: https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step
 install: true
-
+jdk:
+  - openjdk8
+  - oraclejdk8
 matrix:
   include:
     - language: java
-      addons:
-        apt:
-          packages:
-            - oracle-java8-installer
-            - openjdk-8-jdk
       script:
-        - jdk_switcher use oraclejdk8
         - ./server/gradlew assemble
         - ./server/gradlew check
         - ./server/gradlew build
