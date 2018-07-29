@@ -41,3 +41,5 @@ server/out/*
 .gradle
 server/out
 1
+build
+.idea/*
