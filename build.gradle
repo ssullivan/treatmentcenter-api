@@ -8,6 +8,7 @@ buildscript {
 
 plugins {
     id "net.ltgt.apt" version "0.17"
+
 }
 
 apply plugin: 'java'
@@ -17,15 +18,19 @@ apply plugin: 'checkstyle'
 apply plugin: 'application'
 apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'nebula.docker'
+apply plugin: 'jacoco'
 
 version = '1.0.0'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
 repositories {
+    mavenLocal()
     mavenCentral()
-}
+    jcenter()
 
+    maven { url "http://repo1.maven.org/maven2/" }
+}
 dependencies {
     annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
     implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
@@ -83,6 +88,25 @@ nebulaDocker {
     }
 }
 
+
+task codeCoverageReport(type: JacocoReport) {
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
+    reports {
+        xml.enabled true
+        xml.destination "${buildDir}/reports/jacoco/report.xml"
+        html.enabled false
+        csv.enabled false
+    }
+}
+
+codeCoverageReport.dependsOn {
+    subprojects*.test
+}
 
 
 

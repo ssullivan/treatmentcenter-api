@@ -1,14 +1,24 @@
+sudo: required
+
 # Override default travis gradle steps
 # Per docs: https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step
 # install: true
 jdk:
   - openjdk8
+
+services:
+  - docker # required, but travis uses older version of docker
+
+
 matrix:
   include:
     - language: java
+      before_script:
+        - chmod+x ./gradlew
       script:
         - ./gradlew assemble
         - ./gradlew check
+        - ./gradlew codeCoverageReport
         - ./gradlew build
       after_success:
         - bash <(curl -s https://codecov.io/bash)
