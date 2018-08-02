@@ -15,13 +15,19 @@ matrix:
     - language: java
       before_script:
         - chmod +x ./gradlew
+        - docker --version  # document the version travis is using
       script:
         - ./gradlew assemble
         - ./gradlew check
         - ./gradlew codeCoverageReport
         - ./gradlew build
+
       after_success:
         - bash <(curl -s https://codecov.io/bash)
+        - pip install --user awscli # install aws cli w/o sudo
+        - export PATH=$PATH:$HOME/.local/bin # put aws in the path
+        - eval $(aws ecr get-login --region $AWS_DEFAULT_REGION) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
+        - ./gradlew dockerTagImageProdLatest
     - language: node_js
       node_js:
         - "node"
