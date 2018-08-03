@@ -90,16 +90,21 @@ nebulaDocker {
                 '    && addgroup -g $GID app_user \\\n' +
                 '    && adduser -D -s /bin/false -H -u $UID -G app_user app_user')
         copyFile('docker-entrypoint.sh', '/')
+        copyFile('server.yml', '/treatmentcenter-api-latest/bin/')
         entryPoint('/docker-entrypoint.sh')
-        defaultCommand "/treatmentcenter-api-latest/bin/treatmentcenter-api"
+        defaultCommand "/treatmentcenter-api-latest/bin/treatmentcenter-api", "server", "server.yml"
     }
 
     afterEvaluate {
-        task copyResources(type: Copy) {
+        task copyEntrypoint(type: Copy) {
             from 'docker/docker-entrypoint.sh'
             into 'build/docker/'
         }
-        createDockerfile.dependsOn(copyResources)
+        task copyServerYaml(type: Copy) {
+            from 'docker/server.yml'
+            into 'build/docker/'
+        }
+        createDockerfile.dependsOn(copyEntrypoint, copyServerYaml)
     }
 }
 
