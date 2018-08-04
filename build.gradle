@@ -93,7 +93,7 @@ nebulaDocker {
         copyFile('server.yml', '/treatmentcenter-api-latest/bin/')
         entryPoint('/docker-entrypoint.sh')
         runCommand('chmod ugo+rx ./docker-entrypoint.sh')
-        defaultCommand "/treatmentcenter-api-latest/bin/treatmentcenter-api", "server", "server.yml"
+        defaultCommand "/treatmentcenter-api-latest/bin/treatmentcenter-api", "server", "/treatmentcenter-api-latest/bin/server.yml"
     }
 
     afterEvaluate {
