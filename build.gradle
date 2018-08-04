@@ -96,8 +96,11 @@ nebulaDocker {
     }
 
     afterEvaluate {
-        task copyEntrypoint(type: Copy, dependsOn: copyServerYaml) {
+        task copyEntrypoint(type: Copy) {
             from 'docker/docker-entrypoint.sh'
+            into 'build/docker/'
+
+            from 'docker/server.yml'
             into 'build/docker/'
         }
         task copyServerYaml(type: Copy) {
