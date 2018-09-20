@@ -66,18 +66,16 @@ if (AWS_DEFAULT_REGION == null) {
     AWS_DEFAULT_REGION = "us-east-2"
 }
 
-task copyEntrypoint(type: Copy) {
-    from 'docker/docker-entrypoint.sh'
-    into 'build/docker/'
+task createBuildDir << {
+    mkdir project.buildDir
+    mkdir new File(project.buildDir, "docker")
 }
 
-task copyServerYaml(type: Copy) {
-    from 'docker/server.yml'
+task copyDockerDir(type: Copy, dependsOn: [createBuildDir]) {
+    from 'docker/'
     into 'build/docker/'
+    include "*.*"
 }
-
-build.dependsOn.add(copyEntrypoint)
-build.dependsOn.add(copyServerYaml)
 
 nebulaDocker {
     maintainerEmail = 'sjsullivan7@gmail.com'
@@ -116,12 +114,11 @@ nebulaDocker {
     }
 
     afterEvaluate {
-        createDockerfile.dependsOn.add(copyEntrypoint)
-        createDockerfile.dependsOn.add(copyServerYaml)
+        createDockerfile.dependsOn.add(copyDockerDir)
     }
 }
 
-dockerBuildImage.dependsOn(copyEntrypoint, copyServerYaml)
+dockerBuildImage.dependsOn(copyDockerDir)
 
 task codeCoverageReport(type: JacocoReport) {
     executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
