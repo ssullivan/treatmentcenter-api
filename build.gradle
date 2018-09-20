@@ -66,16 +66,6 @@ if (AWS_DEFAULT_REGION == null) {
     AWS_DEFAULT_REGION = "us-east-2"
 }
 
-task createBuildDir << {
-    mkdir project.buildDir
-    mkdir new File(project.buildDir, "docker")
-}
-
-task copyDockerDir(type: Copy, dependsOn: [createBuildDir]) {
-    from 'docker/'
-    into 'build/docker/'
-    include "*.*"
-}
 
 nebulaDocker {
     maintainerEmail = 'sjsullivan7@gmail.com'
@@ -114,11 +104,23 @@ nebulaDocker {
     }
 
     afterEvaluate {
-        createDockerfile.dependsOn.add(copyDockerDir)
+        task createBuildDir << {
+             mkdir project.buildDir
+             mkdir new File(project.buildDir, "docker")
+        }
+
+        task copyDockerDir(type: Copy, dependsOn: [createBuildDir]) {
+            from 'docker/'
+            into 'build/docker/'
+            include "*.*"
+        }
+
+        createDockerfile.dependsOn copyDockerDir
+        copyDockerDir.mustRunAfter nebulaDockerCopyDistResources
     }
 }
 
-dockerBuildImage.dependsOn(copyDockerDir)
+
 
 task codeCoverageReport(type: JacocoReport) {
     executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
