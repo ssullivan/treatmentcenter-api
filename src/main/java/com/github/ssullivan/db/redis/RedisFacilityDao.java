@@ -86,7 +86,6 @@ public class RedisFacilityDao implements IFacilityDao {
     }
   }
 
-
   public Facility getFacility(final StatefulRedisConnection<String, String> connection, final String pk) {
     List<KeyValue<String, String>> fields = connection.sync().hmget(KEY + ":" + pk, "_source");
     if (fields != null && !fields.isEmpty()) {
@@ -204,8 +203,13 @@ public class RedisFacilityDao implements IFacilityDao {
 
   public void indexFacility(final RedisCommands<String, String> sync, final Facility facility) throws IOException{
       indexFacilityByGeo(sync, facility);
+      sync.getStatefulConnection().flushCommands();
+
       indexFacilityByServiceCodes(sync, facility);
+      sync.getStatefulConnection().flushCommands();
+
       indexFacilityByCategoryCodes(sync, facility);
+      sync.getStatefulConnection().flushCommands();
   }
 
   private void indexFacilityByGeo(final RedisCommands<String, String> sync, final Facility facility) throws IOException {

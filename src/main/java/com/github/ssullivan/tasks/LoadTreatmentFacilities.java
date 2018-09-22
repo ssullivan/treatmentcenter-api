@@ -1,18 +1,14 @@
 package com.github.ssullivan.tasks;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
-import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.SamshaFacility;
-import com.github.ssullivan.model.ServiceCategoryCode;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -22,7 +18,6 @@ import io.dropwizard.setup.Bootstrap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
