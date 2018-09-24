@@ -9,6 +9,7 @@ import com.google.inject.ImplementedBy;
 import io.lettuce.core.GeoArgs;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @ImplementedBy(RedisFacilityDao.class)
 public interface IFacilityDao {
@@ -20,6 +21,12 @@ public interface IFacilityDao {
    * @throws IOException
    */
   void addFacility(final Facility facility) throws IOException;
+
+  Facility getFacility(final String pk) throws IOException;
+
+  default Facility getFacility(final Long pk) throws IOException {
+    return getFacility(Objects.requireNonNull("" + pk, "Facility primary key must not be null"));
+  }
 
   /**
    * Finds the all of the facilities that any of the specified service codes.

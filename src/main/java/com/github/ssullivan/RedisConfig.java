@@ -7,7 +7,13 @@ public class RedisConfig {
     private int port;
 
     public RedisConfig() {
+        this.host = "localhost";
         this.port = 6379;
+    }
+
+    public RedisConfig(String host, int port) {
+        this.host = host;
+        this.port = port;
     }
 
     @JsonProperty("host")

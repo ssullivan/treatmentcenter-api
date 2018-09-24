@@ -83,9 +83,11 @@ public class LoadTreatmentFacilities extends Command {
   private void processRows(final IFacilityDao facilityDao, final ICategoryCodesDao categoryCodesDao,
       final MappingIterator<SamshaFacility> iterator) throws IOException {
 
+    long counter = 0;
     while (iterator.hasNextValue()) {
       final SamshaFacility value = iterator.nextValue();
       final Facility facility = new Facility();
+      facility.setId(++counter);
       facility.setCategoryCodes(value.getCategoryCodes());
       facility.setServiceCodes(value.getServiceCodes());
       facility.setName1(value.getName1());

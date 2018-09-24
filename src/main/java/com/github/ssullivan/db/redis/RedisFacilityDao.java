@@ -9,6 +9,7 @@ import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.Pair;
 import com.github.ssullivan.model.SearchResults;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs;
@@ -21,6 +22,7 @@ import io.lettuce.core.ScanCursor;
 import io.lettuce.core.ScoredValueScanCursor;
 import io.lettuce.core.ZStoreArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -47,6 +50,7 @@ public class RedisFacilityDao implements IFacilityDao {
   private static final String INDEX_BY_SERVICES = "index:facility_by_service";
   private static final String INDEX_BY_CATEGORIES = "index:facility_by_category";
   private static final String INDEX_BY_GEO = "index:facility_by_geo";
+
 
   private IRedisConnectionPool redis;
   private ObjectMapper objectMapper;
@@ -74,13 +78,23 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   public void addFacility(final Facility facility) throws IOException {
-    final long pk = generatePrimaryKey();
-    facility.setId(pk);
+    if (facility.getId() <= 0) {
+      final long pk = generatePrimaryKey();
+      facility.setId(pk);
+    }
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
       final Map<String, String> stringStringMap = toStringMap(facility);
-      connection.sync().hmset(KEY + ":" + pk, stringStringMap);
+      connection.sync().hmset(KEY + ":" + facility.getId(), stringStringMap);
       indexFacility(connection.sync(), facility);
+    } catch (Exception e) {
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  public Facility getFacility(final String pk) throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+    return getFacility(connection, pk);
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
     }
@@ -212,6 +226,26 @@ public class RedisFacilityDao implements IFacilityDao {
       sync.getStatefulConnection().flushCommands();
   }
 
+  private List<RedisFuture<Long>> indexFacilityByGeoAsync(final RedisAsyncCommands<String, String> async, final Facility facility) {
+    if (facility == null) {
+      return ImmutableList.of();
+    }
+
+    if (facility.getId() == 0) {
+      throw new IllegalArgumentException("id must be non zero");
+    }
+
+    if (facility.getLocation() == null) {
+      return ImmutableList.of();
+    }
+
+
+    return
+        ImmutableList.of(async.geoadd(INDEX_BY_GEO, facility.getLocation().lon(),
+            facility.getLocation().lat(),
+            Long.toString(facility.getId(), 10)));
+  }
+
   private void indexFacilityByGeo(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
     if (facility == null) {
       return;
@@ -227,6 +261,21 @@ public class RedisFacilityDao implements IFacilityDao {
 
 
     sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),  Long.toString(facility.getId(), 10));
+  }
+
+  public List<RedisFuture<Long>> indexFacilityByCategoryCodesAsync(final RedisAsyncCommands<String, String> async, final Facility facility) throws IOException {
+    if (facility == null) return ImmutableList.of();
+
+    if (facility.getId() == 0) {
+      throw new IllegalArgumentException("id must be non zero");
+    }
+
+    return facility.getCategoryCodes()
+        .stream()
+        .filter(Objects::nonNull)
+        .filter(it -> !it.isEmpty())
+        .map(code -> async.sadd(INDEX_BY_CATEGORIES + ":" + code, Long.toString(facility.getId(), 10)))
+        .collect(Collectors.toList());
   }
 
   public void indexFacilityByCategoryCodes(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
@@ -288,8 +337,10 @@ public class RedisFacilityDao implements IFacilityDao {
     facility.getServiceCodes()
         .forEach(code -> toReturn.put("s:" + code, "1"));
 
-    toReturn.put("location.lat", "" + facility.getLocation().lat());
-    toReturn.put("location.lon", "" + facility.getLocation().lon());
+    if (facility.getLocation() != null) {
+      toReturn.put("location.lat", "" + facility.getLocation().lat());
+      toReturn.put("location.lon", "" + facility.getLocation().lon());
+    }
 
     return toReturn;
   }
