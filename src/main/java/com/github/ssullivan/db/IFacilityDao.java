@@ -6,7 +6,6 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.ImplementedBy;
-import io.lettuce.core.GeoArgs;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -16,9 +15,6 @@ public interface IFacilityDao {
 
   /**
    * Adds the Facility to the database.
-   *
-   * @param facility
-   * @throws IOException
    */
   void addFacility(final Facility facility) throws IOException;
 
@@ -33,8 +29,6 @@ public interface IFacilityDao {
    *
    * @param serviceCodes the SAMSHA service codes
    * @param page control how many results to return
-   * @return
-   * @throws IOException
    */
   SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final Page page)
       throws IOException;
@@ -48,8 +42,6 @@ public interface IFacilityDao {
    * @param latitude the latitude coordinate according to WGS84
    * @param distance radius distance
    * @param geoUnit distance unit (m, km, ft, mi)
-   *
-   * @return
    */
   SearchResults<Facility> findByServiceCodesWithin(final List<String> serviceCodes,
       double longitude, double latitude, double distance, final String geoUnit, Page page)

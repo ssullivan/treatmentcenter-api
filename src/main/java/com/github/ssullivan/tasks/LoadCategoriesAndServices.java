@@ -10,7 +10,6 @@ import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.ServiceCategoryCode;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import io.dropwizard.cli.Command;

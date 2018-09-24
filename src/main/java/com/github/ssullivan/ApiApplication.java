@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ApiApplication extends Application<AppConfig> {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ApiApplication.class);
 
   public static void main(String[] args) throws Exception {
@@ -38,7 +39,8 @@ public class ApiApplication extends Application<AppConfig> {
     bootstrap.addBundle(new SwaggerBundle<AppConfig>() {
       @Override
       protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(AppConfig configuration) {
-        SwaggerBundleConfiguration swaggerBundleConfiguration = configuration.getSwaggerBundleConfiguration();
+        SwaggerBundleConfiguration swaggerBundleConfiguration = configuration
+            .getSwaggerBundleConfiguration();
         if (swaggerBundleConfiguration == null) {
           swaggerBundleConfiguration = new SwaggerBundleConfiguration();
         }
@@ -46,7 +48,8 @@ public class ApiApplication extends Application<AppConfig> {
         swaggerBundleConfiguration.setVersion("0.10");
         swaggerBundleConfiguration.setIsPrettyPrint(true);
         swaggerBundleConfiguration.setTitle("Treatmentcenter API");
-        swaggerBundleConfiguration.setDescription("An OpenAPI to find treatment centers for substance abuse");
+        swaggerBundleConfiguration
+            .setDescription("An OpenAPI to find treatment centers for substance abuse");
         swaggerBundleConfiguration.setResourcePackage("com.github.ssullivan.resources");
 
         return swaggerBundleConfiguration;
@@ -59,16 +62,14 @@ public class ApiApplication extends Application<AppConfig> {
         if (getConfiguration().getElasticConfig() != null) {
           install(new ElasticClientModule(getConfiguration().getElasticConfig()));
           LOGGER.info("Configuring application to connect to ElasticSearch");
-        }
-        else {
+        } else {
           LOGGER.info("No configuration provided for ElasticSearch");
         }
 
         if (getConfiguration().getRedisConfig() != null) {
           install(new RedisClientModule(getConfiguration().getRedisConfig()));
           LOGGER.info("Configuring application to connect to Redis/ElatiCache");
-        }
-        else {
+        } else {
           LOGGER.info("No configuration provided for Redis/ElastiCache");
         }
       }

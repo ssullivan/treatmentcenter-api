@@ -8,6 +8,7 @@ import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
@@ -27,8 +28,6 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import io.swagger.annotations.ApiParam;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +52,11 @@ public class FacilitySearchResource {
   @ApiOperation(value = "Find treatment facilities by their services and location",
       response = SearchResults.class)
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Search was completed successfully", response = SearchResults.class),
+      @ApiResponse(code = 200,
+          message = "Search was completed successfully", response = SearchResults.class),
       @ApiResponse(code = 400, message = "Invalid query parameters"),
-      @ApiResponse(code = 500, message = "An error occurred in the service while executing the search")
+      @ApiResponse(code = 500,
+          message = "An error occurred in the service while executing the search")
   })
   @GET
   @Path("/search")

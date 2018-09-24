@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisServiceCodeDao implements IServiceCodesDao {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
 
   private static final String KEY = "treatment:services";
@@ -71,9 +72,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
           .map(json -> {
             try {
               return deserialize(json);
-            }
-            catch (IOException e) {
-              LOGGER.error("Failed to deserialize service",e);
+            } catch (IOException e) {
+              LOGGER.error("Failed to deserialize service", e);
             }
             return null;
           })
@@ -81,8 +81,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
           .filter(service -> service.getCategoryCode().equalsIgnoreCase(category))
           .map(Service::getCode)
           .collect(Collectors.toList());
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
@@ -109,13 +108,12 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
     return jsons.stream().map(it -> {
       try {
         return deserialize(it);
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         LOGGER.error("Failed to deserialize service json", e);
         return null;
       }
     })
-    .filter(Objects::nonNull)
-    .collect(Collectors.toList());
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }
