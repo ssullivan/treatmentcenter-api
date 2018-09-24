@@ -44,6 +44,7 @@ public class RedisFacilityDao implements IFacilityDao {
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);
 
   private static final String SEARCH_REQ = "search:counter";
+  private static final String SEARCH_BY_SERVICE_REQ = "search:services:counter";
 
   private static final String KEY = "treatment:facilities";
   private static final String PK_KEY = "treatment:facilities:counter";
@@ -314,8 +315,7 @@ public class RedisFacilityDao implements IFacilityDao {
   @Override
   public SearchResults findByServiceCodes(ImmutableSet<String> mustServiceCodes,
       Page page) throws IOException {
-
-    return null;
+    return findByServiceCodes(ImmutableList.copyOf(mustServiceCodes), page);
   }
 
   private Map<String, String> toStringMap(final Facility facility) throws JsonProcessingException {
