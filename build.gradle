@@ -168,6 +168,7 @@ task codeCoverageReport(type: JacocoReport) {
         xml.enabled true
         html.enabled false
         csv.enabled false
+        xml.destination "${buildDir}/reports/jacoco/report.xml"
     }
 
     sourceSets sourceSets.main
