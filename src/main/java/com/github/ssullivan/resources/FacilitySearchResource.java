@@ -40,7 +40,8 @@ import org.slf4j.LoggerFactory;
 public class FacilitySearchResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FacilitySearchService.class);
-  private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern.compile("^[A-Z0-9]{2,4}");
+  private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern
+      .compile("^[A-Z0-9]{2,4}");
   private final IFacilityDao facilityDao;
 
   @Inject
@@ -73,7 +74,7 @@ public class FacilitySearchResource {
       @QueryParam("distance") final Double distance,
 
       @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)", allowableValues = "m,km,ft,mi")
-      @Pattern (regexp = "m|km|ft|mi")
+      @Pattern(regexp = "m|km|ft|mi")
       @DefaultValue("mi")
       @QueryParam("distanceUnit") final String distanceUnit,
 
@@ -85,33 +86,34 @@ public class FacilitySearchResource {
     try {
       // Validate that the service codes are valid
       final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-              .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-              .findFirst();
+          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
+          .findFirst();
 
       // If any of the service codes are invalid return a 400
       if (firstInvalidServiceCode.isPresent()) {
         asyncResponse.resume(Response.status(400)
-                .entity(ImmutableMap.of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
+            .entity(ImmutableMap
+                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
         return;
       }
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon)) {
-          asyncResponse.resume(
-              Response.status(400)
-              .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
-      }
-      else if (lat != null && lon != null) {
-        asyncResponse.resume(this.facilityDao.findByServiceCodesWithin(serviceCodes, lon, lat, distance, distanceUnit, Page.page(offset, size)));
-      }
-      else {
-        asyncResponse.resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
+        asyncResponse.resume(
+            Response.status(400)
+                .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
+      } else if (lat != null && lon != null) {
+        asyncResponse.resume(this.facilityDao
+            .findByServiceCodesWithin(serviceCodes, lon, lat, distance, distanceUnit,
+                Page.page(offset, size)));
+      } else {
+        asyncResponse
+            .resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
       }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes", e);
       asyncResponse.resume(Response.serverError().build());
     }
   }
-
 
 
 }
