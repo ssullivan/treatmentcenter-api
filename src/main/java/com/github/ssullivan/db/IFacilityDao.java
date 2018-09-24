@@ -33,6 +33,9 @@ public interface IFacilityDao {
   SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final Page page)
       throws IOException;
 
+  SearchResults findByServiceCodes(final ImmutableSet<String> mustServiceCodes, final Page page)
+      throws IOException;
+
   /**
    * Finds the all of the facilities that any of the specified service codes withhin a certain
    * radius.
@@ -45,8 +48,5 @@ public interface IFacilityDao {
    */
   SearchResults<Facility> findByServiceCodesWithin(final List<String> serviceCodes,
       double longitude, double latitude, double distance, final String geoUnit, Page page)
-      throws IOException;
-
-  SearchResults findByServiceCodes(final ImmutableSet<String> mustServiceCodes, final Page page)
       throws IOException;
 }
