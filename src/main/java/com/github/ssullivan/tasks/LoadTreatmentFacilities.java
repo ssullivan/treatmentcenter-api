@@ -36,7 +36,7 @@ public class LoadTreatmentFacilities extends Command {
         .type(File.class)
         .help("Loads treatment centers from a NDJSON (newline delimited JSON file");
 
-    subparser.addArgument( "--host")
+    subparser.addArgument("--host")
         .dest("Host")
         .required(false)
         .setDefault("localhost")
@@ -73,8 +73,7 @@ public class LoadTreatmentFacilities extends Command {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream)) {
           processRows(facilityDao, categoryCodesDao, objectReader.readValues(gzipInputStream));
         }
-      }
-      else {
+      } else {
         processRows(facilityDao, categoryCodesDao, objectReader.readValues(fileInputStream));
       }
     }
