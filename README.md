@@ -1,5 +1,5 @@
 # treatmentcenter-api OpenAPI Specification
-[![Build Status](https://travis-ci.org/ssullivan/treatmentcenter-api.svg?branch=master)](https://travis-ci.org/ssullivan/treatmentcenter-api)
+[![Build Status](https://travis-ci.org/ssullivan/treatmentcenter-api.svg?branch=master)](https://travis-ci.org/ssullivan/treatmentcenter-api)![codecov](https://codecov.io/gh/ssullivan/treatmentcenter-api/branch/master/graph/badge.svg)](https://codecov.io/gh/ssullivan/treatmentcenter-api)
 
 ## Links
 
