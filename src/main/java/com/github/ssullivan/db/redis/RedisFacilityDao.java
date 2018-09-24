@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisFacilityDao implements IFacilityDao {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);
 
   private static final String SEARCH_REQ = "search:counter";
@@ -68,7 +69,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
   private long generatePrimaryKey() throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-        return connection.sync().incr(PK_KEY);
+      return connection.sync().incr(PK_KEY);
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
     }
@@ -95,13 +96,14 @@ public class RedisFacilityDao implements IFacilityDao {
 
   public Facility getFacility(final String pk) throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-    return getFacility(connection, pk);
+      return getFacility(connection, pk);
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
     }
   }
 
-  public Facility getFacility(final StatefulRedisConnection<String, String> connection, final String pk) {
+  public Facility getFacility(final StatefulRedisConnection<String, String> connection,
+      final String pk) {
     List<KeyValue<String, String>> fields = connection.sync().hmget(KEY + ":" + pk, "_source");
     if (fields != null && !fields.isEmpty()) {
       return deserialize(fields.get(0).getValue(), null);
@@ -116,7 +118,6 @@ public class RedisFacilityDao implements IFacilityDao {
 
       final String searchKey = "search:" + connection.sync().incr(SEARCH_REQ);
 
-
       final String[] serviceCodeSets = serviceCodes
           .stream()
           .map(code -> INDEX_BY_SERVICES + ":" + code)
@@ -124,7 +125,8 @@ public class RedisFacilityDao implements IFacilityDao {
 
       final Long numResults = connection.sync().zunionstore(searchKey, serviceCodeSets);
 
-      final List<String> ids = connection.sync().zrange(searchKey, page.offset(), page.offset() + page.size());
+      final List<String> ids = connection.sync()
+          .zrange(searchKey, page.offset(), page.offset() + page.size());
       connection.sync().expire(searchKey, 5);
 
       final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
@@ -133,10 +135,10 @@ public class RedisFacilityDao implements IFacilityDao {
 
       connection.sync().del(searchKey);
 
-
       return SearchResults.searchResults(numResults, searchResults);
     } catch (Exception e) {
-      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes, page);
+      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes,
+          page);
       throw new IOException("Failed to find any matching results", e);
     }
   }
@@ -152,7 +154,6 @@ public class RedisFacilityDao implements IFacilityDao {
       final String searchKey = "search:" + searchId;
       final String radiusKey = "search:geo:" + searchId;
 
-
       final String[] serviceCodeSets = serviceCodes
           .stream()
           .map(code -> INDEX_BY_SERVICES + ":" + code)
@@ -163,8 +164,9 @@ public class RedisFacilityDao implements IFacilityDao {
       // TODO: I think we can do a lua script here to reduce round trips
       // #1 Find all of the centers within a certain radius
 
-      connection.sync().georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
-          GeoRadiusStoreArgs.Builder.store(INDEX_BY_GEO));
+      connection.sync()
+          .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
+              GeoRadiusStoreArgs.Builder.store(INDEX_BY_GEO));
 
       // #2 Find all of the centers with the specified services
       connection.sync().zunionstore(searchKey, serviceCodeSets);
@@ -195,39 +197,41 @@ public class RedisFacilityDao implements IFacilityDao {
       return SearchResults.searchResults(numResults, searchResults);
 
     } catch (Exception e) {
-      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes, page);
+      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes,
+          page);
       throw new IOException("Failed to find any matching results", e);
     }
   }
 
-  public void indexFacility(final Facility facility) throws IOException{
+  public void indexFacility(final Facility facility) throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-        connection.setAutoFlushCommands(false);
-        final RedisCommands<String, String> sync = connection.sync();
-        try {
-          indexFacility(sync, facility);
-          connection.flushCommands();
-        }
-        finally {
-          connection.setAutoFlushCommands(true);
-        }
+      connection.setAutoFlushCommands(false);
+      final RedisCommands<String, String> sync = connection.sync();
+      try {
+        indexFacility(sync, facility);
+        connection.flushCommands();
+      } finally {
+        connection.setAutoFlushCommands(true);
+      }
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
     }
   }
 
-  public void indexFacility(final RedisCommands<String, String> sync, final Facility facility) throws IOException{
-      indexFacilityByGeo(sync, facility);
-      sync.getStatefulConnection().flushCommands();
+  public void indexFacility(final RedisCommands<String, String> sync, final Facility facility)
+      throws IOException {
+    indexFacilityByGeo(sync, facility);
+    sync.getStatefulConnection().flushCommands();
 
-      indexFacilityByServiceCodes(sync, facility);
-      sync.getStatefulConnection().flushCommands();
+    indexFacilityByServiceCodes(sync, facility);
+    sync.getStatefulConnection().flushCommands();
 
-      indexFacilityByCategoryCodes(sync, facility);
-      sync.getStatefulConnection().flushCommands();
+    indexFacilityByCategoryCodes(sync, facility);
+    sync.getStatefulConnection().flushCommands();
   }
 
-  private List<RedisFuture<Long>> indexFacilityByGeoAsync(final RedisAsyncCommands<String, String> async, final Facility facility) {
+  private List<RedisFuture<Long>> indexFacilityByGeoAsync(
+      final RedisAsyncCommands<String, String> async, final Facility facility) {
     if (facility == null) {
       return ImmutableList.of();
     }
@@ -239,7 +243,6 @@ public class RedisFacilityDao implements IFacilityDao {
     if (facility.getLocation() == null) {
       return ImmutableList.of();
     }
-
 
     return
         ImmutableList.of(async.geoadd(INDEX_BY_GEO, facility.getLocation().lon(),
@@ -247,7 +250,8 @@ public class RedisFacilityDao implements IFacilityDao {
             Long.toString(facility.getId(), 10)));
   }
 
-  private void indexFacilityByGeo(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
+  private void indexFacilityByGeo(final RedisCommands<String, String> sync, final Facility facility)
+      throws IOException {
     if (facility == null) {
       return;
     }
@@ -260,12 +264,15 @@ public class RedisFacilityDao implements IFacilityDao {
       return;
     }
 
-
-    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),  Long.toString(facility.getId(), 10));
+    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),
+        Long.toString(facility.getId(), 10));
   }
 
-  public List<RedisFuture<Long>> indexFacilityByCategoryCodesAsync(final RedisAsyncCommands<String, String> async, final Facility facility) throws IOException {
-    if (facility == null) return ImmutableList.of();
+  public List<RedisFuture<Long>> indexFacilityByCategoryCodesAsync(
+      final RedisAsyncCommands<String, String> async, final Facility facility) throws IOException {
+    if (facility == null) {
+      return ImmutableList.of();
+    }
 
     if (facility.getId() == 0) {
       throw new IllegalArgumentException("id must be non zero");
@@ -275,17 +282,20 @@ public class RedisFacilityDao implements IFacilityDao {
         .stream()
         .filter(Objects::nonNull)
         .filter(it -> !it.isEmpty())
-        .map(code -> async.sadd(INDEX_BY_CATEGORIES + ":" + code, Long.toString(facility.getId(), 10)))
+        .map(code -> async
+            .sadd(INDEX_BY_CATEGORIES + ":" + code, Long.toString(facility.getId(), 10)))
         .collect(Collectors.toList());
   }
 
-  public void indexFacilityByCategoryCodes(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
-    if (facility == null) return;
+  public void indexFacilityByCategoryCodes(final RedisCommands<String, String> sync,
+      final Facility facility) throws IOException {
+    if (facility == null) {
+      return;
+    }
 
     if (facility.getId() == 0) {
       throw new IllegalArgumentException("id must be non zero");
     }
-
 
     facility.getCategoryCodes()
         .stream()
@@ -296,20 +306,23 @@ public class RedisFacilityDao implements IFacilityDao {
         });
   }
 
-  public void indexFacilityByServiceCodes(final RedisCommands<String, String> sync, final Facility facility) throws IOException {
-    if (facility == null) return;
+  public void indexFacilityByServiceCodes(final RedisCommands<String, String> sync,
+      final Facility facility) throws IOException {
+    if (facility == null) {
+      return;
+    }
 
     if (facility.getId() == 0) {
       throw new IllegalArgumentException("id must be non zero");
     }
 
     facility.getServiceCodes()
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(it -> !it.isEmpty())
-            .forEach(code -> {
-              sync.sadd(INDEX_BY_SERVICES + ":" + code, Long.toString(facility.getId(), 10));
-            });
+        .stream()
+        .filter(Objects::nonNull)
+        .filter(it -> !it.isEmpty())
+        .forEach(code -> {
+          sync.sadd(INDEX_BY_SERVICES + ":" + code, Long.toString(facility.getId(), 10));
+        });
   }
 
   @Override
@@ -354,7 +367,9 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   private Facility deserialize(@Nonnull final String json, final Facility defaultValue) {
-    if (json.isEmpty()) return defaultValue;
+    if (json.isEmpty()) {
+      return defaultValue;
+    }
     try {
       return deserialize(json);
     } catch (IOException e) {
