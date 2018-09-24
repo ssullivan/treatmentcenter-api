@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
+import io.lettuce.core.GeoRadiusStoreArgs.Builder;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -140,34 +141,43 @@ public class RedisFacilityDao implements IFacilityDao {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
       final String searchId = connection.sync().incr(SEARCH_REQ) + "";
-      final String searchKey = "search:" + searchId;
-      final String radiusKey = "search:geo:" + searchId;
+      final String searchKey = "s:" + searchId;
+      final String radiusKey = "s:geo:" + searchId;
 
       final String[] serviceCodeSets = serviceCodes
           .stream()
           .map(code -> INDEX_BY_SERVICES + ":" + code)
           .collect(Collectors.toSet()).toArray(new String[]{});
 
-      connection.sync().multi();
+     //connection.sync().multi();
 
       // TODO: I think we can do a lua script here to reduce round trips
       // #1 Find all of the centers within a certain radius
 
-      connection.sync()
+      final Long countByGeoRadius = connection.sync()
           .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
-              GeoRadiusStoreArgs.Builder.store(INDEX_BY_GEO));
+              GeoRadiusStoreArgs.Builder
+                  .store(INDEX_BY_GEO).withCount(page.size()));
+      LOGGER.debug("Store '{}' results into '{}'", countByGeoRadius, searchKey);
+
 
       // #2 Find all of the centers with the specified services
-      connection.sync().zunionstore(searchKey, serviceCodeSets);
+      final Long countByServices = connection.sync().zunionstore(searchKey, serviceCodeSets);
+      LOGGER.debug("Store '{}' results into '{}'", countByServices, searchKey);
 
       // #3 Find the intersection of the places that have our services we want and
       //    are within a specific radius
       final Long numResults = connection.sync()
           .zinterstore(searchKey + ":" + 1, searchKey, radiusKey);
+      LOGGER.debug("Store '{}' result into '{}'", numResults, searchKey + ":" + 1 );
 
       // #4 Fetch the results
-      final List<String> ids = connection.sync()
+      List<String> ids = connection.sync()
           .zrange(searchKey, page.offset(), page.offset() + page.size());
+
+      if (ids == null) {
+        ids = new ArrayList<>(0);
+      }
 
       // #5 Fetch each facility
       final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
@@ -178,7 +188,7 @@ public class RedisFacilityDao implements IFacilityDao {
       connection.sync().expire(searchKey, 5);
       connection.sync().expire(searchKey + ":1", 5);
       connection.sync().expire(radiusKey, 5);
-      connection.sync().exec();
+
 
       // #7 Explicitly delete the keys
       connection.sync().del(searchKey, searchKey + ":1", radiusKey);
@@ -253,8 +263,10 @@ public class RedisFacilityDao implements IFacilityDao {
       return;
     }
 
-    sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),
+    final Long geoAddCount = sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),
         Long.toString(facility.getId(), 10));
+
+    LOGGER.debug("{} items added to set {}", geoAddCount, INDEX_BY_GEO);
   }
 
   public List<RedisFuture<Long>> indexFacilityByCategoryCodesAsync(

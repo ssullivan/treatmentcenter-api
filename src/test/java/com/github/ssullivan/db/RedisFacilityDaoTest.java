@@ -4,8 +4,10 @@ import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
@@ -19,7 +21,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
-public class ElasticFacilityDaoTest {
+public class RedisFacilityDaoTest {
   private RedisFacilityDao _dao;
 
   @BeforeAll
@@ -83,5 +85,36 @@ public class ElasticFacilityDaoTest {
     MatcherAssert.assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
     MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
     MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
+  }
+
+  @Test
+  public void testSearchingForFacilityByGeo() throws IOException {
+    final Facility original = new Facility();
+    original.setId(1);
+    original.setCategoryCodes(Sets.newHashSet("TEST"));
+    original.setServiceCodes(Sets.newHashSet("BAR"));
+    original.setCity("New York");
+    original.setState("NY");
+    original.setFormattedAddress("Test St. 1234");
+    original.setWebsite("http://www.test.com");
+    original.setZip("10001");
+    original.setLocation(GeoPoint.geoPoint(40.715076,-73.991180));
+
+    _dao.addFacility(original);
+
+    SearchResults<Facility> ret =
+        _dao.findByServiceCodesWithin(ImmutableList.of("BAR"), -73.991, 40.715, 30,"km", Page.page());
+
+    final Facility fromDb = (Facility) ret.hits().get(0);
+    MatcherAssert.assertThat(fromDb, Matchers.notNullValue());
+    MatcherAssert.assertThat(fromDb.getId(), Matchers.equalTo(original.getId()));
+    MatcherAssert.assertThat(fromDb.getCategoryCodes(), Matchers.containsInAnyOrder("TEST"));
+    MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
+    MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
+    MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
+    MatcherAssert.assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
+    MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
+    MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
+
   }
 }
