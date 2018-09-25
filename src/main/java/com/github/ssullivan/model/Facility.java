@@ -18,6 +18,48 @@ public class Facility {
   private Set<String> categoryCodes;
   private Set<String> serviceCodes;
 
+  public Facility() {
+
+  }
+
+  /**
+   * Creates a new instance of {@link Facility}.
+   *
+   * @param id the primary key >= 0 (if 0 one will be generated)
+   * @param name1 the primary name for this facility
+   * @param name2 a secondary name for this facility
+   * @param zip zipcode of the facility
+   * @param street street part of the address for the facility
+   * @param city city part of the address for the facility
+   * @param state state part of the address for the facility
+   * @param googlePlaceId the google place id for the location
+   * @param location the geo location of the facility
+   * @param formattedAddress the clean formatted address for the location
+   * @param website the website for the facility
+   * @param phoneNumbers phone numbers associated with the facility
+   * @param categoryCodes categories of services offered by the facility
+   * @param serviceCodes services offered by the facility
+   */
+  public Facility(long id, String name1, String name2, String zip, String street,
+      String city, String state, String googlePlaceId, GeoPoint location,
+      String formattedAddress, String website, Set<String> phoneNumbers,
+      Set<String> categoryCodes, Set<String> serviceCodes) {
+    this.id = id;
+    this.name1 = name1;
+    this.name2 = name2;
+    this.zip = zip;
+    this.street = street;
+    this.city = city;
+    this.state = state;
+    this.googlePlaceId = googlePlaceId;
+    this.location = location;
+    this.formattedAddress = formattedAddress;
+    this.website = website;
+    this.phoneNumbers = phoneNumbers;
+    this.categoryCodes = categoryCodes;
+    this.serviceCodes = serviceCodes;
+  }
+
   public String getStreet() {
     return street;
   }
