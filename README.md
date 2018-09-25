@@ -4,12 +4,12 @@
 
 ## Links
 
-- Documentation(ReDoc): https://ssullivan.github.io/treatmentcenter-api/
-- SwaggerUI: https://ssullivan.github.io/treatmentcenter-api/swagger-ui/
+- Documentation(ReDoc): https://docs.centerlocator.org/
+- SwaggerUI: https://docs.centerlocator.org/swagger-ui/
 - Look full spec:
-    + JSON https://ssullivan.github.io/treatmentcenter-api/swagger.json
-    + YAML https://ssullivan.github.io/treatmentcenter-api/swagger.yaml
-- Preview spec version for branch `[branch]`: https://ssullivan.github.io/treatmentcenter-api/preview/[branch]
+    + JSON https://docs.centerlocator.org/swagger.json
+    + YAML https://docs.centerlocator.org/swagger.yaml
+- Preview spec version for branch `[branch]`: https://docs.centerlocator.org/preview/[branch]
 - API URL: https://api.centerlocator.org
 
 **Warning:** All above links are updated only after Travis CI finishes deployment
