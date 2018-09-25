@@ -22,11 +22,13 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityDaoTest {
+
   private RedisFacilityDao _dao;
 
   @BeforeAll
   private void setup() {
-    final Injector injector = Guice.createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
+    final Injector injector = Guice
+        .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
     _dao = injector.getInstance(RedisFacilityDao.class);
 
   }
@@ -52,7 +54,8 @@ public class RedisFacilityDaoTest {
     MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
     MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
     MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
-    MatcherAssert.assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
+    MatcherAssert
+        .assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
     MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
     MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
 
@@ -82,7 +85,8 @@ public class RedisFacilityDaoTest {
     MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
     MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
     MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
-    MatcherAssert.assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
+    MatcherAssert
+        .assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
     MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
     MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
   }
@@ -98,12 +102,13 @@ public class RedisFacilityDaoTest {
     original.setFormattedAddress("Test St. 1234");
     original.setWebsite("http://www.test.com");
     original.setZip("10001");
-    original.setLocation(GeoPoint.geoPoint(40.715076,-73.991180));
+    original.setLocation(GeoPoint.geoPoint(40.715076, -73.991180));
 
     _dao.addFacility(original);
 
     SearchResults<Facility> ret =
-        _dao.findByServiceCodesWithin(ImmutableList.of("BAR"), -73.991, 40.715, 30,"km", Page.page());
+        _dao.findByServiceCodesWithin(ImmutableList.of("BAR"), -73.991, 40.715, 30, "km",
+            Page.page());
 
     final Facility fromDb = (Facility) ret.hits().get(0);
     MatcherAssert.assertThat(fromDb, Matchers.notNullValue());
@@ -112,7 +117,8 @@ public class RedisFacilityDaoTest {
     MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
     MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
     MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
-    MatcherAssert.assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
+    MatcherAssert
+        .assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
     MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
     MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
 

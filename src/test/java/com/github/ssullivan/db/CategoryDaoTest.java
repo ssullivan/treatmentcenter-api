@@ -19,6 +19,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class CategoryDaoTest {
+
   private RedisCategoryCodesDao dao;
   private IRedisConnectionPool pool;
 

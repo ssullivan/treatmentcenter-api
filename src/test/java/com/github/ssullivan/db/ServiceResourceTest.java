@@ -1,7 +1,6 @@
 package com.github.ssullivan.db;
 
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.resources.ServiceCodesResource;
 import io.dropwizard.testing.junit.ResourceTestRule;
@@ -19,8 +18,10 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class ServiceResourceTest {
+
   private static final GenericType<List<Service>> LIST_SERVICES
-      = new GenericType<List<Service>>() {};
+      = new GenericType<List<Service>>() {
+  };
 
   private static final RedisServiceCodeDao dao = Mockito.mock(RedisServiceCodeDao.class);
 
@@ -55,7 +56,8 @@ public class ServiceResourceTest {
     Service firstService = services.get(0);
     MatcherAssert.assertThat(firstService, Matchers.notNullValue());
     MatcherAssert.assertThat(firstService.getCode(), Matchers.equalTo(service.getCode()));
-    MatcherAssert.assertThat(firstService.getCategoryCode(), Matchers.equalTo(service.getCategoryCode()));
+    MatcherAssert
+        .assertThat(firstService.getCategoryCode(), Matchers.equalTo(service.getCategoryCode()));
     MatcherAssert.assertThat(firstService.getName(), Matchers.equalTo(service.getName()));
   }
 }

@@ -2,12 +2,9 @@ package com.github.ssullivan.db;
 
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
-import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.guice.RedisClientModule;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.io.IOException;
@@ -21,6 +18,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ServicesDaoTest {
+
   private RedisServiceCodeDao _dao;
   private IRedisConnectionPool _pool;
 

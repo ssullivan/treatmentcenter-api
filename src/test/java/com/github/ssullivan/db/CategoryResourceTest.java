@@ -10,7 +10,6 @@ import java.util.List;
 import javax.ws.rs.core.GenericType;
 import org.assertj.core.util.Lists;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
-import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.After;
@@ -20,7 +19,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class CategoryResourceTest {
-  private static final GenericType<List<Category>> LIST_CATEGORIES = new GenericType<List<Category>>() {};
+
+  private static final GenericType<List<Category>> LIST_CATEGORIES = new GenericType<List<Category>>() {
+  };
   private static final RedisCategoryCodesDao dao = Mockito.mock(RedisCategoryCodesDao.class);
 
   @ClassRule
