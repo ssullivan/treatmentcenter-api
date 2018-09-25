@@ -18,6 +18,8 @@ public interface IServiceCodesDao {
    */
   Service get(final String id) throws IOException;
 
+  boolean delete(final String id) throws IOException;
+
   /**
    * Fetches the service code record from the db.
    *

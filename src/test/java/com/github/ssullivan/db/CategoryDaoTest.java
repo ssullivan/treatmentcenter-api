@@ -39,26 +39,29 @@ public class CategoryDaoTest {
   @Test
   public void testAddingCategoryCode() throws IOException {
     Category category = new Category();
-    category.setCode("TEST");
+    category.setCode("TEST" + System.currentTimeMillis());
     category.setName("A test category");
     category.setServiceCodes(ImmutableSet.of("FOO"));
 
     final boolean wasadded = dao.addCategory(category);
     MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
+    dao.delete(category.getCode());
   }
 
   @Test
   public void testFetchingCategoryCode() throws IOException {
     Category category = new Category();
-    category.setCode("TEST");
+    category.setCode("TEST2");
     category.setName("A test category");
     category.setServiceCodes(ImmutableSet.of("FOO"));
 
     final boolean wasadded = dao.addCategory(category);
-    final Category fromDb = dao.get("TEST");
+    final Category fromDb = dao.get(category.getCode());
 
     MatcherAssert.assertThat(fromDb.getCode(), Matchers.equalTo(category.getCode()));
     MatcherAssert.assertThat(fromDb.getName(), Matchers.equalTo(category.getName()));
     MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("FOO"));
+
+    dao.delete(category.getCode());
   }
 }

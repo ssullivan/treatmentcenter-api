@@ -41,6 +41,15 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   }
 
   @Override
+  public boolean delete(String id) throws IOException {
+    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
+      return connection.sync().hdel(KEY, id) > 0;
+    } catch (Exception e) {
+      throw new IOException("Failed to connect to REDIS", e);
+    }
+  }
+
+  @Override
   public Category getByCategoryCode(String categoryCode) throws IOException {
     return get(categoryCode);
   }

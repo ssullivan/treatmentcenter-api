@@ -36,9 +36,9 @@ public class ServicesDaoTest {
   }
 
   @Test
-  public void testAddingCategoryCode() throws IOException {
+  public void testAddingService() throws IOException {
     Service service = new Service();
-    service.setCode("TEST");
+    service.setCode("TEST" + System.currentTimeMillis());
     service.setName("A test service");
     service.setCategoryCode("TEST");
     service.setDescription("A test service");
@@ -46,22 +46,27 @@ public class ServicesDaoTest {
     final boolean wasadded = _dao.addService(service);
 
     MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
+
+    _dao.delete(service.getCode());
   }
 
   @Test
-  public void testFetchingCategoryCode() throws IOException {
+  public void testFetchService() throws IOException {
     Service service = new Service();
-    service.setCode("TEST");
+    service.setCode("TEST2");
     service.setName("A test service");
     service.setCategoryCode("TEST");
     service.setDescription("A test service");
 
     final boolean wasadded = _dao.addService(service);
-    final Service fromDb = _dao.get("TEST");
+    final Service fromDb = _dao.get(service.getCode());
 
     MatcherAssert.assertThat(fromDb.getCode(), Matchers.equalTo(service.getCode()));
     MatcherAssert.assertThat(fromDb.getName(), Matchers.equalTo(service.getName()));
     MatcherAssert.assertThat(fromDb.getCategoryCode(), Matchers.equalTo(service.getCategoryCode()));
     MatcherAssert.assertThat(fromDb.getDescription(), Matchers.equalTo(service.getDescription()));
+
+
+    _dao.delete(service.getCode());
   }
 }
