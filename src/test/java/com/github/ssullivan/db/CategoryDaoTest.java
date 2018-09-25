@@ -19,20 +19,20 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class CategoryDaoTest {
-  private RedisCategoryCodesDao _dao;
-  private IRedisConnectionPool _pool;
+  private RedisCategoryCodesDao dao;
+  private IRedisConnectionPool pool;
 
   @BeforeAll
   private void setup() {
     final Injector injector = Guice
         .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
-    _dao = injector.getInstance(RedisCategoryCodesDao.class);
-    _pool = injector.getInstance(IRedisConnectionPool.class);
+    dao = injector.getInstance(RedisCategoryCodesDao.class);
+    pool = injector.getInstance(IRedisConnectionPool.class);
   }
 
   @AfterAll
   private void cleanup() {
-    _pool.close();
+    pool.close();
   }
 
   @Test
@@ -42,7 +42,7 @@ public class CategoryDaoTest {
     category.setName("A test category");
     category.setServiceCodes(ImmutableSet.of("FOO"));
 
-    final boolean wasadded = _dao.addCategory(category);
+    final boolean wasadded = dao.addCategory(category);
     MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
   }
 
@@ -53,8 +53,8 @@ public class CategoryDaoTest {
     category.setName("A test category");
     category.setServiceCodes(ImmutableSet.of("FOO"));
 
-    final boolean wasadded = _dao.addCategory(category);
-    final Category fromDb = _dao.get("TEST");
+    final boolean wasadded = dao.addCategory(category);
+    final Category fromDb = dao.get("TEST");
 
     MatcherAssert.assertThat(fromDb.getCode(), Matchers.equalTo(category.getCode()));
     MatcherAssert.assertThat(fromDb.getName(), Matchers.equalTo(category.getName()));
