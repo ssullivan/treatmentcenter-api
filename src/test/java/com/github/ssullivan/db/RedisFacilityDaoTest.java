@@ -39,7 +39,6 @@ public class RedisFacilityDaoTest {
   @AfterAll
   private void teardown() throws Exception {
     _redisConnectionPool.close();
-    _redisConnectionPool.borrowConnection();
   }
 
   @Test
