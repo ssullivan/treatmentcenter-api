@@ -13,7 +13,6 @@ import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
-import io.lettuce.core.GeoRadiusStoreArgs.Builder;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.LettuceFutures;
 import io.lettuce.core.RedisFuture;
