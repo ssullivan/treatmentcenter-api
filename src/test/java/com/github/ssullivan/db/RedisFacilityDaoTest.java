@@ -1,6 +1,7 @@
 package com.github.ssullivan.db;
 
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
@@ -15,6 +16,7 @@ import com.google.inject.Injector;
 import java.io.IOException;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,12 +25,19 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityDaoTest {
   private RedisFacilityDao _dao;
+  private IRedisConnectionPool _redisConnectionPool;
 
   @BeforeAll
   private void setup() {
     final Injector injector = Guice.createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
     _dao = injector.getInstance(RedisFacilityDao.class);
+    _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
+  }
 
+  @AfterAll
+  private void teardown() throws Exception {
+    _redisConnectionPool.close();
+    _redisConnectionPool.borrowConnection();
   }
 
   @Test
@@ -115,6 +124,8 @@ public class RedisFacilityDaoTest {
     MatcherAssert.assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
     MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
     MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
+
+
 
   }
 }

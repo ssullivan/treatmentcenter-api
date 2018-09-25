@@ -3,13 +3,19 @@ package com.github.ssullivan.db.redis;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.support.ConnectionPoolSupport;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RedisConnectionPool implements IRedisConnectionPool {
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisConnectionPool.class);
+
   private RedisClient redisClient;
   private GenericObjectPool<StatefulRedisConnection<String, String>> pool;
+  private AtomicBoolean isClosed = new AtomicBoolean(false);
 
   @Inject
   public RedisConnectionPool(RedisClient redisClient) {
@@ -24,12 +30,21 @@ public class RedisConnectionPool implements IRedisConnectionPool {
   }
 
   @Override
+  public boolean isClosed() {
+    return this.isClosed.get();
+  }
+
+  @Override
   public void close() {
-    try {
-      this.pool.close();
+    if (isClosed.compareAndSet(false, true)) {
+      try {
+        this.pool.close();
+      } finally {
+        this.redisClient.shutdown();
+      }
     }
-    finally {
-      this.redisClient.shutdown();
+    else {
+      LOGGER.warn("Pool has already been closed");
     }
   }
 }

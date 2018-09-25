@@ -1,13 +1,14 @@
 package com.github.ssullivan;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import javax.annotation.Nullable;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfig extends Configuration {
 
-  private ElasticConfig elasticConfig;
   private RedisConfig redisConfig;
   private SwaggerBundleConfiguration swaggerBundleConfiguration;
 
@@ -26,15 +27,6 @@ public class AppConfig extends Configuration {
     this.swaggerBundleConfiguration = swaggerBundleConfiguration;
   }
 
-  @JsonProperty("elasticsearch")
-  @Nullable
-  public ElasticConfig getElasticConfig() {
-    return elasticConfig;
-  }
-
-  public void setElasticConfig(ElasticConfig elasticConfig) {
-    this.elasticConfig = elasticConfig;
-  }
 
   @JsonProperty("redis")
   @Nullable

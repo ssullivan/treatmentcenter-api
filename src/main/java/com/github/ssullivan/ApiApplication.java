@@ -2,17 +2,19 @@ package com.github.ssullivan;
 
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.guice.DropwizardAwareModule;
-import com.github.ssullivan.guice.ElasticClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.tasks.LoadCategoriesAndServices;
 import com.github.ssullivan.tasks.LoadTreatmentFacilities;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +61,6 @@ public class ApiApplication extends Application<AppConfig> {
     final DropwizardAwareModule<AppConfig> module = new DropwizardAwareModule<AppConfig>() {
       @Override
       protected void configure() {
-        if (getConfiguration().getElasticConfig() != null) {
-          install(new ElasticClientModule(getConfiguration().getElasticConfig()));
-          LOGGER.info("Configuring application to connect to ElasticSearch");
-        } else {
-          LOGGER.info("No configuration provided for ElasticSearch");
-        }
-
         if (getConfiguration().getRedisConfig() != null) {
           install(new RedisClientModule(getConfiguration().getRedisConfig()));
           LOGGER.info("Configuring application to connect to Redis/ElatiCache");
