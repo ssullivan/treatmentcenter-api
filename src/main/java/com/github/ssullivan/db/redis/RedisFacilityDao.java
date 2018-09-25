@@ -10,20 +10,28 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
 import io.lettuce.core.GeoRadiusStoreArgs.Builder;
 import io.lettuce.core.KeyValue;
+import io.lettuce.core.LettuceFutures;
 import io.lettuce.core.RedisFuture;
+import io.lettuce.core.TransactionResult;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -33,6 +41,8 @@ import org.slf4j.LoggerFactory;
 public class RedisFacilityDao implements IFacilityDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);
+  private static final long DEFAULT_TIMEOUT = 15;
+  private static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
   private static final String SEARCH_REQ = "search:counter";
   private static final String SEARCH_BY_SERVICE_REQ = "search:services:counter";
@@ -94,7 +104,17 @@ public class RedisFacilityDao implements IFacilityDao {
 
   public Facility getFacility(final StatefulRedisConnection<String, String> connection,
       final String pk) {
-    List<KeyValue<String, String>> fields = connection.sync().hmget(KEY + ":" + pk, "_source");
+      return toFacility(connection.sync().hmget(KEY + ":" + pk, "_source"));
+  }
+
+  public CompletionStage<Facility> getFacilityAsync(final RedisAsyncCommands<String, String> asyncCommands,
+      final String pk) {
+
+    return asyncCommands.hmget(KEY + ":" + pk, "_source")
+        .thenApply(this::toFacility);
+  }
+
+  private Facility toFacility(final List<KeyValue<String, String>> fields) {
     if (fields != null && !fields.isEmpty()) {
       return deserialize(fields.get(0).getValue(), null);
     }
@@ -106,7 +126,7 @@ public class RedisFacilityDao implements IFacilityDao {
       throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
-      final String searchKey = "search:" + connection.sync().incr(SEARCH_REQ);
+      final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
 
       final String[] serviceCodeSets = serviceCodes
           .stream()
@@ -117,11 +137,8 @@ public class RedisFacilityDao implements IFacilityDao {
 
       final List<String> ids = connection.sync()
           .zrange(searchKey, page.offset(), page.offset() + page.size());
-      connection.sync().expire(searchKey, 5);
 
-      final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList());
+      final List<Facility> searchResults = fetchBatch(connection.async(), ids);
 
       connection.sync().del(searchKey);
 
@@ -131,6 +148,29 @@ public class RedisFacilityDao implements IFacilityDao {
           page);
       throw new IOException("Failed to find any matching results", e);
     }
+  }
+
+  private List<Facility> fetchBatch(final RedisAsyncCommands<String, String> asyncCommands, final List<String> ids) {
+    if (asyncCommands == null || ids == null) {
+      return new ArrayList<>(0);
+    }
+
+    // #5 Fetch each facility
+    final List<CompletionStage<Facility>> facilityFutures =
+        ids.stream().map(id -> getFacilityAsync(asyncCommands, id))
+            .collect(Collectors.toList());
+
+    final CompletableFuture<List<Facility>>
+      batchFuture = CompletableFutures.successfulAsList(facilityFutures, t -> {
+      LOGGER.error("Fetching one of the facilities failed", t);
+      return null;
+    }).thenApply(results -> results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+
+    if (!LettuceFutures.awaitAll(Duration.ofSeconds(DEFAULT_TIMEOUT), batchFuture)) {
+      return new ArrayList<>(0);
+    }
+
+    return batchFuture.getNow(new ArrayList<>(0));
   }
 
   @Override
@@ -149,57 +189,53 @@ public class RedisFacilityDao implements IFacilityDao {
           .map(code -> INDEX_BY_SERVICES + ":" + code)
           .collect(Collectors.toSet()).toArray(new String[]{});
 
-     //connection.sync().multi();
+      final RedisAsyncCommands<String, String> asyncCommands = connection.async();
+      asyncCommands.multi();
 
       // TODO: I think we can do a lua script here to reduce round trips
       // #1 Find all of the centers within a certain radius
 
-      final Long countByGeoRadius = connection.sync()
+      RedisFuture<Long> geoRadiusFuture = asyncCommands
           .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
               GeoRadiusStoreArgs.Builder
-                  .store(INDEX_BY_GEO).withCount(page.size()));
-      LOGGER.debug("Store '{}' results into '{}'", countByGeoRadius, searchKey);
-
+                  .store(radiusKey));
 
       // #2 Find all of the centers with the specified services
-      final Long countByServices = connection.sync().zunionstore(searchKey, serviceCodeSets);
-      LOGGER.debug("Store '{}' results into '{}'", countByServices, searchKey);
+      RedisFuture<Long> serviceUnionFuture = asyncCommands.zunionstore(searchKey, serviceCodeSets);
 
       // #3 Find the intersection of the places that have our services we want and
       //    are within a specific radius
-      final Long numResults = connection.sync()
+      RedisFuture<Long> geoServicesIntersectionFuture = asyncCommands
           .zinterstore(searchKey + ":" + 1, searchKey, radiusKey);
-      LOGGER.debug("Store '{}' result into '{}'", numResults, searchKey + ":" + 1 );
 
-      // #4 Fetch the results
-      List<String> ids = connection.sync()
-          .zrange(searchKey, page.offset(), page.offset() + page.size());
+      final RedisFuture<TransactionResult> multiFuture = asyncCommands.exec();
+      try {
+        TransactionResult transactionResult = multiFuture.get(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT);
 
-      if (ids == null) {
-        ids = new ArrayList<>(0);
+        // #4 Fetch the results
+        final List<String> ids = connection.sync()
+            .zrange(searchKey, page.offset(), page.offset() + page.size());
+
+        final List<Facility> searchResults = fetchBatch(asyncCommands, ids);
+
+        return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
+      } catch (InterruptedException e) {
+        LOGGER.error("Interrupted while waiting for multi result", e);
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOGGER.error("Timeout while waiting for multi result", e);
       }
-
-      // #5 Fetch each facility
-      final List<Facility> searchResults = ids.stream().map(id -> getFacility(connection, id))
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList());
-
-      // #6 Ensure the keys get deleted
-      connection.sync().expire(searchKey, 5);
-      connection.sync().expire(searchKey + ":1", 5);
-      connection.sync().expire(radiusKey, 5);
-
-
-      // #7 Explicitly delete the keys
-      connection.sync().del(searchKey, searchKey + ":1", radiusKey);
-
-      return SearchResults.searchResults(numResults, searchResults);
-
-    } catch (Exception e) {
+      finally {
+        // #6 Explicitly delete the keys
+        connection.async().del(searchKey, searchKey + ":1", radiusKey);
+      }
+    }
+    catch (Exception e) {
       LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes,
           page);
       throw new IOException("Failed to find any matching results", e);
     }
+    return SearchResults.searchResults(0L);
   }
 
   public void indexFacility(final Facility facility) throws IOException {
@@ -263,8 +299,9 @@ public class RedisFacilityDao implements IFacilityDao {
       return;
     }
 
-    final Long geoAddCount = sync.geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),
-        Long.toString(facility.getId(), 10));
+    final Long geoAddCount = sync
+        .geoadd(INDEX_BY_GEO, facility.getLocation().lon(), facility.getLocation().lat(),
+            Long.toString(facility.getId(), 10));
 
     LOGGER.debug("{} items added to set {}", geoAddCount, INDEX_BY_GEO);
   }
