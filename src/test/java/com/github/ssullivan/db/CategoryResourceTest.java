@@ -44,7 +44,7 @@ public class CategoryResourceTest {
   }
 
   @Test
-  public void testGetCategory() {
+  public void testListCategories() {
     final List<Category> categories =
         resources.target("categories").request().get(LIST_CATEGORIES);
 
