@@ -111,7 +111,7 @@ public class FacilitySearchResource {
             .resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
       }
     } catch (IOException e) {
-      LOGGER.error("Failed to find facilities with service codes", e);
+      LOGGER.error("Failed to find facilities with service codes`", e);
       asyncResponse.resume(Response.serverError().build());
     }
   }
