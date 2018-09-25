@@ -15,6 +15,15 @@ public class Category {
   private String name;
   private Set<String> serviceCodes;
 
+  public Category() {
+  }
+
+  public Category(String code, String name, Set<String> serviceCodes) {
+    this.code = code;
+    this.name = name;
+    this.serviceCodes = serviceCodes;
+  }
+
   @ApiModelProperty(value = "Unique code for this category", example = "EDU")
   public String getCode() {
     return code;

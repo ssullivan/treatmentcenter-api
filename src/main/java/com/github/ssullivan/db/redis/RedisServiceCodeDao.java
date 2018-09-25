@@ -42,6 +42,15 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   }
 
   @Override
+  public boolean delete(String id) throws IOException {
+    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
+      return connection.sync().hdel(KEY, id) > 0;
+    } catch (Exception e) {
+      throw new IOException("Failed to connect to REDIS", e);
+    }
+  }
+
+  @Override
   public Service getByServiceCode(String serviceCode) throws IOException {
     return get(serviceCode);
   }

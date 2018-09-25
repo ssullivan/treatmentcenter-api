@@ -5,6 +5,7 @@ import com.github.ssullivan.model.Category;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.List;
+import org.eclipse.jetty.util.IO;
 
 @ImplementedBy(RedisCategoryCodesDao.class)
 public interface ICategoryCodesDao {
@@ -17,6 +18,8 @@ public interface ICategoryCodesDao {
    * @throws IOException failed to get from elasticsearch (reasons various)
    */
   Category get(final String id) throws IOException;
+
+  boolean delete(final String id) throws IOException;
 
   /**
    * Fetches the service code record from the db.

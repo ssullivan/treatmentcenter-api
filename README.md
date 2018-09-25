@@ -4,12 +4,13 @@
 
 ## Links
 
-- Documentation(ReDoc): https://ssullivan.github.io/treatmentcenter-api/
-- SwaggerUI: https://ssullivan.github.io/treatmentcenter-api/swagger-ui/
+- Documentation(ReDoc): https://docs.centerlocator.org/
+- SwaggerUI: https://docs.centerlocator.org/swagger-ui/
 - Look full spec:
-    + JSON https://ssullivan.github.io/treatmentcenter-api/swagger.json
-    + YAML https://ssullivan.github.io/treatmentcenter-api/swagger.yaml
-- Preview spec version for branch `[branch]`: https://ssullivan.github.io/treatmentcenter-api/preview/[branch]
+    + JSON https://docs.centerlocator.org/swagger.json
+    + YAML https://docs.centerlocator.org/swagger.yaml
+- Preview spec version for branch `[branch]`: https://docs.centerlocator.org/preview/[branch]
+- API URL: https://api.centerlocator.org
 
 **Warning:** All above links are updated only after Travis CI finishes deployment
 
@@ -23,7 +24,7 @@
 ### Usage
 
 1. Run `npm start`
-2. Checkout console output to see where local server is started. You can use all [links](#links) (except `preview`) by replacing https://ssullivan.github.io/treatmentcenter-api/ with url from the message: `Server started <url>`
+2. Checkout console output to see where local server is started. You can use all [links](#links) (except `preview`) by replacing https://docs.centerlocator.org/treatmentcenter-api/ with url from the message: `Server started <url>`
 3. Make changes using your favorite editor or `swagger-editor` (look for URL in console output)
 4. All changes are immediately propagated to your local server, moreover all documentation pages will be automagically refreshed in a browser after each change
 **TIP:** you can open `swagger-editor`, documentation and `swagger-ui` in parallel
