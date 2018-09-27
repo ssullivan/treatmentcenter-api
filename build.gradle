@@ -25,7 +25,7 @@ apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
 
-version = '1.1.0'
+version = '1.2.0'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
