@@ -132,7 +132,7 @@ public class RedisFacilityDao implements IFacilityDao {
           .map(code -> INDEX_BY_SERVICES + ":" + code)
           .collect(Collectors.toSet()).toArray(new String[]{});
 
-      final Long numResults = connection.sync().zunionstore(searchKey, serviceCodeSets);
+      final Long numResults = connection.sync().zinterstore(searchKey, serviceCodeSets);
 
       final List<String> ids = connection.sync()
           .zrange(searchKey, page.offset(), page.offset() + page.size());
@@ -200,7 +200,7 @@ public class RedisFacilityDao implements IFacilityDao {
                   .store(radiusKey));
 
       // #2 Find all of the centers with the specified services
-      RedisFuture<Long> serviceUnionFuture = asyncCommands.zunionstore(searchKey, serviceCodeSets);
+      RedisFuture<Long> serviceUnionFuture = asyncCommands.zinterstore(searchKey, serviceCodeSets);
 
       // #3 Find the intersection of the places that have our services we want and
       //    are within a specific radius
