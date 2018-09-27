@@ -40,7 +40,7 @@ public class FacilitySearchResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FacilitySearchService.class);
   private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern
-      .compile("^[A-Z0-9]{2,4}");
+      .compile("^[a-zA-Z0-9]{1,31}");
   private final IFacilityDao facilityDao;
 
   @Inject
