@@ -9,7 +9,9 @@ import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
@@ -31,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -78,7 +81,76 @@ public class RedisFacilityDao implements IFacilityDao {
     return new ArrayList<>();
   }
 
+  @Override
+  public ImmutableMap<Long, Facility> fetchAllFacilities() throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      final ImmutableList<String> redisKeys = ImmutableList.copyOf(connection.sync().keys(KEY + ":*"));
+
+      List<List<String>> partitions = Lists.partition(redisKeys, 100);
+
+      RedisAsyncCommands<String, String> async = connection.async();
+      async.setAutoFlushCommands(false);
+
+      final List<CompletionStage<Facility>> futures = new ArrayList<>();
+
+      for (final List<String> part : partitions) {
+        for (final String redisKey : part) {
+          futures.add(async.hmget(redisKey, "_source")
+              .thenApply(this::toFacility));
+        }
+        async.flushCommands();
+      }
+
+      final Map<Long, Facility> facilityMap = CompletableFutures.successfulAsList(futures, error -> {
+        LOGGER.error("Failed to get facility");
+        return null;
+      }).thenApply(results ->
+          results.stream().filter(Objects::nonNull).collect(Collectors.toMap(Facility::getId, Function.identity())))
+          .join();
+
+      return ImmutableMap.copyOf(facilityMap);
+    } catch (Exception e) {
+      throw new IOException("Failed to get largest primary key from REDIS", e);
+    }
+  }
+
+  @Override
+  public long getLargestPrimaryKey() throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      final List<Long> pks = connection.sync().keys(KEY + ":*")
+          .stream()
+          .map(redisKey -> redisKey.split(":"))
+          .map(redisKeySplit -> redisKeySplit[2])
+          .map(pkStr -> Long.valueOf(pkStr, 10))
+          .sorted((lhs, rhs) -> -1 * Long.compare(lhs, rhs))
+          .collect(Collectors.toList());
+
+      if (!pks.isEmpty()) {
+        return pks.get(0);
+      }
+      return 0;
+    } catch (Exception e) {
+      throw new IOException("Failed to get largest primary key from REDIS", e);
+    }
+  }
+
   public void addFacility(final Facility facility) throws IOException {
+    if (facility.getId() <= 0) {
+      final long pk = generatePrimaryKey();
+      facility.setId(pk);
+    }
+
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      final Map<String, String> stringStringMap = toStringMap(facility);
+      connection.sync().hmset(KEY + ":" + facility.getId(), stringStringMap);
+      indexFacility(connection.sync(), facility);
+    } catch (Exception e) {
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  @Override
+  public void updateFacility(Facility facility) throws IOException {
     if (facility.getId() <= 0) {
       final long pk = generatePrimaryKey();
       facility.setId(pk);
@@ -250,6 +322,12 @@ public class RedisFacilityDao implements IFacilityDao {
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
     }
+  }
+
+  private void clearIndexForFacility(final RedisCommands<String, String> sync, final Facility original,
+      final Facility newFacility) {
+    sync.zrem(INDEX_BY_GEO, Long.toString(original.getId(), 10));
+
   }
 
   public void indexFacility(final RedisCommands<String, String> sync, final Facility facility)

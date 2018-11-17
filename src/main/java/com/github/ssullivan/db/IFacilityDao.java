@@ -4,6 +4,7 @@ import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
@@ -13,10 +14,16 @@ import java.util.Objects;
 @ImplementedBy(RedisFacilityDao.class)
 public interface IFacilityDao {
 
+  ImmutableMap<Long, Facility> fetchAllFacilities() throws IOException;
+
+  long getLargestPrimaryKey() throws IOException;
+
   /**
    * Adds the Facility to the database.
    */
   void addFacility(final Facility facility) throws IOException;
+
+  void updateFacility(final Facility facility) throws IOException;
 
   Facility getFacility(final String pk) throws IOException;
 
