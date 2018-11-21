@@ -6,17 +6,25 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.FacilityWithRadius;
+import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
+import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoArgs.Sort;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
+import io.lettuce.core.GeoWithin;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.LettuceFutures;
+import io.lettuce.core.Range;
 import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScoredValue;
 import io.lettuce.core.TransactionResult;
+import io.lettuce.core.Value;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -173,7 +181,7 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   @Override
-  public SearchResults<Facility> findByServiceCodesWithin(List<String> serviceCodes,
+  public SearchResults<FacilityWithRadius> findByServiceCodesWithin(List<String> serviceCodes,
       double longitude, double latitude, double distance, String geoUnit, Page page)
       throws IOException {
 
@@ -194,10 +202,24 @@ public class RedisFacilityDao implements IFacilityDao {
       // TODO: I think we can do a lua script here to reduce round trips
       // #1 Find all of the centers within a certain radius
 
-      RedisFuture<Long> geoRadiusFuture = asyncCommands
+      RedisFuture<Long> indexGeoSearchFuture = asyncCommands
           .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
               GeoRadiusStoreArgs.Builder
-                  .store(radiusKey));
+                  .count(100)
+                  .sort(Sort.desc)
+                  .withStoreDist(radiusKey));
+
+
+      CompletionStage<Map<Long, Double>> geoRadisues = asyncCommands.zrangebyscoreWithScores(radiusKey, Range.create(0, distance))
+          .thenApply(scoredValues -> {
+            Map<Long, Double> radiusResults = new HashMap<>();
+            for (ScoredValue<String> scoredValue : scoredValues) {
+              radiusResults.put(Long.valueOf(scoredValue.getValue()), scoredValue.getScore());
+            }
+            return radiusResults;
+          });
+
+
 
       // #2 Find all of the centers with the specified services
       RedisFuture<Long> serviceUnionFuture = asyncCommands.zinterstore(searchKey, serviceCodeSets);
@@ -213,10 +235,17 @@ public class RedisFacilityDao implements IFacilityDao {
 
         // #4 Fetch the results
         final List<String> ids = connection.sync()
-            .zrange(searchKey, page.offset(), page.offset() + page.size());
+            .zrange(searchKey + ":" + 1, page.offset(), page.offset() + page.size());
+        Map<Long, Double> distances = geoRadisues.toCompletableFuture()
+            .join();
+        final List<FacilityWithRadius> searchResults =
+            fetchBatch(asyncCommands, ids)
+            .stream()
+            .map(facility -> {
+              double radius = distances.getOrDefault(facility.getId() , 0.0);
+              return new FacilityWithRadius(facility, radius);
 
-        final List<Facility> searchResults = fetchBatch(asyncCommands, ids);
-
+            }).collect(Collectors.toList());
         return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
       } catch (InterruptedException e) {
         LOGGER.error("Interrupted while waiting for multi result", e);

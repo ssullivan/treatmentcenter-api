@@ -2,6 +2,7 @@ package com.github.ssullivan.db;
 
 import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
@@ -46,7 +47,7 @@ public interface IFacilityDao {
    * @param distance radius distance
    * @param geoUnit distance unit (m, km, ft, mi)
    */
-  SearchResults<Facility> findByServiceCodesWithin(final List<String> serviceCodes,
+  SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> serviceCodes,
       double longitude, double latitude, double distance, final String geoUnit, Page page)
       throws IOException;
 }

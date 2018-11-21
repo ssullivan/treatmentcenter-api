@@ -1,5 +1,6 @@
 package com.github.ssullivan.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class Facility {
@@ -20,6 +21,23 @@ public class Facility {
 
   public Facility() {
 
+  }
+
+  public Facility(Facility facility) {
+    this.id = facility.getId();
+    this.name1 = facility.getName1();
+    this.name2 = facility.getName2();
+    this.zip = facility.getZip();
+    this.street = facility.getStreet();
+    this.city = facility.getCity();
+    this.state = facility.getState();
+    this.googlePlaceId = facility.getGooglePlaceId();
+    this.location = facility.getLocation();
+    this.formattedAddress = facility.getFormattedAddress();
+    this.website = facility.getWebsite();
+    this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
+    this.categoryCodes = new HashSet<>(facility.getCategoryCodes());
+    this.serviceCodes = new HashSet<>(facility.getServiceCodes());
   }
 
   /**

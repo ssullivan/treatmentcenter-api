@@ -30,4 +30,7 @@ public abstract class GeoPoint {
   public static boolean isValidLatLong(final double lat, final double lon) {
     return isValidLat(lat) && isValidLon(lon);
   }
+
+
+
 }
