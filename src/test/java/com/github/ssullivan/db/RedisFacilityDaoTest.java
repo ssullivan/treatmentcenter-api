@@ -5,6 +5,7 @@ import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
@@ -114,7 +115,7 @@ public class RedisFacilityDaoTest {
 
     _dao.addFacility(original);
 
-    SearchResults<Facility> ret =
+    SearchResults<FacilityWithRadius> ret =
         _dao.findByServiceCodesWithin(ImmutableList.of("BAR"), -73.991, 40.715, 30, "km",
             Page.page());
 

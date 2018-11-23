@@ -205,19 +205,9 @@ public class RedisFacilityDao implements IFacilityDao {
       RedisFuture<Long> indexGeoSearchFuture = asyncCommands
           .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
               GeoRadiusStoreArgs.Builder
-                  .count(100)
-                  .sort(Sort.desc)
                   .withStoreDist(radiusKey));
 
 
-      CompletionStage<Map<Long, Double>> geoRadisues = asyncCommands.zrangebyscoreWithScores(radiusKey, Range.create(0, distance))
-          .thenApply(scoredValues -> {
-            Map<Long, Double> radiusResults = new HashMap<>();
-            for (ScoredValue<String> scoredValue : scoredValues) {
-              radiusResults.put(Long.valueOf(scoredValue.getValue()), scoredValue.getScore());
-            }
-            return radiusResults;
-          });
 
 
 
@@ -236,16 +226,13 @@ public class RedisFacilityDao implements IFacilityDao {
         // #4 Fetch the results
         final List<String> ids = connection.sync()
             .zrange(searchKey + ":" + 1, page.offset(), page.offset() + page.size());
-        Map<Long, Double> distances = geoRadisues.toCompletableFuture()
-            .join();
+
         final List<FacilityWithRadius> searchResults =
             fetchBatch(asyncCommands, ids)
             .stream()
-            .map(facility -> {
-              double radius = distances.getOrDefault(facility.getId() , 0.0);
-              return new FacilityWithRadius(facility, radius);
+            .map(facility -> new FacilityWithRadius(facility, facility.getLocation()
+                .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit))).collect(Collectors.toList());
 
-            }).collect(Collectors.toList());
         return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
       } catch (InterruptedException e) {
         LOGGER.error("Interrupted while waiting for multi result", e);

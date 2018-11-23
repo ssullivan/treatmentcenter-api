@@ -1,6 +1,7 @@
 package com.github.ssullivan.db;
 
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
@@ -80,7 +81,7 @@ public class FacilitySearchResourceTest {
         Mockito.anyDouble(),
         Mockito.eq("mi"),
         Mockito.any()))
-        .thenReturn(SearchResults.searchResults(1L, facility));
+        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
   }
 
   @AfterAll
