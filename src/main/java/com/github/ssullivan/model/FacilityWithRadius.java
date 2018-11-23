@@ -8,6 +8,9 @@ public class FacilityWithRadius extends Facility {
   private double radius;
   private String geoUnit;
 
+  public FacilityWithRadius() {
+  }
+
   public FacilityWithRadius(Facility facility, double radius) {
     super(facility);
     this.radius = radius;

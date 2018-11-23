@@ -36,7 +36,7 @@ public class FacilitySearchResourceTest {
 
   private static class FacilitySearchResults {
     private long totalHits;
-    private List<Facility> hits;
+    private List<FacilityWithRadius> hits;
 
     public long getTotalHits() {
       return totalHits;
@@ -46,11 +46,11 @@ public class FacilitySearchResourceTest {
       this.totalHits = totalHits;
     }
 
-    public List<Facility> getHits() {
+    public List<FacilityWithRadius> getHits() {
       return hits;
     }
 
-    public void setHits(List<Facility> hits) {
+    public void setHits(List<FacilityWithRadius> hits) {
       this.hits = hits;
     }
   }
