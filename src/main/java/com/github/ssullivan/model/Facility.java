@@ -37,9 +37,13 @@ public class Facility {
     this.location = facility.getLocation();
     this.formattedAddress = facility.getFormattedAddress();
     this.website = facility.getWebsite();
-    this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
-    this.categoryCodes = new HashSet<>(facility.getCategoryCodes());
-    this.serviceCodes = new HashSet<>(facility.getServiceCodes());
+
+    if (facility.getPhoneNumbers() != null)
+      this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
+    if (facility.getCategoryCodes() != null)
+      this.categoryCodes = new HashSet<>(facility.getCategoryCodes());
+    if (facility.getServiceCodes() != null)
+      this.serviceCodes = new HashSet<>(facility.getServiceCodes());
   }
 
   /**
