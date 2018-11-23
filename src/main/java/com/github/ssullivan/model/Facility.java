@@ -1,8 +1,10 @@
 package com.github.ssullivan.model;
 
+import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
 import java.util.Set;
 
+@ApiModel
 public class Facility {
   private long id;
   private String name1;

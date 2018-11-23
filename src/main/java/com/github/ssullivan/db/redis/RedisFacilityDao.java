@@ -230,8 +230,15 @@ public class RedisFacilityDao implements IFacilityDao {
         final List<FacilityWithRadius> searchResults =
             fetchBatch(asyncCommands, ids)
             .stream()
-            .map(facility -> new FacilityWithRadius(facility, facility.getLocation()
-                .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit))).collect(Collectors.toList());
+            .map(facility -> {
+              if (facility.getLocation() != null) {
+                return new FacilityWithRadius(facility, facility.getLocation()
+                    .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit),
+                    geoUnit);
+              }
+
+              return new FacilityWithRadius(facility, 0.0, geoUnit);
+            }).collect(Collectors.toList());
 
         return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
       } catch (InterruptedException e) {
