@@ -3,6 +3,11 @@ redis:
   port: ${REDIS_PORT:-6379}
 
 server:
+  gzip:
+    enabled: true
+    bufferSize: 16KiB
+
+
 #  softNofileLimit: 1000
 #  hardNofileLimit: 1000
   applicationConnectors:
