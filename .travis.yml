@@ -32,7 +32,12 @@ matrix:
         - eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
         - ./gradlew copyDockerDir
         - ./gradlew dockerTagImageProdLatest
-        - if [ "$TRAVIS_BRANCH" == "master" ]; then ./gradlew pushImageProdLatest fi;
+      deploy:
+        - skip_cleanup: true
+          provider: script
+          script: ./gradlew pushImageProdLatest
+          on:
+            branch: master
     - language: node_js
       node_js:
         - "node"
