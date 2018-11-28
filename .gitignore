@@ -31,15 +31,3 @@ node_modules
 
 # Optional REPL history
 .node_repl_history
-
-# Java Stuff
-server/out/*
-.idea
-.iml
-*.iml
-.idea
-.gradle
-server/out
-1
-build
-.idea/*

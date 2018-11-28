@@ -3,7 +3,7 @@
     "importExistingSpec": true,
     "importedSpec": "swagger.json",
     "name": "treatmentcenter-api",
-    "repo": "ssullivan/treatmentcenter-api",
+    "repo": ":ssullivan/treatmentcenter-api",
     "splitSpec": false,
     "samples": false,
     "installSwaggerUI": true
