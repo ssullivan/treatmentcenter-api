@@ -13,6 +13,10 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import java.util.EnumSet;
+import javax.servlet.DispatcherType;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.slf4j.Logger;
@@ -49,6 +53,7 @@ public class ApiApplication extends Application<AppConfig> {
         swaggerBundleConfiguration.setSchemes(new String[]{"http", "https"});
         swaggerBundleConfiguration.setVersion("0.10");
         swaggerBundleConfiguration.setIsPrettyPrint(true);
+        swaggerBundleConfiguration.setHost("api.centerlocator.org");
         swaggerBundleConfiguration.setTitle("Treatmentcenter API");
         swaggerBundleConfiguration
             .setDescription("An OpenAPI to find treatment centers for substance abuse");
@@ -73,8 +78,29 @@ public class ApiApplication extends Application<AppConfig> {
     bootstrap.addBundle(new DropwizardGuiceBundle<>(module));
   }
 
+  private String getAllowedOrigins() {
+    final String fromEnvs = System.getenv("CORS_ALLOWED_ORIGINS");
+    final String fromProps = System.getProperty("CORS_ALLOWED_ORIGINS");
+
+    if (fromEnvs != null) {
+      return fromEnvs;
+    }
+
+    if (fromProps != null) {
+      return fromProps;
+    }
+
+    return "^https?://[^.]+(?:.centerlocator.org|localhost|127.0.0.1)(:[0-9]+)?$";
+  }
+
   @Override
   public void run(AppConfig configuration, Environment environment) throws Exception {
     environment.jersey().packages(this.getClass().getPackage().getName());
+    FilterHolder filterHolder = environment.getApplicationContext()
+        .addFilter(CrossOriginFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+    filterHolder.setAsyncSupported(true);
+    filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, getAllowedOrigins());
+    filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD,OPTIONS");
+    filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Cache-Control");
   }
 }
