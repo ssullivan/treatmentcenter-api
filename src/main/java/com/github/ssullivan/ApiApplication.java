@@ -1,14 +1,18 @@
 package com.github.ssullivan;
 
+import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
+import com.github.ssullivan.core.PostalcodeService;
 import com.github.ssullivan.guice.DropwizardAwareModule;
+import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.tasks.LoadCategoriesAndServices;
 import com.github.ssullivan.tasks.LoadTreatmentFacilities;
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
@@ -17,8 +21,6 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
-import org.eclipse.jetty.util.component.LifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +55,13 @@ public class ApiApplication extends Application<AppConfig> {
         swaggerBundleConfiguration.setSchemes(new String[]{"http", "https"});
         swaggerBundleConfiguration.setVersion("0.10");
         swaggerBundleConfiguration.setIsPrettyPrint(true);
-        swaggerBundleConfiguration.setHost("api.centerlocator.org");
+
+
+        if (!"dev".equalsIgnoreCase(getProperty("ENVIRONMENT", "prod"))) {
+          swaggerBundleConfiguration.setHost("api.centerlocator.org");
+        }
+
+
         swaggerBundleConfiguration.setTitle("Treatmentcenter API");
         swaggerBundleConfiguration
             .setDescription("An OpenAPI to find treatment centers for substance abuse");
@@ -75,7 +83,27 @@ public class ApiApplication extends Application<AppConfig> {
       }
     };
 
-    bootstrap.addBundle(new DropwizardGuiceBundle<>(module));
+    bootstrap.addBundle(new DropwizardGuiceBundle<>(module, new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);
+        bindConstant().annotatedWith(PropPostalcodesPath.class).to(getProperty("POSTALCODES_US_PATH", "/treatmentcenter-api-latest/data/US.txt"));
+      }
+    }));
+  }
+
+  private static String getProperty(final String property, String defaultValue) {
+    final String fromEnvs = System.getenv(property);
+    final String fromProps = System.getProperty(property);
+
+    if (fromEnvs != null) {
+      return fromEnvs;
+    }
+
+    if (fromProps != null) {
+      return fromProps;
+    }
+    return defaultValue;
   }
 
   private String getAllowedOrigins() {

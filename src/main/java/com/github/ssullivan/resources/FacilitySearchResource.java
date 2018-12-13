@@ -1,10 +1,12 @@
 package com.github.ssullivan.resources;
 
+import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -42,10 +44,12 @@ public class FacilitySearchResource {
   private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern
       .compile("^[a-zA-Z0-9]{1,31}");
   private final IFacilityDao facilityDao;
+  private final IPostalcodeService postalcodeService;
 
   @Inject
-  public FacilitySearchResource(final IFacilityDao facilityDao) {
+  public FacilitySearchResource(final IFacilityDao facilityDao, final IPostalcodeService postalcodeService) {
     this.facilityDao = facilityDao;
+    this.postalcodeService = postalcodeService;
   }
 
 
@@ -62,6 +66,10 @@ public class FacilitySearchResource {
   @Path("/search")
   @ManagedAsync
   public void findFacilitiesByServiceCodes(final @Suspended AsyncResponse asyncResponse,
+      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence", allowMultiple = false)
+      @QueryParam("postalCode") final String postalCode,
+
+
       @ApiParam(value = "the SAMSHA service code", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
@@ -85,6 +93,13 @@ public class FacilitySearchResource {
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
       @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
     try {
+      if (postalCode != null && postalCode.length() > 10) {
+        asyncResponse.resume(Response.status(400)
+          .entity(ImmutableMap.of("message", "Invalid postal code: Too Long"))
+            .build()
+        );
+      }
+
       // Validate that the service codes are valid
       final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
           .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
@@ -98,7 +113,7 @@ public class FacilitySearchResource {
         return;
       }
 
-      if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon)) {
+      if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
         asyncResponse.resume(
             Response.status(400)
                 .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
@@ -106,7 +121,22 @@ public class FacilitySearchResource {
         asyncResponse.resume(this.facilityDao
             .findByServiceCodesWithin(serviceCodes, lon, lat, distance, distanceUnit,
                 Page.page(offset, size)));
-      } else {
+      } else if (postalCode != null) {
+        ImmutableList<GeoPoint> geoPoints = postalcodeService.fetchGeos(postalCode);
+        if (geoPoints == null || geoPoints.size() <= 0) {
+          LOGGER.error("Failed to find GeoPoints for PostCode", postalCode);
+          asyncResponse.resume(Response.status(400)
+              .entity(ImmutableMap.of("message", "Failed to Geo locate postal code"))
+              .build()
+          );
+        }
+
+        asyncResponse.resume(this.facilityDao
+            .findByServiceCodesWithin(serviceCodes, geoPoints.get(0).lon(), geoPoints.get(0).lat(), distance, distanceUnit,
+                Page.page(offset, size)));
+
+
+      } {
         asyncResponse
             .resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
       }

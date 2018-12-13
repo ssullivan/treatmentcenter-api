@@ -33,3 +33,18 @@
 
 ### Loading data into Redis/ElastiCache
 java -jar application.jar load-treatment-centers -f /path/json.gz --host localhost --port 6379
+
+### Configuration of Container
+
+#### Loading Data into Redis/ElastiCache
+
+Initial deployment involved deploying a Redis backup. Work is in-progress to create an automated flow
+for updating the backend.
+
+
+#### Environment Variables
+| Env | Default | Description |
+| --- | ------- | ----------- |
+| CORS_ALLOWED_ORIGINS | https?://.*.centerlocator.org | Controls what domains are allowed to hit the service |
+| ENVIRONMENT | - | Controls what domain is used in the swagger docs |
+| POSTALCODES_US_PATH | /treatmentcenter-api-latest/data/US.txt | A list of lat/lon for postcal codes | 

@@ -1,22 +1,32 @@
 package com.github.ssullivan.core;
 
 import com.github.ssullivan.api.IPostalcodeService;
+import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.tasks.LoadZipCodesAndGeos;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostalcodeService implements IPostalcodeService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostalcodeService.class);
 
   private ImmutableMap<String, List<GeoPoint>> postalCodes;
 
-  public PostalcodeService() {
+  @Inject
+  public PostalcodeService(@PropPostalcodesPath String postalCodePath) {
     this.postalCodes = ImmutableMap.of();
+    try {
+      loadPostalCodes(new File(postalCodePath));
+    } catch (IOException e) {
+      LOGGER.error("Failed to load postalcodes from '{}'", postalCodePath);
+    }
   }
 
   @Override
