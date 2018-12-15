@@ -1,17 +1,20 @@
 package com.github.ssullivan.db;
 
+import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.resources.FacilitySearchResource;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
 import java.io.IOException;
 import java.util.List;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import org.assertj.core.util.Lists;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.hamcrest.Matchers;
@@ -33,6 +36,7 @@ public class FacilitySearchResourceTest {
       };
 
   private static final IFacilityDao dao = Mockito.mock(IFacilityDao.class);
+  private static final IPostalcodeService postalCodeService = Mockito.mock(IPostalcodeService.class);
 
   private static class FacilitySearchResults {
     private long totalHits;
@@ -56,7 +60,7 @@ public class FacilitySearchResourceTest {
   }
 
   public static final ResourceExtension resources = ResourceExtension.builder()
-      .addResource(new FacilitySearchResource(dao))
+      .addResource(new FacilitySearchResource(dao, postalCodeService))
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
       .build();
 
@@ -82,6 +86,9 @@ public class FacilitySearchResourceTest {
         Mockito.eq("mi"),
         Mockito.any()))
         .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
+
+    Mockito.when(postalCodeService.fetchGeos(Mockito.anyString()))
+        .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33,33)));
   }
 
   @AfterAll
@@ -115,5 +122,43 @@ public class FacilitySearchResourceTest {
     MatcherAssert.assertThat(firstResult.getLocation().lon(),
         Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
             Matchers.lessThanOrEqualTo(30.1)));
+  }
+
+  @Test
+  public void testSearchingByPostalCode() {
+    final FacilitySearchResults searchResults =
+        resources.target("facilities").path("search")
+            .queryParam("serviceCode", "BAR")
+            .queryParam("postalCode", "123456")
+            .request().get(FacilitySearchResults.class);
+
+    MatcherAssert.assertThat(searchResults, Matchers.notNullValue());
+    MatcherAssert.assertThat(searchResults.getHits(), Matchers.notNullValue());
+    MatcherAssert.assertThat(searchResults.getHits().size(), Matchers.equalTo(1));
+
+    final Facility firstResult = searchResults.getHits().get(0);
+    MatcherAssert.assertThat(firstResult.getCity(), Matchers.equalTo(facility.getCity()));
+    MatcherAssert.assertThat(firstResult.getName1(), Matchers.equalTo(facility.getName1()));
+    MatcherAssert.assertThat(firstResult.getName2(), Matchers.equalTo(facility.getName2()));
+    MatcherAssert.assertThat(firstResult.getCategoryCodes(), Matchers.containsInAnyOrder("FOO"));
+    MatcherAssert.assertThat(firstResult.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
+    MatcherAssert.assertThat(firstResult.getLocation().lat(),
+        Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
+            Matchers.lessThanOrEqualTo(30.1)));
+
+    MatcherAssert.assertThat(firstResult.getLocation().lon(),
+        Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
+            Matchers.lessThanOrEqualTo(30.1)));
+  }
+
+  @Test
+  public void testInvalidPostalCode() {
+    Response response =
+        resources.target("facilities").path("search")
+            .queryParam("serviceCode", "BAR")
+            .queryParam("postalCode", "12345600000000000000000000000")
+            .request()
+        .get();
+    MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(400));
   }
 }

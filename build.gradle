@@ -103,11 +103,24 @@ distributions {
             from(copyDockerResources) {
                 into "bin"
             }
+
         }
     }
 }
 
+distTar {
+    into(project.name + "-" + project.version + "/data") {
+        from 'data/geonames/postalcodes'
+        include '*.*'
+    }
+}
 
+distZip {
+    into(project.name + "-" + project.version + "/data") {
+        from 'data/geonames/postalcodes'
+        include '*.*'
+    }
+}
 nebulaDocker {
     maintainerEmail = 'sjsullivan7@gmail.com'
     dockerBase = 'openjdk:8-alpine'
