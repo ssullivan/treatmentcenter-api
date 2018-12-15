@@ -6,13 +6,12 @@
 
     "description" : "An OpenAPI to find treatment centers for substance abuse",
 
-    "version" : "1.3.0",
+    "version" : "1.4.0",
 
     "title" : "Treatmentcenter API"
 
   },
   "host" : "api.centerlocator.org",
-
   "tags" : [ {
 
                "name" : "categories"
@@ -92,6 +91,18 @@
         "produces" : [ "application/json", "application/xml" ],
 
         "parameters" : [ {
+
+                           "name" : "postalCode",
+
+                           "in" : "query",
+
+                           "description" : "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+
+                           "required" : false,
+
+                           "type" : "string"
+
+                         }, {
 
                            "name" : "serviceCode",
 

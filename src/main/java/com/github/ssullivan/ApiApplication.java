@@ -53,7 +53,7 @@ public class ApiApplication extends Application<AppConfig> {
           swaggerBundleConfiguration = new SwaggerBundleConfiguration();
         }
         swaggerBundleConfiguration.setSchemes(new String[]{"http", "https"});
-        swaggerBundleConfiguration.setVersion("0.10");
+        swaggerBundleConfiguration.setVersion(getProperty("API_VERSION", "dev"));
         swaggerBundleConfiguration.setIsPrettyPrint(true);
 
 

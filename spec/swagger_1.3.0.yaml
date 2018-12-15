@@ -6,25 +6,26 @@
 
     "description" : "An OpenAPI to find treatment centers for substance abuse",
 
-    "version" : "1.4.0",
+    "version" : "1.3.0",
 
     "title" : "Treatmentcenter API"
 
   },
+  "host" : "api.centerlocator.org",
 
   "tags" : [ {
 
-    "name" : "categories"
+               "name" : "categories"
 
-  }, {
+             }, {
 
-    "name" : "search"
+               "name" : "search"
 
-  }, {
+             }, {
 
-    "name" : "services"
+               "name" : "services"
 
-  } ],
+             } ],
 
   "schemes" : [ "http", "https" ],
 
@@ -92,147 +93,135 @@
 
         "parameters" : [ {
 
-          "name" : "postalCode",
+                           "name" : "serviceCode",
 
-          "in" : "query",
+                           "in" : "query",
 
-          "description" : "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+                           "description" : "the SAMSHA service code",
 
-          "required" : false,
+                           "required" : false,
 
-          "type" : "string"
+                           "type" : "array",
 
-        }, {
+                           "items" : {
 
-          "name" : "serviceCode",
+                             "type" : "string"
 
-          "in" : "query",
+                           },
 
-          "description" : "the SAMSHA service code",
+                           "collectionFormat" : "multi"
 
-          "required" : false,
+                         }, {
 
-          "type" : "array",
+                           "name" : "lat",
 
-          "items" : {
+                           "in" : "query",
 
-            "type" : "string"
+                           "description" : "the latitude coordinate according to WGS84",
 
-          },
+                           "required" : false,
 
-          "collectionFormat" : "multi"
+                           "type" : "number",
 
-        }, {
+                           "maximum" : 90,
 
-          "name" : "lat",
+                           "minimum" : -90,
 
-          "in" : "query",
+                           "format" : "double"
 
-          "description" : "the latitude coordinate according to WGS84",
+                         }, {
 
-          "required" : false,
+                           "name" : "lon",
 
-          "type" : "number",
+                           "in" : "query",
 
-          "maximum" : 90,
+                           "description" : "the longitude coordinate according to WGS84",
 
-          "minimum" : -90,
+                           "required" : false,
 
-          "format" : "double"
+                           "type" : "number",
 
-        }, {
+                           "maximum" : 180,
 
-          "name" : "lon",
+                           "minimum" : -180,
 
-          "in" : "query",
+                           "format" : "double"
 
-          "description" : "the longitude coordinate according to WGS84",
+                         }, {
 
-          "required" : false,
+                           "name" : "distance",
 
-          "type" : "number",
+                           "in" : "query",
 
-          "maximum" : 180,
+                           "description" : "the radius distance",
 
-          "minimum" : -180,
+                           "required" : false,
 
-          "format" : "double"
+                           "type" : "number",
 
-        }, {
+                           "default" : 15.0,
 
-          "name" : "distance",
+                           "format" : "double"
 
-          "in" : "query",
+                         }, {
 
-          "description" : "the radius distance",
+                           "name" : "distanceUnit",
 
-          "required" : false,
+                           "in" : "query",
 
-          "type" : "number",
+                           "description" : "the unit of the radius distance. (meters, kilometers, feet, miles)",
 
-          "default" : 15.0,
+                           "required" : false,
 
-          "format" : "double"
+                           "type" : "string",
 
-        }, {
+                           "default" : "mi",
 
-          "name" : "distanceUnit",
+                           "pattern" : "m|km|ft|mi",
 
-          "in" : "query",
+                           "enum" : [ "m", "km", "ft", "mi" ]
 
-          "description" : "the unit of the radius distance. (meters, kilometers, feet, miles)",
+                         }, {
 
-          "required" : false,
+                           "name" : "offset",
 
-          "type" : "string",
+                           "in" : "query",
 
-          "default" : "mi",
+                           "description" : "the number of results to skip",
 
-          "pattern" : "m|km|ft|mi",
+                           "required" : false,
 
-          "enum" : [ "m", "km", "ft", "mi" ]
+                           "type" : "integer",
 
-        }, {
+                           "default" : 0,
 
-          "name" : "offset",
+                           "maximum" : 9999,
 
-          "in" : "query",
+                           "minimum" : 0,
 
-          "description" : "the number of results to skip",
+                           "format" : "int32"
 
-          "required" : false,
+                         }, {
 
-          "type" : "integer",
+                           "name" : "size",
 
-          "default" : 0,
+                           "in" : "query",
 
-          "maximum" : 9999,
+                           "description" : "the number of results to return",
 
-          "minimum" : 0,
+                           "required" : false,
 
-          "format" : "int32"
+                           "type" : "integer",
 
-        }, {
+                           "default" : 10,
 
-          "name" : "size",
+                           "maximum" : 9999,
 
-          "in" : "query",
+                           "minimum" : 0,
 
-          "description" : "the number of results to return",
+                           "format" : "int32"
 
-          "required" : false,
-
-          "type" : "integer",
-
-          "default" : 10,
-
-          "maximum" : 9999,
-
-          "minimum" : 0,
-
-          "format" : "int32"
-
-        } ],
+                         } ],
 
         "responses" : {
 
