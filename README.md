@@ -31,18 +31,9 @@
 5. Once you finish with the changes you can run tests using: `npm test`
 6. Share you changes with the rest of the world by pushing to GitHub :smile:
 
-### Loading data into Redis/ElastiCache
-java -jar application.jar load-treatment-centers -f /path/json.gz --host localhost --port 6379
+## Configuration of Container
 
-### Configuration of Container
-
-#### Loading Data into Redis/ElastiCache
-
-Initial deployment involved deploying a Redis backup. Work is in-progress to create an automated flow
-for updating the backend.
-
-
-#### Environment Variables
+### Environment Variables
 | Env | Default | Description |
 | --- | ------- | ----------- |
 | CORS_ALLOWED_ORIGINS | https?://.*.centerlocator.org | Controls what domains are allowed to hit the service |
@@ -50,7 +41,7 @@ for updating the backend.
 | POSTALCODES_US_PATH | /treatmentcenter-api-latest/data/US.txt | A list of lat/lon for postcal codes | 
 
 
-### Redis Key Structure
+## Redis Key Structure
 
 | PREFIX | Type | Description |
 | ------ | ---- | ----------- |
@@ -60,7 +51,7 @@ for updating the backend.
 | treatment:facilities:`{id}`  | hmap | Stores the key/values for the facility. `id` is a long |
 | search:counter | incr | Several of the searches rely on zinterstore methods. This is used to provide a uniq id to each request |
 
-### Loading Data
+## Loading Data
 This is process is still fairly manual and we are in the process of automating it. Sample data can be
 found in the /data folder in this repo.
 
@@ -69,7 +60,11 @@ found in the /data folder in this repo.
 * Load service_code_records JSON using the Dropwizard task `LoadCategoriesAndServices`
 * Load facilities JSONL using the Dropwizard task `LoadTreatmentFacilities
 
-### Querying with the Rest API
+### Loading data into Redis/ElastiCache
+java -jar application.jar load-treatment-centers -f /path/json.gz --host localhost --port 6379
+
+
+## Querying with the Rest API
 
 
  
