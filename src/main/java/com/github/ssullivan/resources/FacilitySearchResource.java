@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -42,7 +43,7 @@ public class FacilitySearchResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FacilitySearchService.class);
   private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern
-      .compile("^[a-zA-Z0-9]{1,31}");
+      .compile("^!{0,1}[a-zA-Z0-9]{1,31}");
   private final IFacilityDao facilityDao;
   private final IPostalcodeService postalcodeService;
 
@@ -70,7 +71,7 @@ public class FacilitySearchResource {
       @QueryParam("postalCode") final String postalCode,
 
 
-      @ApiParam(value = "the SAMSHA service code", allowMultiple = true)
+      @ApiParam(value = "The SAMSHA service code. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
       @ApiParam(value = "the latitude coordinate according to WGS84", allowableValues = "range[-90,90]")
@@ -131,8 +132,26 @@ public class FacilitySearchResource {
           );
         }
 
+        final List<String> mustNotServiceCodes =
+            serviceCodes
+            .stream()
+            .filter(it -> it.startsWith("!"))
+            .map(it -> it.substring(1))
+            .collect(Collectors.toList());
+
+        final List<String> mustServiceCodes =
+            serviceCodes
+                .stream()
+                .filter(it -> !it.startsWith("!"))
+                .collect(Collectors.toList());
+
+
         asyncResponse.resume(this.facilityDao
-            .findByServiceCodesWithin(serviceCodes, geoPoints.get(0).lon(), geoPoints.get(0).lat(), distance, distanceUnit,
+            .findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes,
+                geoPoints.get(0).lon(),
+                geoPoints.get(0).lat(),
+                distance,
+                distanceUnit,
                 Page.page(offset, size)));
 
 

@@ -13,25 +13,22 @@ import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
-import io.lettuce.core.GeoArgs;
-import io.lettuce.core.GeoArgs.Sort;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
-import io.lettuce.core.GeoWithin;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.LettuceFutures;
-import io.lettuce.core.Range;
 import io.lettuce.core.RedisFuture;
-import io.lettuce.core.ScoredValue;
 import io.lettuce.core.TransactionResult;
-import io.lettuce.core.Value;
+import io.lettuce.core.ZStoreArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -128,6 +125,15 @@ public class RedisFacilityDao implements IFacilityDao {
     return null;
   }
 
+  private String[] getServiceCodeIndices(final Collection<String> serviceCodes) {
+    return serviceCodes
+        .stream()
+        .map(code -> INDEX_BY_SERVICES + ":" + code)
+        .collect(Collectors.toSet()).toArray(new String[]{});
+  }
+
+
+
   @Override
   public SearchResults<Facility> findByServiceCodes(List<String> serviceCodes, Page page)
       throws IOException {
@@ -135,10 +141,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
       final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
 
-      final String[] serviceCodeSets = serviceCodes
-          .stream()
-          .map(code -> INDEX_BY_SERVICES + ":" + code)
-          .collect(Collectors.toSet()).toArray(new String[]{});
+      final String[] serviceCodeSets = getServiceCodeIndices(serviceCodes);
 
       final Long numResults = connection.sync().zinterstore(searchKey, serviceCodeSets);
 
@@ -178,6 +181,121 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
     return batchFuture.getNow(new ArrayList<>(0));
+  }
+
+  @Override
+  public SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
+      final List<String> mustNotServiceCodes,
+      final double longitude,
+      final double latitude,
+      final double distance,
+      final String geoUnit,
+      final Page page) throws IOException {
+
+    if (mustNotServiceCodes == null || mustNotServiceCodes.isEmpty()) {
+      return findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes, longitude, latitude,
+          distance, geoUnit, page);
+    }
+
+    final String[] uniqMust = getServiceCodeIndices(new HashSet<>(mustServiceCodes));
+    final String[] uniqMustNot = getServiceCodeIndices(new HashSet<>(mustNotServiceCodes));
+
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+
+      final String searchId = connection.sync().incr(SEARCH_REQ) + "";
+      final String searchKey = "s:" + searchId;
+      final String searchKeyMust = searchKey + ":m";
+      final String searchKeyMustNot = searchKey + ":n";
+      final String searchKeyDiff = searchKey + ":d";
+      final String radiusKey = "s:geo:" + searchId;
+      final String searchKeyFinal = searchKey + ":1";
+
+
+
+      final RedisAsyncCommands<String, String> asyncCommands = connection.async();
+      asyncCommands.setAutoFlushCommands(false);
+      asyncCommands.multi();
+
+      // TODO: I think we can do a lua script here to reduce round trips
+      // #1 Find all of the centers within a certain radius
+
+      asyncCommands
+          .georadius(INDEX_BY_GEO, longitude, latitude, distance, Unit.valueOf(geoUnit),
+              GeoRadiusStoreArgs.Builder
+                  .withStoreDist(radiusKey));
+
+      /**
+       * Find the places that have services we want
+       * Find the places that have services we don't want
+       */
+      asyncCommands.sinterstore(searchKeyMust, uniqMust);
+      asyncCommands.sinterstore(searchKeyMustNot, uniqMustNot);
+      asyncCommands.sdiffstore(searchKeyDiff, searchKeyMust, searchKeyMustNot);
+      asyncCommands.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), searchKeyDiff);
+      asyncCommands.del(searchKeyMust, searchKeyMust, searchKeyDiff);
+
+
+      // #3 Find the intersection of the places that have our services we want and
+      //    are within a specific radius
+      RedisFuture<Long> geoServicesIntersectionFuture = asyncCommands
+          .zinterstore(searchKeyFinal, searchKey, radiusKey);
+
+
+
+      final RedisFuture<TransactionResult> multiFuture = asyncCommands.exec();
+      asyncCommands.flushCommands();
+      asyncCommands.setAutoFlushCommands(true);
+
+      try {
+        TransactionResult transactionResult = multiFuture.get(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT);
+
+        // #4 Fetch the results
+        final List<String> ids = connection.sync()
+            .zrange(searchKeyFinal, page.offset(), page.offset() + page.size());
+
+        asyncCommands.decr(SEARCH_REQ);
+        return getFacilityWithRadiusSearchResults(longitude, latitude, geoUnit, asyncCommands,
+            geoServicesIntersectionFuture, ids);
+
+      } catch (InterruptedException e) {
+        LOGGER.error("Interrupted while waiting for multi result", e);
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOGGER.error("Timeout while waiting for multi result", e);
+      }
+      finally {
+        // #6 Explicitly delete the keys
+        connection.sync().del(searchKey, searchKeyFinal, radiusKey);
+
+      }
+    }
+    catch (Exception e) {
+      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", "-",
+          page);
+      throw new IOException("Failed to find any matching results", e);
+    }
+    return SearchResults.searchResults(0L);
+  }
+
+  private SearchResults<FacilityWithRadius> getFacilityWithRadiusSearchResults(final double longitude,
+      final double latitude, final String geoUnit, final RedisAsyncCommands<String, String> asyncCommands,
+      final RedisFuture<Long> geoServicesIntersectionFuture, final List<String> ids)
+      throws InterruptedException, java.util.concurrent.ExecutionException {
+
+    final List<FacilityWithRadius> searchResults =
+        fetchBatch(asyncCommands, ids)
+            .stream()
+            .map(facility -> {
+              if (facility.getLocation() != null) {
+                return new FacilityWithRadius(facility, facility.getLocation()
+                    .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit),
+                    geoUnit);
+              }
+
+              return new FacilityWithRadius(facility, 0.0, geoUnit);
+            }).collect(Collectors.toList());
+
+    return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
   }
 
   @Override
@@ -227,20 +345,8 @@ public class RedisFacilityDao implements IFacilityDao {
         final List<String> ids = connection.sync()
             .zrange(searchKey + ":" + 1, page.offset(), page.offset() + page.size());
 
-        final List<FacilityWithRadius> searchResults =
-            fetchBatch(asyncCommands, ids)
-            .stream()
-            .map(facility -> {
-              if (facility.getLocation() != null) {
-                return new FacilityWithRadius(facility, facility.getLocation()
-                    .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit),
-                    geoUnit);
-              }
-
-              return new FacilityWithRadius(facility, 0.0, geoUnit);
-            }).collect(Collectors.toList());
-
-        return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
+        return getFacilityWithRadiusSearchResults(longitude, latitude, geoUnit, asyncCommands,
+            geoServicesIntersectionFuture, ids);
       } catch (InterruptedException e) {
         LOGGER.error("Interrupted while waiting for multi result", e);
         Thread.currentThread().interrupt();
