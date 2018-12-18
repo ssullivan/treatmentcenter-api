@@ -50,4 +50,23 @@ public interface IFacilityDao {
   SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> serviceCodes,
       double longitude, double latitude, double distance, final String geoUnit, Page page)
       throws IOException;
+
+  /**
+   * Finds the all of the facilities that any of the specified service codes withhin a certain
+   * radius.
+   *
+   * @param mustServiceCodes the list of service codes facilities can have
+   * @param mustNotServiceCodes the list of service codes facilities can't have
+   * @param longitude the longitude coordinate according to WGS84
+   * @param latitude the latitude coordinate according to WGS84
+   * @param distance radius distance
+   * @param geoUnit distance unit (m, km, ft, mi)
+   */
+  SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
+      final List<String> mustNotServiceCodes,
+      final double longitude,
+      final double latitude,
+      final double distance,
+      final String geoUnit,
+      final Page page) throws IOException;
 }

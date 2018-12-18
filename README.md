@@ -48,3 +48,28 @@ for updating the backend.
 | CORS_ALLOWED_ORIGINS | https?://.*.centerlocator.org | Controls what domains are allowed to hit the service |
 | ENVIRONMENT | - | Controls what domain is used in the swagger docs |
 | POSTALCODES_US_PATH | /treatmentcenter-api-latest/data/US.txt | A list of lat/lon for postcal codes | 
+
+
+### Redis Key Structure
+
+| PREFIX | Type | Description |
+| ------ | ---- | ----------- |
+| index:facility_by_service:`{service}` | set | Stores facility ids associated with `{service}` |
+| index:facility_by_category:`{category}` | set | Stores facility ids associated with `{category}` |
+| index:facility_by_geo | geoset | Stores the facilities by lat,lon |
+| treatment:facilities:`{id}`  | hmap | Stores the key/values for the facility. `id` is a long |
+| search:counter | incr | Several of the searches rely on zinterstore methods. This is used to provide a uniq id to each request |
+
+### Loading Data
+This is process is still fairly manual and we are in the process of automating it. Sample data can be
+found in the /data folder in this repo.
+
+* Fetch spreadsheet from SAMSHA 
+* Convert spreadsheet into two JSON/JSONL files -> (`service_codes_records.json`, `facilities_geocoded.json.gz`)
+* Load service_code_records JSON using the Dropwizard task `LoadCategoriesAndServices`
+* Load facilities JSONL using the Dropwizard task `LoadTreatmentFacilities
+
+### Querying with the Rest API
+
+
+ 

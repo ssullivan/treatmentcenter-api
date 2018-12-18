@@ -71,6 +71,11 @@ public class FacilitySearchResourceTest {
       ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("BAR"));
 
 
+  private static final Facility facilit2y = new Facility(2L,
+      "test", "test", "1234", "test",
+      "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
+      "test", "http://test.com",
+      ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("FIZZ", "BUZZ", "BAR"));
 
   @BeforeAll
   public void setup() throws IOException {
@@ -78,8 +83,31 @@ public class FacilitySearchResourceTest {
     Mockito.when(dao.findByServiceCodes(Mockito.eq(Lists.newArrayList("BAR")),
         Mockito.eq(Page.page())))
         .thenReturn(SearchResults.searchResults(1L, facility));
+
+
+
     Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.anyList(),
+        Mockito.eq(Lists.newArrayList("BAR")),
+        Mockito.anyDouble(),
+        Mockito.anyDouble(),
+        Mockito.anyDouble(),
+        Mockito.eq("mi"),
+        Mockito.any()))
+        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
+
+    Mockito.when(dao.findByServiceCodesWithin(
+        Mockito.eq(Lists.newArrayList("BAR")),
+        Mockito.eq(Lists.newArrayList("FIZZ")),
+        Mockito.anyDouble(),
+        Mockito.anyDouble(),
+        Mockito.anyDouble(),
+        Mockito.eq("mi"),
+        Mockito.any()))
+        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
+
+    Mockito.when(dao.findByServiceCodesWithin(
+        Mockito.eq(Lists.newArrayList("BAR")),
+        Mockito.eq(Lists.newArrayList()),
         Mockito.anyDouble(),
         Mockito.anyDouble(),
         Mockito.anyDouble(),
@@ -129,6 +157,33 @@ public class FacilitySearchResourceTest {
     final FacilitySearchResults searchResults =
         resources.target("facilities").path("search")
             .queryParam("serviceCode", "BAR")
+            .queryParam("postalCode", "123456")
+            .request().get(FacilitySearchResults.class);
+
+    MatcherAssert.assertThat(searchResults, Matchers.notNullValue());
+    MatcherAssert.assertThat(searchResults.getHits(), Matchers.notNullValue());
+    MatcherAssert.assertThat(searchResults.getHits().size(), Matchers.equalTo(1));
+
+    final Facility firstResult = searchResults.getHits().get(0);
+    MatcherAssert.assertThat(firstResult.getCity(), Matchers.equalTo(facility.getCity()));
+    MatcherAssert.assertThat(firstResult.getName1(), Matchers.equalTo(facility.getName1()));
+    MatcherAssert.assertThat(firstResult.getName2(), Matchers.equalTo(facility.getName2()));
+    MatcherAssert.assertThat(firstResult.getCategoryCodes(), Matchers.containsInAnyOrder("FOO"));
+    MatcherAssert.assertThat(firstResult.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
+    MatcherAssert.assertThat(firstResult.getLocation().lat(),
+        Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
+            Matchers.lessThanOrEqualTo(30.1)));
+
+    MatcherAssert.assertThat(firstResult.getLocation().lon(),
+        Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
+            Matchers.lessThanOrEqualTo(30.1)));
+  }
+
+  @Test
+  public void testSearchingByPostalCodeMustBot() {
+    final FacilitySearchResults searchResults =
+        resources.target("facilities").path("search")
+            .queryParam("serviceCode", "BAR", "!FIZZ")
             .queryParam("postalCode", "123456")
             .request().get(FacilitySearchResults.class);
 
