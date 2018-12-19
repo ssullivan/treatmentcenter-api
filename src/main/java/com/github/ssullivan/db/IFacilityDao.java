@@ -34,6 +34,10 @@ public interface IFacilityDao {
   SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final Page page)
       throws IOException;
 
+  SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final List<String> mustNotServiceCodes,
+      final boolean matchAny, final Page page)
+      throws IOException;
+
   SearchResults findByServiceCodes(final ImmutableSet<String> mustServiceCodes, final Page page)
       throws IOException;
 
@@ -64,9 +68,22 @@ public interface IFacilityDao {
    */
   SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
       final List<String> mustNotServiceCodes,
+      final boolean matchAny,
       final double longitude,
       final double latitude,
       final double distance,
       final String geoUnit,
       final Page page) throws IOException;
+
+  default SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
+      final List<String> mustNotServiceCodes,
+      final double longitude,
+      final double latitude,
+      final double distance,
+      final String geoUnit,
+      final Page page) throws IOException {
+
+    return findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes, false,
+        longitude, latitude, distance, geoUnit, page);
+  }
 }

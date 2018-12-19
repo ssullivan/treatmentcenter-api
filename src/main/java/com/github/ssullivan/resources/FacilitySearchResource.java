@@ -74,6 +74,8 @@ public class FacilitySearchResource {
       @ApiParam(value = "The SAMSHA service code. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
+      @QueryParam("matchAny") @DefaultValue("false") final Boolean matchAny,
+
       @ApiParam(value = "the latitude coordinate according to WGS84", allowableValues = "range[-90,90]")
       @QueryParam("lat") final Double lat,
 
@@ -114,6 +116,20 @@ public class FacilitySearchResource {
         return;
       }
 
+      final List<String> mustNotServiceCodes =
+          serviceCodes
+              .stream()
+              .filter(it -> it.startsWith("!"))
+              .map(it -> it.substring(1))
+              .collect(Collectors.toList());
+
+      final List<String> mustServiceCodes =
+          serviceCodes
+              .stream()
+              .filter(it -> !it.startsWith("!"))
+              .collect(Collectors.toList());
+
+
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
         asyncResponse.resume(
             Response.status(400)
@@ -132,32 +148,18 @@ public class FacilitySearchResource {
           );
         }
 
-        final List<String> mustNotServiceCodes =
-            serviceCodes
-            .stream()
-            .filter(it -> it.startsWith("!"))
-            .map(it -> it.substring(1))
-            .collect(Collectors.toList());
-
-        final List<String> mustServiceCodes =
-            serviceCodes
-                .stream()
-                .filter(it -> !it.startsWith("!"))
-                .collect(Collectors.toList());
-
-
         asyncResponse.resume(this.facilityDao
             .findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes,
+                matchAny,
                 geoPoints.get(0).lon(),
                 geoPoints.get(0).lat(),
                 distance,
                 distanceUnit,
                 Page.page(offset, size)));
-
-
       } {
         asyncResponse
-            .resume(this.facilityDao.findByServiceCodes(serviceCodes, Page.page(offset, size)));
+            .resume(this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
+                matchAny, Page.page(offset, size)));
       }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes`", e);
