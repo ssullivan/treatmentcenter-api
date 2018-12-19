@@ -253,11 +253,6 @@ public class RedisFacilityDao implements IFacilityDao {
       final String geoUnit,
       final Page page) throws IOException {
 
-    if (mustNotServiceCodes == null || mustNotServiceCodes.isEmpty()) {
-      return findByServiceCodesWithin(mustServiceCodes, longitude, latitude,
-          distance, geoUnit, page);
-    }
-
     final String[] uniqMust = getServiceCodeIndices(new HashSet<>(mustServiceCodes));
     final String[] uniqMustNot = getServiceCodeIndices(new HashSet<>(mustNotServiceCodes));
 
@@ -364,6 +359,7 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   @Override
+  @Deprecated
   public SearchResults<FacilityWithRadius> findByServiceCodesWithin(List<String> serviceCodes,
       double longitude, double latitude, double distance, String geoUnit, Page page)
       throws IOException {
