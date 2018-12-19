@@ -141,6 +141,7 @@ nebulaDocker {
         arg('GID=7999')
         environmentVariable('JAVA_OPTS', '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap')
         environmentVariable('APP_VERSION', project.version)
+        environmentVariable('API_VERSION', project.version)
         entryPoint('/docker-entrypoint.sh')
         runCommand('apk --no-cache update \\\n' +
                 '    && apk --no-cache upgrade \\\n' +

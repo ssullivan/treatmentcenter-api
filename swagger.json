@@ -6,11 +6,13 @@
 
     "description" : "An OpenAPI to find treatment centers for substance abuse",
 
-    "version" : "1.4.0",
+    "version" : "1.6.0",
 
     "title" : "Treatmentcenter API"
 
   },
+
+  "host" : "api.centerlocator.org",
 
   "tags" : [ {
 
@@ -108,7 +110,7 @@
 
           "in" : "query",
 
-          "description" : "the SAMSHA service code",
+          "description" : "The SAMSHA service code. service code prefixed with a single bang '!' will be negated",
 
           "required" : false,
 
@@ -121,6 +123,18 @@
           },
 
           "collectionFormat" : "multi"
+
+        }, {
+
+          "name" : "matchAny",
+
+          "in" : "query",
+
+          "required" : false,
+
+          "type" : "boolean",
+
+          "default" : false
 
         }, {
 
