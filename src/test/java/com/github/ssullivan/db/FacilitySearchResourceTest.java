@@ -107,7 +107,19 @@ public class FacilitySearchResourceTest {
 
     Mockito.when(dao.findByServiceCodesWithin(
         Mockito.eq(Lists.newArrayList("BAR")),
+        Mockito.eq(Lists.newArrayList("FIZZ")),
+        Mockito.eq(false),
+        Mockito.anyDouble(),
+        Mockito.anyDouble(),
+        Mockito.anyDouble(),
+        Mockito.eq("mi"),
+        Mockito.any()))
+        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
+
+    Mockito.when(dao.findByServiceCodesWithin(
+        Mockito.eq(Lists.newArrayList("BAR")),
         Mockito.eq(Lists.newArrayList()),
+        Mockito.eq(false),
         Mockito.anyDouble(),
         Mockito.anyDouble(),
         Mockito.anyDouble(),

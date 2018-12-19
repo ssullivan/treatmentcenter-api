@@ -126,6 +126,7 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   private String[] getServiceCodeIndices(final Collection<String> serviceCodes) {
+    if (null == serviceCodes) return new String[]{};
     return serviceCodes
         .stream()
         .map(code -> INDEX_BY_SERVICES + ":" + code)
@@ -159,6 +160,65 @@ public class RedisFacilityDao implements IFacilityDao {
       throw new IOException("Failed to find any matching results", e);
     }
   }
+
+  @Override
+  public SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final List<String> mustNotServiceCodes,
+      final boolean matchAny,  final Page page)
+      throws IOException {
+
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+
+      final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
+
+
+      final String[] uniqMust = getServiceCodeIndices(new HashSet<>(serviceCodes));
+      final String[] uniqMustNot = getServiceCodeIndices(new HashSet<>(mustNotServiceCodes));
+
+      long numResults = 0;
+
+      if (uniqMustNot.length <= 0) {
+        if (matchAny) {
+          connection.sync().zunionstore(searchKey, uniqMust);
+        } else {
+          connection.sync().zinterstore(searchKey, uniqMust);
+        }
+      }
+      else {
+        final String searchMustKey = searchKey + ":m";
+        final String searchMutNotKey = searchKey + ":n";
+
+        if (matchAny) {
+          connection.sync().sunionstore(searchMustKey, uniqMust);
+        } else {
+          connection.sync().sinterstore(searchMustKey, uniqMust);
+        }
+        connection.sync().sadd(searchMutNotKey, uniqMustNot);
+        connection.sync().sdiff(searchKey, searchMustKey, searchMutNotKey);
+        connection.sync().del(searchMustKey, searchMutNotKey);
+      }
+      final List<String> ids = connection.sync()
+          .zrange(searchKey, page.offset(), page.offset() + page.size());
+
+      final List<Facility> searchResults = fetchBatch(connection.async(), ids);
+
+      try {
+        connection.sync().getStatefulConnection().setAutoFlushCommands(false);
+
+        connection.sync().del(searchKey);
+        connection.flushCommands();
+      }
+      finally {
+        connection.sync().getStatefulConnection().setAutoFlushCommands(true);
+      }
+
+      return SearchResults.searchResults(numResults, searchResults);
+    } catch (Exception e) {
+      LOGGER.error("Failed to find any facilities with serviceCodes: {}, page: {}", serviceCodes,
+          page);
+      throw new IOException("Failed to find any matching results", e);
+    }
+  }
+
 
   private List<Facility> fetchBatch(final RedisAsyncCommands<String, String> asyncCommands, final List<String> ids) {
     if (asyncCommands == null || ids == null) {
@@ -259,7 +319,7 @@ public class RedisFacilityDao implements IFacilityDao {
         final List<String> ids = connection.sync()
             .zrange(searchKeyFinal, page.offset(), page.offset() + page.size());
 
-        asyncCommands.decr(SEARCH_REQ);
+
         return getFacilityWithRadiusSearchResults(longitude, latitude, geoUnit, asyncCommands,
             geoServicesIntersectionFuture, ids);
 
@@ -272,7 +332,6 @@ public class RedisFacilityDao implements IFacilityDao {
       finally {
         // #6 Explicitly delete the keys
         connection.sync().del(searchKey, searchKeyFinal, radiusKey);
-
       }
     }
     catch (Exception e) {
