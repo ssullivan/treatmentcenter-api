@@ -176,6 +176,7 @@ public class RedisFacilityDaoTest {
 
     SearchResults<FacilityWithRadius> ret =
         _dao.findByServiceCodesWithin(ImmutableList.of("BAR"), ImmutableList.of("FIZZ"),
+            false,
             -73.991, 40.715, 31, "km",
             Page.page());
 
