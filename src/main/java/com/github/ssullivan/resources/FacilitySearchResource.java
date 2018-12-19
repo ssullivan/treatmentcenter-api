@@ -74,6 +74,8 @@ public class FacilitySearchResource {
       @ApiParam(value = "The SAMSHA service code. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
+      @QueryParam("matchAny") @DefaultValue("false") final Boolean matchAny,
+
       @ApiParam(value = "the latitude coordinate according to WGS84", allowableValues = "range[-90,90]")
       @QueryParam("lat") final Double lat,
 
@@ -148,6 +150,7 @@ public class FacilitySearchResource {
 
         asyncResponse.resume(this.facilityDao
             .findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes,
+                matchAny,
                 geoPoints.get(0).lon(),
                 geoPoints.get(0).lat(),
                 distance,

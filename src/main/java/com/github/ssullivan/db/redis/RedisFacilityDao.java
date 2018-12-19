@@ -186,6 +186,7 @@ public class RedisFacilityDao implements IFacilityDao {
   @Override
   public SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
       final List<String> mustNotServiceCodes,
+      final boolean matchAny,
       final double longitude,
       final double latitude,
       final double distance,
@@ -193,7 +194,7 @@ public class RedisFacilityDao implements IFacilityDao {
       final Page page) throws IOException {
 
     if (mustNotServiceCodes == null || mustNotServiceCodes.isEmpty()) {
-      return findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes, longitude, latitude,
+      return findByServiceCodesWithin(mustServiceCodes, longitude, latitude,
           distance, geoUnit, page);
     }
 
@@ -228,7 +229,12 @@ public class RedisFacilityDao implements IFacilityDao {
        * Find the places that have services we want
        * Find the places that have services we don't want
        */
-      asyncCommands.sinterstore(searchKeyMust, uniqMust);
+      if (matchAny) {
+        asyncCommands.sunionstore(searchKeyMust, uniqMust);
+      }
+      else {
+        asyncCommands.sinterstore(searchKeyMust, uniqMust);
+      }
       asyncCommands.sinterstore(searchKeyMustNot, uniqMustNot);
       asyncCommands.sdiffstore(searchKeyDiff, searchKeyMust, searchKeyMustNot);
       asyncCommands.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), searchKeyDiff);

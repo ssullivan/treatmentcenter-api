@@ -64,6 +64,7 @@ public interface IFacilityDao {
    */
   SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
       final List<String> mustNotServiceCodes,
+      final boolean matchAny,
       final double longitude,
       final double latitude,
       final double distance,
