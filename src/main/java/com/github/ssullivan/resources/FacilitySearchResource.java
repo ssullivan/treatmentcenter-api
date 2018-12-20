@@ -156,7 +156,8 @@ public class FacilitySearchResource {
                 distance,
                 distanceUnit,
                 Page.page(offset, size)));
-      } {
+      }
+      else {
         asyncResponse
             .resume(this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
                 matchAny, Page.page(offset, size)));

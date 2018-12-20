@@ -2,13 +2,16 @@ package com.github.ssullivan;
 
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
+import com.github.ssullivan.bundles.InjectorRegistry;
 import com.github.ssullivan.core.PostalcodeService;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.healthchecks.RedisHealthCheck;
 import com.github.ssullivan.tasks.LoadCategoriesAndServices;
 import com.github.ssullivan.tasks.LoadTreatmentFacilities;
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -123,6 +126,10 @@ public class ApiApplication extends Application<AppConfig> {
 
   @Override
   public void run(AppConfig configuration, Environment environment) throws Exception {
+    final Injector injector = InjectorRegistry.getInjector(this);
+    environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(), injector.getInstance(RedisHealthCheck.class));
+    environment.healthChecks().runHealthChecks();
+
     environment.jersey().packages(this.getClass().getPackage().getName());
     FilterHolder filterHolder = environment.getApplicationContext()
         .addFilter(CrossOriginFilter.class, "/*", EnumSet.allOf(DispatcherType.class));

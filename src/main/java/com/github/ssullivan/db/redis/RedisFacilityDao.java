@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
@@ -161,50 +162,95 @@ public class RedisFacilityDao implements IFacilityDao {
     }
   }
 
+  private Set<String> createSearchKey(final StatefulRedisConnection<String, String> connection,
+    final String searchKey, final List<String> serviceCodes, final List<String> mustNotServiceCodes,
+      final boolean matchAny) {
+
+
+    final String searchKeyMust = searchKey + ":m";
+    final String searchKeyMustNot = searchKey + ":n";
+    final String searchKeyDiff = searchKey + ":d";
+
+    Set<String> retval = new HashSet<>();
+    retval.add(searchKey);
+    retval.add(searchKeyMust);
+    retval.add(searchKeyMustNot);
+    retval.add(searchKeyDiff);
+    try {
+      connection.setAutoFlushCommands(false);
+      RedisAsyncCommands<String, String> async = connection.async();
+
+
+
+      final String[] uniqMust = getServiceCodeIndices(new HashSet<>(serviceCodes));
+      final String[] uniqMustNot = getServiceCodeIndices(new HashSet<>(mustNotServiceCodes));
+
+
+      if (uniqMust.length <= 0 && uniqMustNot.length <= 0) {
+        return new HashSet<>();
+      }
+
+      if (uniqMust.length > 0 && uniqMustNot.length <= 0) {
+        if (matchAny) {
+          async.zunionstore(searchKey, uniqMust);
+        } else {
+          async.zinterstore(searchKey, uniqMust);
+        }
+      } else if (uniqMust.length > 0 && uniqMustNot.length > 0) {
+        if (matchAny) {
+          async.sunionstore(searchKeyMust, uniqMust);
+        } else {
+          async.sinterstore(searchKeyMust, uniqMust);
+        }
+
+
+        async.sinterstore(searchKeyMustNot, uniqMustNot);
+        async.sdiffstore(searchKeyDiff, searchKeyMust, searchKeyMustNot);
+        async.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), searchKeyDiff);
+        async.flushCommands();
+
+      }
+    }
+    finally {
+      connection.flushCommands();
+      connection.setAutoFlushCommands(true);
+    }
+
+    return retval;
+  }
+
+  private static boolean isEmpty(final List<String> list) {
+    return list == null || list.isEmpty();
+  }
+
   @Override
+  @Deprecated
   public SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final List<String> mustNotServiceCodes,
       final boolean matchAny,  final Page page)
       throws IOException {
+
+    if (isEmpty(serviceCodes) && isEmpty(mustNotServiceCodes)) {
+      return SearchResults.searchResults(0, ImmutableList.of());
+    }
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
       final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
 
 
-      final String[] uniqMust = getServiceCodeIndices(new HashSet<>(serviceCodes));
-      final String[] uniqMustNot = getServiceCodeIndices(new HashSet<>(mustNotServiceCodes));
-
       long numResults = 0;
 
-      if (uniqMustNot.length <= 0) {
-        if (matchAny) {
-          connection.sync().zunionstore(searchKey, uniqMust);
-        } else {
-          connection.sync().zinterstore(searchKey, uniqMust);
-        }
-      }
-      else {
-        final String searchMustKey = searchKey + ":m";
-        final String searchMutNotKey = searchKey + ":n";
+      final Set<String> keysToDelete = createSearchKey(connection, searchKey, serviceCodes,
+          mustNotServiceCodes, matchAny);
 
-        if (matchAny) {
-          connection.sync().sunionstore(searchMustKey, uniqMust);
-        } else {
-          connection.sync().sinterstore(searchMustKey, uniqMust);
-        }
-        connection.sync().sadd(searchMutNotKey, uniqMustNot);
-        connection.sync().sdiff(searchKey, searchMustKey, searchMutNotKey);
-        connection.sync().del(searchMustKey, searchMutNotKey);
-      }
       final List<String> ids = connection.sync()
           .zrange(searchKey, page.offset(), page.offset() + page.size());
 
       final List<Facility> searchResults = fetchBatch(connection.async(), ids);
 
       try {
-        connection.sync().getStatefulConnection().setAutoFlushCommands(false);
-
-        connection.sync().del(searchKey);
+        keysToDelete.forEach(it -> connection.async().del(it));
+        connection.async().del(searchKey);
         connection.flushCommands();
       }
       finally {
@@ -253,6 +299,7 @@ public class RedisFacilityDao implements IFacilityDao {
       final String geoUnit,
       final Page page) throws IOException {
 
+    int j = 0;
     final String[] uniqMust = getServiceCodeIndices(new HashSet<>(mustServiceCodes));
     final String[] uniqMustNot = getServiceCodeIndices(new HashSet<>(mustNotServiceCodes));
 
@@ -284,13 +331,15 @@ public class RedisFacilityDao implements IFacilityDao {
        * Find the places that have services we want
        * Find the places that have services we don't want
        */
-      if (matchAny) {
+      if (matchAny && uniqMust.length > 0) {
         asyncCommands.sunionstore(searchKeyMust, uniqMust);
       }
-      else {
+      else if (!matchAny && uniqMust.length > 0) {
         asyncCommands.sinterstore(searchKeyMust, uniqMust);
       }
-      asyncCommands.sinterstore(searchKeyMustNot, uniqMustNot);
+      if (uniqMustNot.length > 0)
+        asyncCommands.sinterstore(searchKeyMustNot, uniqMustNot);
+
       asyncCommands.sdiffstore(searchKeyDiff, searchKeyMust, searchKeyMustNot);
       asyncCommands.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), searchKeyDiff);
       asyncCommands.del(searchKeyMust, searchKeyMust, searchKeyDiff);
@@ -326,7 +375,7 @@ public class RedisFacilityDao implements IFacilityDao {
       }
       finally {
         // #6 Explicitly delete the keys
-        connection.sync().del(searchKey, searchKeyFinal, radiusKey);
+        connection.async().del(searchKey, searchKeyFinal, radiusKey);
       }
     }
     catch (Exception e) {

@@ -1,7 +1,11 @@
 ---
 Changelog
 
-v1.6.0-SNAPSHOT
+v1.6.1
+* BUG: Fixed a bug where Redis Client was throwing errors when the must not list was empty
+* BUG: Fixed a bug where we failed to restore auto flush commands which caused the request to time out
+
+v1.6.0
 * FEATURE: Added a new option to search API to match any of the requested service codes. This is disabled by default. matchAny=true must be set to enable this.
 * BUG: Fixed a bad recursive call that introduced in v1.5.0
 
