@@ -1,5 +1,8 @@
 ---
 Changelog
+v1.7.0
+* FEATURE: Added a new field called 'available' to the Facility results. This maintains
+  the relationship between categories, and services 
 
 v1.6.1
 * BUG: Fixed a bug where Redis Client was throwing errors when the must not list was empty
