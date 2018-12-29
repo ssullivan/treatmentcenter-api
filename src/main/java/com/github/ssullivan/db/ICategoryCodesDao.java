@@ -19,6 +19,12 @@ public interface ICategoryCodesDao {
    */
   Category get(final String id) throws IOException;
 
+  Category get(final String id, final boolean fromCache) throws IOException;
+
+  default Category getFromCache(final String id) throws IOException {
+    return get(id, true);
+  }
+
   boolean delete(final String id) throws IOException;
 
   /**
