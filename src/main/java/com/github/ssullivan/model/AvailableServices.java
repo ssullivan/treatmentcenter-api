@@ -3,6 +3,7 @@ package com.github.ssullivan.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import io.swagger.annotations.ApiModel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,9 +21,9 @@ public class AvailableServices {
 
   public List<Category> getCategoryCodes() {
     if (this.categoryCodes == null)
-      return ImmutableList.of();
+      return new ArrayList<>();
 
-    return ImmutableList.copyOf(categoryCodes);
+    return new ArrayList<>(categoryCodes);
   }
 
   public void setCategoryCodes(final List<Category> categoryCodes) {

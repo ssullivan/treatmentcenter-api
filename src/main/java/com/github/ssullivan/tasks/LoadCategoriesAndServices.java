@@ -23,8 +23,11 @@ import java.util.Map;
 import java.util.Set;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoadCategoriesAndServices extends Command {
+  private static final Logger LOGGER = LoggerFactory.getLogger(LoadCategoriesAndServices.class);
 
   public LoadCategoriesAndServices() {
     super("load-categories-and-services", "Loads categories and schemas into the database");
@@ -100,6 +103,8 @@ public class LoadCategoriesAndServices extends Command {
         categoryCodesDao.addCategory(category);
       }
     }
+
+    LOGGER.debug("Finished");
 
   }
 }

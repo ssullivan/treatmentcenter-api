@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.AvailableServices;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
@@ -64,6 +65,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
   private IRedisConnectionPool redis;
   private ICategoryCodesDao categoryCodesDao;
+  private IServiceCodesDao serviceCodesDao;
   private ObjectMapper objectMapper;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
@@ -71,8 +73,10 @@ public class RedisFacilityDao implements IFacilityDao {
   @Inject
   public RedisFacilityDao(IRedisConnectionPool connectionPool,
       ICategoryCodesDao categoryCodesDao,
+      IServiceCodesDao serviceCodesDao,
       ObjectMapper objectMapper) {
     this.categoryCodesDao = categoryCodesDao;
+    this.serviceCodesDao = serviceCodesDao;
     this.redis = connectionPool;
     this.objectMapper = objectMapper;
     this.objectReader = objectMapper.readerFor(Facility.class);
@@ -674,15 +678,28 @@ public class RedisFacilityDao implements IFacilityDao {
     final Map<String, Category> availableServicesByCategory = new HashMap<>();
 
     for (final String categoryCode : facility.getCategoryCodes()) {
+      final Category availableCategory =
+          availableServicesByCategory.getOrDefault(categoryCode, new Category(categoryCode, "",  new HashSet<>()));
+      availableServicesByCategory.putIfAbsent(categoryCode, availableCategory);
+
       try {
         final Category category = this.categoryCodesDao.getFromCache(categoryCode);
+        availableCategory.setName(category.getName());
+        availableCategory.setCode(category.getCode());
 
-        final Category availableCategory =
-            availableServicesByCategory.getOrDefault(categoryCode, new Category());
-
-        category.getServices()
+        category.getServiceCodes()
             .stream()
-            .filter(service -> facility.getServiceCodes().contains(service.getCode()))
+            .filter(service -> facility.getServiceCodes().contains(service))
+            .map(service -> {
+              try {
+                return serviceCodesDao.getFromCache(service);
+              }
+              catch (IOException e) {
+                LOGGER.error("Failed to get service information for '{}'", service, e);
+              }
+              return null;
+            })
+            .filter(Objects::nonNull)
             .forEach(availableCategory::addServiceCode);
       }
       catch (IOException e) {

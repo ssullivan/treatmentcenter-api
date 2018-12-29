@@ -1,6 +1,7 @@
 package com.github.ssullivan.db;
 
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
+import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
@@ -17,6 +18,12 @@ public interface IServiceCodesDao {
    * @throws IOException failed to get from elasticsearch (reasons various)
    */
   Service get(final String id) throws IOException;
+
+  Service get(final String id, final boolean fromCache) throws IOException;
+
+  default Service getFromCache(final String id) throws IOException {
+    return get(id, true);
+  }
 
   boolean delete(final String id) throws IOException;
 
