@@ -1,5 +1,6 @@
 package com.github.ssullivan;
 
+import com.codahale.metrics.health.HealthCheck.Result;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.bundles.InjectorRegistry;
@@ -21,6 +22,7 @@ import io.dropwizard.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import java.util.EnumSet;
+import java.util.function.BiConsumer;
 import javax.servlet.DispatcherType;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -128,7 +130,13 @@ public class ApiApplication extends Application<AppConfig> {
   public void run(AppConfig configuration, Environment environment) throws Exception {
     final Injector injector = InjectorRegistry.getInjector(this);
     environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(), injector.getInstance(RedisHealthCheck.class));
-    environment.healthChecks().runHealthChecks();
+    environment.healthChecks().runHealthChecks()
+        .forEach((s, result) -> {
+          if (!result.isHealthy()) {
+            LOGGER.error("HealthCheck {} is not healthy because {}", result.getError());
+          }
+        });
+
 
     environment.jersey().packages(this.getClass().getPackage().getName());
     FilterHolder filterHolder = environment.getApplicationContext()
