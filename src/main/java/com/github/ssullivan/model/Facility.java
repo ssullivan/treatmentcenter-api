@@ -1,5 +1,6 @@
 package com.github.ssullivan.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,6 +21,7 @@ public class Facility {
   private Set<String> phoneNumbers;
   private Set<String> categoryCodes;
   private Set<String> serviceCodes;
+  private AvailableServices availableServices;
 
   public Facility() {
 
@@ -44,6 +46,9 @@ public class Facility {
       this.categoryCodes = new HashSet<>(facility.getCategoryCodes());
     if (facility.getServiceCodes() != null)
       this.serviceCodes = new HashSet<>(facility.getServiceCodes());
+    if (facility.getAvailableServices() != null) {
+      this.availableServices = facility.getAvailableServices();
+    }
   }
 
   /**
@@ -194,5 +199,14 @@ public class Facility {
 
   public void setServiceCodes(Set<String> serviceCodes) {
     this.serviceCodes = serviceCodes;
+  }
+
+  @JsonProperty("available")
+  public AvailableServices getAvailableServices() {
+    return availableServices;
+  }
+
+  public void setAvailableServices(AvailableServices availableServices) {
+    this.availableServices = availableServices;
   }
 }

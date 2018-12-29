@@ -4,7 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IServiceCodesDao;
+import com.github.ssullivan.model.AvailableServices;
+import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
@@ -60,12 +64,19 @@ public class RedisFacilityDao implements IFacilityDao {
 
 
   private IRedisConnectionPool redis;
+  private ICategoryCodesDao categoryCodesDao;
+  private IServiceCodesDao serviceCodesDao;
   private ObjectMapper objectMapper;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
 
   @Inject
-  public RedisFacilityDao(IRedisConnectionPool connectionPool, ObjectMapper objectMapper) {
+  public RedisFacilityDao(IRedisConnectionPool connectionPool,
+      ICategoryCodesDao categoryCodesDao,
+      IServiceCodesDao serviceCodesDao,
+      ObjectMapper objectMapper) {
+    this.categoryCodesDao = categoryCodesDao;
+    this.serviceCodesDao = serviceCodesDao;
     this.redis = connectionPool;
     this.objectMapper = objectMapper;
     this.objectReader = objectMapper.readerFor(Facility.class);
@@ -121,7 +132,11 @@ public class RedisFacilityDao implements IFacilityDao {
 
   private Facility toFacility(final List<KeyValue<String, String>> fields) {
     if (fields != null && !fields.isEmpty()) {
-      return deserialize(fields.get(0).getValue(), null);
+      final Facility retval = deserialize(fields.get(0).getValue(), null);
+      final AvailableServices availableServices = getAvailableServices(retval);
+      retval.setAvailableServices(availableServices);
+
+      return retval;
     }
     return null;
   }
@@ -402,7 +417,8 @@ public class RedisFacilityDao implements IFacilityDao {
               }
 
               return new FacilityWithRadius(facility, 0.0, geoUnit);
-            }).collect(Collectors.toList());
+            })
+           .collect(Collectors.toList());
 
     return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
   }
@@ -652,5 +668,45 @@ public class RedisFacilityDao implements IFacilityDao {
       LOGGER.error("Failed to deserialize JSON for category", e);
       return defaultValue;
     }
+  }
+
+  private AvailableServices getAvailableServices(final Facility facility) {
+    if (facility == null) {
+      return new AvailableServices();
+    }
+
+    final Map<String, Category> availableServicesByCategory = new HashMap<>();
+
+    for (final String categoryCode : facility.getCategoryCodes()) {
+      final Category availableCategory =
+          availableServicesByCategory.getOrDefault(categoryCode, new Category(categoryCode, "",  new HashSet<>()));
+      availableServicesByCategory.putIfAbsent(categoryCode, availableCategory);
+
+      try {
+        final Category category = this.categoryCodesDao.getFromCache(categoryCode);
+        availableCategory.setName(category.getName());
+        availableCategory.setCode(category.getCode());
+
+        category.getServiceCodes()
+            .stream()
+            .filter(service -> facility.getServiceCodes().contains(service))
+            .map(service -> {
+              try {
+                return serviceCodesDao.getFromCache(service);
+              }
+              catch (IOException e) {
+                LOGGER.error("Failed to get service information for '{}'", service, e);
+              }
+              return null;
+            })
+            .filter(Objects::nonNull)
+            .forEach(availableCategory::addServiceCode);
+      }
+      catch (IOException e) {
+        LOGGER.error("Failed to get category information for '{}'", categoryCode, e);
+      }
+    }
+
+    return new AvailableServices(availableServicesByCategory.values());
   }
 }

@@ -4,11 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.IServiceCodesDao;
+import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -24,6 +30,17 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   private IRedisConnectionPool redis;
   private ObjectReader serviceReader;
   private ObjectWriter serviceWriter;
+  private LoadingCache<String, Service> cache =
+      CacheBuilder.newBuilder()
+          .maximumSize(1024)
+          .concurrencyLevel(8)
+          .expireAfterAccess(60, TimeUnit.MINUTES)
+          .build(new CacheLoader<String, Service>() {
+            @Override
+            public Service load(final String key) throws Exception {
+              return get(key);
+            }
+          });
 
   @Inject
   public RedisServiceCodeDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
@@ -38,6 +55,19 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
       return deserialize(connection.sync().hget(KEY, id));
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
+    }
+  }
+
+  @Override
+  public Service get(String id, boolean fromCache) throws IOException {
+    try {
+      if (fromCache)
+        return this.cache.get(id);
+      else
+        return this.get(id);
+    } catch (ExecutionException e) {
+      LOGGER.error("Failed to get Category '{}' from in-memory cache", id, e);
+      throw new IOException(e);
     }
   }
 

@@ -60,7 +60,8 @@ public class ApiApplication extends Application<AppConfig> {
         swaggerBundleConfiguration.setIsPrettyPrint(true);
 
 
-        if (!"dev".equalsIgnoreCase(getProperty("ENVIRONMENT", "prod"))) {
+        final String environment = getProperty("ENVIRONMENT", "dev");
+        if ("prod".equalsIgnoreCase(environment)) {
           swaggerBundleConfiguration.setHost("api.centerlocator.org");
         }
 
@@ -128,7 +129,13 @@ public class ApiApplication extends Application<AppConfig> {
   public void run(AppConfig configuration, Environment environment) throws Exception {
     final Injector injector = InjectorRegistry.getInjector(this);
     environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(), injector.getInstance(RedisHealthCheck.class));
-    environment.healthChecks().runHealthChecks();
+    environment.healthChecks().runHealthChecks()
+        .forEach((s, result) -> {
+          if (!result.isHealthy()) {
+            LOGGER.error("HealthCheck {} is not healthy because {}", result.getError());
+          }
+        });
+
 
     environment.jersey().packages(this.getClass().getPackage().getName());
     FilterHolder filterHolder = environment.getApplicationContext()
