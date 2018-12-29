@@ -4,6 +4,7 @@ import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.ImplementedBy;
@@ -24,6 +25,9 @@ public interface IFacilityDao {
   default Facility getFacility(final Long pk) throws IOException {
     return getFacility(Objects.requireNonNull("" + pk, "Facility primary key must not be null"));
   }
+
+  SearchResults<FacilityWithRadius> find(final SearchRequest searchRequest,
+      final Page page) throws Exception;
 
   /**
    * Finds the all of the facilities that any of the specified service codes.

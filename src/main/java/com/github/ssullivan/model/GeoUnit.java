@@ -1,16 +1,21 @@
 package com.github.ssullivan.model;
 
+import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoArgs.Unit;
+
 public enum GeoUnit {
 
-  MILE(0.621371), // miles per km
-  KILOMETER(1.0), // km per km
-  METER(1000.0), // meters per km
-  FEET(3280.84); // feet per km
+  MILE("m", 0.621371), // miles per km
+  KILOMETER("km", 1.0), // km per km
+  METER("m", 1000.0), // meters per km
+  FEET("ft", 3280.84); // feet per km
 
+
+  private String abbrev;
   private double scale;
 
 
-  GeoUnit(double scale) {
+  GeoUnit(String abbrev, double scale) {
     this.scale = scale;
   }
 
@@ -28,5 +33,30 @@ public enum GeoUnit {
     }
     return tempValue;
   }
+
+  public GeoArgs.Unit unit() {
+    switch (this) {
+      case FEET:
+        return Unit.ft;
+      case MILE:
+        return Unit.mi;
+      case METER:
+        return Unit.m;
+      case KILOMETER:
+        return Unit.km;
+      default:
+        return Unit.m;
+    }
+  }
+
+  public String getAbbrev() {
+    return this.abbrev;
+  }
+
+  @Override
+  public String toString() {
+    return getAbbrev();
+  }
+
 
 }

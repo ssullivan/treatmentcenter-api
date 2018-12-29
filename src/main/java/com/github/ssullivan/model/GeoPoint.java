@@ -35,6 +35,24 @@ public abstract class GeoPoint {
   public double getDistance(final GeoPoint other, final String geoUnit) {
     return distanceInRadians(other) * getEarthRadius(geoUnit);
   }
+  public double getDistance(final GeoPoint other, final GeoUnit geoUnit) {
+    return distanceInRadians(other) * getEarthRadius(geoUnit);
+  }
+
+  public double getEarthRadius(final GeoUnit geoUnit) {
+    switch (geoUnit) {
+      case METER:
+        return GeoUnit.KILOMETER.convertTo(GeoUnit.METER, EARTH_RADIUS_KM);
+      case KILOMETER:
+        return EARTH_RADIUS_KM;
+      case FEET:
+        return GeoUnit.KILOMETER.convertTo(GeoUnit.FEET, EARTH_RADIUS_KM);
+      case MILE:
+        return GeoUnit.KILOMETER.convertTo(GeoUnit.MILE, EARTH_RADIUS_KM);
+      default:
+        throw new IllegalArgumentException("Invalid geoUnit: " + geoUnit);
+    }
+  }
 
   public double getEarthRadius(final String geoUnit) {
     switch (geoUnit) {
