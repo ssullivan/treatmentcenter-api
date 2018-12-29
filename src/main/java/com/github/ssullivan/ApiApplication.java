@@ -62,7 +62,8 @@ public class ApiApplication extends Application<AppConfig> {
         swaggerBundleConfiguration.setIsPrettyPrint(true);
 
 
-        if (!"dev".equalsIgnoreCase(getProperty("ENVIRONMENT", "prod"))) {
+        final String environment = getProperty("ENVIRONMENT", "dev");
+        if ("prod".equalsIgnoreCase(environment)) {
           swaggerBundleConfiguration.setHost("api.centerlocator.org");
         }
 
