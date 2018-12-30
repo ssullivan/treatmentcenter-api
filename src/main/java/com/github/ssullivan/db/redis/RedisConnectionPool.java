@@ -20,12 +20,18 @@ public class RedisConnectionPool implements IRedisConnectionPool {
   @Inject
   public RedisConnectionPool(RedisClient redisClient) {
     this.redisClient = redisClient;
+
+    GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
+    genericObjectPoolConfig.setMaxTotal(16);
+
+
     this.pool = ConnectionPoolSupport
-        .createGenericObjectPool(redisClient::connect, new GenericObjectPoolConfig());
+        .createGenericObjectPool(redisClient::connect, genericObjectPoolConfig);
   }
 
   @Override
   public StatefulRedisConnection<String, String> borrowConnection() throws Exception {
+
     return pool.borrowObject();
   }
 

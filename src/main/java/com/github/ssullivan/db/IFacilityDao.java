@@ -11,6 +11,7 @@ import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 @ImplementedBy(RedisFacilityDao.class)
 public interface IFacilityDao {
@@ -26,7 +27,7 @@ public interface IFacilityDao {
     return getFacility(Objects.requireNonNull("" + pk, "Facility primary key must not be null"));
   }
 
-  SearchResults<FacilityWithRadius> find(final SearchRequest searchRequest,
+  CompletionStage<SearchResults<Facility>> find(final SearchRequest searchRequest,
       final Page page) throws Exception;
 
   /**
