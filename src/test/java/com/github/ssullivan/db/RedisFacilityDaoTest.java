@@ -2,19 +2,28 @@ package com.github.ssullivan.db;
 
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
+import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
+import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
+import com.github.ssullivan.model.MatchOperator;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
+import com.github.ssullivan.model.Service;
+import com.github.ssullivan.model.ServicesCondition;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.io.IOException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -27,6 +36,8 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 public class RedisFacilityDaoTest {
 
   private RedisFacilityDao _dao;
+  private RedisCategoryCodesDao _categoryCodesDao;
+  private RedisServiceCodeDao _serviceCodesDao;
   private IRedisConnectionPool _redisConnectionPool;
 
   @BeforeAll
@@ -34,6 +45,8 @@ public class RedisFacilityDaoTest {
     final Injector injector = Guice
         .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
     _dao = injector.getInstance(RedisFacilityDao.class);
+    _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
+    _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
   }
 
@@ -75,6 +88,44 @@ public class RedisFacilityDaoTest {
     final Facility original = new Facility();
     original.setId(99);
     original.setCategoryCodes(Sets.newHashSet("TEST"));
+    original.setServiceCodes(Sets.newHashSet("BIZZBIZZ"));
+    original.setCity("New York");
+    original.setState("NY");
+    original.setFormattedAddress("Test St. 1234");
+    original.setWebsite("http://www.test.com");
+    original.setZip("10001");
+
+    _dao.addFacility(original);
+    final SearchResults ret = _dao.findByServiceCodes(ImmutableSet.of("BIZZBIZZ"), Page.page());
+    MatcherAssert.assertThat(ret, Matchers.notNullValue());
+    MatcherAssert.assertThat(ret.totalHits(), Matchers.equalTo(1L));
+
+    final Facility fromDb = (Facility) ret.hits().get(0);
+    MatcherAssert.assertThat(fromDb, Matchers.notNullValue());
+    MatcherAssert.assertThat(fromDb.getId(), Matchers.equalTo(original.getId()));
+    MatcherAssert.assertThat(fromDb.getCategoryCodes(), Matchers.containsInAnyOrder("TEST"));
+    MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BIZZBIZZ"));
+    MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
+    MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
+    MatcherAssert
+        .assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
+    MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
+    MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
+  }
+
+  @Test
+  public void testSearchRequestByServiceCode() throws Exception {
+
+    final Service service = new Service("BIZZ", "", "", "TEST");
+    final Category category = new Category("TEST", "", ImmutableList.of(service));
+    _serviceCodesDao.addService(service);
+    _categoryCodesDao.addCategory(category);
+
+
+
+    final Facility original = new Facility();
+    original.setId(1024);
+    original.setCategoryCodes(Sets.newHashSet("TEST"));
     original.setServiceCodes(Sets.newHashSet("BIZZ"));
     original.setCity("New York");
     original.setState("NY");
@@ -83,21 +134,15 @@ public class RedisFacilityDaoTest {
     original.setZip("10001");
 
     _dao.addFacility(original);
-    final SearchResults ret = _dao.findByServiceCodes(ImmutableSet.of("BIZZ"), Page.page());
-    MatcherAssert.assertThat(ret, Matchers.notNullValue());
-    MatcherAssert.assertThat(ret.totalHits(), Matchers.equalTo(1L));
 
-    final Facility fromDb = (Facility) ret.hits().get(0);
-    MatcherAssert.assertThat(fromDb, Matchers.notNullValue());
-    MatcherAssert.assertThat(fromDb.getId(), Matchers.equalTo(original.getId()));
-    MatcherAssert.assertThat(fromDb.getCategoryCodes(), Matchers.containsInAnyOrder("TEST"));
-    MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BIZZ"));
-    MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
-    MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
-    MatcherAssert
-        .assertThat(fromDb.getFormattedAddress(), Matchers.equalTo(original.getFormattedAddress()));
-    MatcherAssert.assertThat(fromDb.getWebsite(), Matchers.equalTo(original.getWebsite()));
-    MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
+    final SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setFirstCondition(new ServicesCondition(ImmutableList.of("BIZZ"), MatchOperator.MUST));
+
+    final CompletionStage<SearchResults<Facility>> results = _dao.find(searchRequest, Page.page());
+
+    final SearchResults<Facility> searchResults = results.toCompletableFuture().get(60, TimeUnit.SECONDS);
+    int j = 0;
+
   }
 
   @Test

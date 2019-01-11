@@ -1,5 +1,9 @@
 package com.github.ssullivan.db.redis;
 
+import static com.github.ssullivan.model.MatchOperator.MUST;
+import static com.github.ssullivan.model.MatchOperator.MUST_NOT;
+import static com.github.ssullivan.model.MatchOperator.SHOULD;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -12,10 +16,16 @@ import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
+import com.github.ssullivan.model.GeoRadiusCondition;
+import com.github.ssullivan.model.GeoUnit;
+import com.github.ssullivan.model.MatchOperator;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
+import com.github.ssullivan.model.ServicesCondition;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
@@ -50,7 +60,7 @@ import org.slf4j.LoggerFactory;
 public class RedisFacilityDao implements IFacilityDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);
-  private static final long DEFAULT_TIMEOUT = 15;
+  private static final long DEFAULT_TIMEOUT = 1500;
   private static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
   private static final String SEARCH_REQ = "search:counter";
@@ -61,6 +71,7 @@ public class RedisFacilityDao implements IFacilityDao {
   private static final String INDEX_BY_SERVICES = "index:facility_by_service";
   private static final String INDEX_BY_CATEGORIES = "index:facility_by_category";
   private static final String INDEX_BY_GEO = "index:facility_by_geo";
+  public static final int DEFAULT_EXPIRE_SECONDS = 3600;
 
 
   private IRedisConnectionPool redis;
@@ -118,6 +129,232 @@ public class RedisFacilityDao implements IFacilityDao {
     }
   }
 
+  @Override
+  public CompletionStage<SearchResults<Facility>> find(final SearchRequest searchRequest, final Page page)
+      throws Exception {
+    if (null == searchRequest) {
+      LOGGER.warn("Invalid Search Request of null. No Results!");
+      return CompletableFuture.completedFuture(SearchResults.searchResults(0));
+    }
+
+    final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection();
+
+    final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ) + ":" + System.currentTimeMillis() + ":";
+
+    final RedisAsyncCommands<String, String> redis = connection.async();
+    redis.setAutoFlushCommands(false);
+
+    // Perform the following operations in Batch
+    try {
+
+      final String firstKey = searchKey + ":1";
+      final String secondKey = searchKey + ":2";
+      final String mustNotKey = searchKey + ":3";
+      final String geoKey = searchKey + ":geo";
+      final String resultKey = searchKey + ":0";
+
+      final ServicesCondition first = searchRequest.getFirstCondition();
+      final ServicesCondition second = searchRequest.getSecondCondition();
+      final ServicesCondition mustNot = searchRequest.getMustNotCondition();
+
+      // A
+      final boolean hasFirstCondition = createServiceSearchSet(redis, firstKey, first);
+
+      // B
+      final boolean hasSecondCondition = createServiceSearchSet(redis, secondKey, second);
+
+      boolean hasResultKey = false;
+
+      if (hasFirstCondition && hasSecondCondition) {
+        redis.sinterstore(resultKey, firstKey, secondKey);
+        redis.del(firstKey, secondKey);
+        redis.expire(resultKey, DEFAULT_EXPIRE_SECONDS);
+
+        hasResultKey = true;
+      }
+      else if (hasFirstCondition) {
+        redis.sunionstore(resultKey, firstKey);
+        redis.del(firstKey);
+        redis.expire(resultKey, DEFAULT_EXPIRE_SECONDS);
+
+        hasResultKey = true;
+      }
+      else if (hasSecondCondition) {
+        redis.sunionstore(resultKey, secondKey);
+        redis.del(secondKey);
+        redis.expire(resultKey, DEFAULT_EXPIRE_SECONDS);
+
+        hasResultKey = true;
+      }
+
+      if ((hasFirstCondition || hasSecondCondition) &&
+          mustNot != null &&
+          !mustNot.getServices().isEmpty()) {
+        // This is an optimization - We don't need to calc the diff against
+        // all service keys. We can just do the diff against the ones that matched
+        // above that are stored in the resultKey
+        redis.sadd(mustNotKey, mustNot.getServices().toArray(new String[]{}));
+        redis.sdiffstore(resultKey, resultKey, mustNotKey);
+        redis.expire(mustNotKey, DEFAULT_EXPIRE_SECONDS);
+        redis.del(mustNotKey);
+
+        hasResultKey = true;
+      }
+      else if ((!hasFirstCondition && !hasSecondCondition) &&
+          mustNot != null &&
+          !mustNot.getServices().isEmpty()) {
+        // If nothing was specified for what we want
+        // then we need to find all of the facilities that
+        // don't have the specified services
+
+
+        // TODO
+        hasResultKey = false;
+      }
+
+
+      final boolean hasGeoSet = createGeoSearchSet(redis,
+          geoKey,
+          searchRequest.getGeoRadiusCondition());
+
+      CompletionStage<Long> totalSearchResultsFuture = CompletableFuture.completedFuture(0L);
+      if (hasResultKey && hasGeoSet) {
+
+        redis.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), resultKey);
+
+        // #3 Find the intersection of the places that have our services we want and
+        //    are within a specific radius
+        totalSearchResultsFuture = redis.zinterstore(searchKey, searchKey, geoKey);
+        redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
+        redis.del(resultKey, geoKey);
+      }
+      else if (hasResultKey) {
+        totalSearchResultsFuture = redis.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), resultKey);
+        redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
+        redis.del(resultKey);
+      }
+      else if (hasGeoSet) {
+        totalSearchResultsFuture = redis.zinterstore(searchKey, geoKey);
+        redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
+        redis.del(geoKey);
+      }
+
+      redis.flushCommands();
+      redis.setAutoFlushCommands(true);
+
+
+      // #4 Fetch the results
+      final CompletionStage<List<String>> idFutures = connection.async()
+          .zrange(searchKey, page.offset(), page.offset() + page.size());
+
+      return CompletableFutures.combineFutures(idFutures, totalSearchResultsFuture, (ids, totalResults) -> fetchBatchAsync(redis, ids)
+          .thenApply(facilities -> facilities
+              .stream()
+              .peek(facility -> {
+                final AvailableServices availableServices = getAvailableServices(facility);
+                facility.setAvailableServices(availableServices);
+              })
+              .filter(facility -> {
+                if (mustNot != null && mustNot.getServices() != null && !mustNot.getServices().isEmpty()) {
+                  final Set<String> intersection = Sets.intersection(facility.getServiceCodes(), mustNot.getServices());
+                  return intersection.isEmpty();
+                }
+                return true;
+              })
+              .map(facility -> {
+                if (hasGeoSet) {
+                  final double latitude = searchRequest.getGeoRadiusCondition().getGeoPoint()
+                      .lat();
+                  final double longitude = searchRequest.getGeoRadiusCondition().getGeoPoint()
+                      .lon();
+                  final String geoUnit = searchRequest.getGeoRadiusCondition().getGeoUnit()
+                      .getAbbrev();
+
+                  return toFacilityWithRadius(facility, latitude, longitude, geoUnit);
+                }
+
+                return facility;
+              })
+              .collect(Collectors.toList()))
+          .thenApply(facilities -> SearchResults.searchResults(totalResults, facilities)))
+          .whenComplete((result, error) -> {
+            if (error != null) {
+              LOGGER.error("An error occurred while processing search", error);
+            }
+            // #6 Explicitly delete the keys
+            redis.del(searchKey);
+            connection.setAutoFlushCommands(true);
+            connection.close();
+          });
+
+    }
+    finally {
+      redis.getStatefulConnection().setAutoFlushCommands(true);
+    }
+
+  }
+
+  private FacilityWithRadius toFacilityWithRadius(Facility facility, double latitude, double longitude,
+      String geoUnit) {
+    if (facility.getLocation() != null) {
+
+      return new FacilityWithRadius(facility, facility.getLocation()
+          .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit),
+          geoUnit);
+    }
+
+    return new FacilityWithRadius(facility, 0.0, geoUnit);
+  }
+
+  private boolean createServiceSearchSet(final RedisAsyncCommands<String, String> redis,
+      final String key,
+      final ServicesCondition condition) {
+    if (condition != null && !condition.getServices().isEmpty()) {
+      // We have a key per service code in redis
+      // Here we are constructing all of these keys based on the services
+      // the first condition specified
+      final String[] serviceKeys = getServiceCodeIndices(condition.getServices());
+      switch (condition.getMatchOperator()) {
+        case MUST:
+          redis.sinterstore(key, serviceKeys);
+          break;
+        case SHOULD:
+          redis.sunionstore(key, serviceKeys);
+          break;
+        default:
+          redis.sdiffstore(key, serviceKeys);
+          break;
+      }
+      redis.expire(key, DEFAULT_EXPIRE_SECONDS);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean createGeoSearchSet(final RedisAsyncCommands<String, String> redis,
+      final String key, final GeoRadiusCondition condition) {
+
+    if (INDEX_BY_GEO.equalsIgnoreCase(key)) {
+      LOGGER.warn("Invalid key search key '{}' was specified", key);
+      return false;
+    }
+
+    if (condition != null && condition.getGeoPoint() != null) {
+
+      redis
+          .georadius(INDEX_BY_GEO, condition.getGeoPoint()
+              .lon(), condition.getGeoPoint().lat(),
+              condition.getRadius(), condition.getGeoUnit().unit(),
+              GeoRadiusStoreArgs.Builder
+                  .withStoreDist(key));
+
+      return true;
+    }
+
+    return false;
+  }
+
+
   public Facility getFacility(final StatefulRedisConnection<String, String> connection,
       final String pk) {
       return toFacility(connection.sync().hmget(KEY + ":" + pk, "_source"));
@@ -133,13 +370,18 @@ public class RedisFacilityDao implements IFacilityDao {
   private Facility toFacility(final List<KeyValue<String, String>> fields) {
     if (fields != null && !fields.isEmpty()) {
       final Facility retval = deserialize(fields.get(0).getValue(), null);
-      final AvailableServices availableServices = getAvailableServices(retval);
-      retval.setAvailableServices(availableServices);
+
 
       return retval;
     }
     return null;
   }
+
+
+
+
+
+
 
   private String[] getServiceCodeIndices(final Collection<String> serviceCodes) {
     if (null == serviceCodes) return new String[]{};
@@ -280,28 +522,53 @@ public class RedisFacilityDao implements IFacilityDao {
     }
   }
 
+  private CompletionStage<List<Facility>> fetchBatchAsync(final RedisAsyncCommands<String, String> asyncCommands, final Collection<String> ids) {
+    if (asyncCommands == null || ids == null) {
+     return CompletableFuture.completedFuture(new ArrayList<>(0));
+    }
+
+    final Set<String> distinctIdentifiers = new HashSet<>(ids);
+    final List<CompletionStage<Facility>> facilityFutures =
+        distinctIdentifiers.stream()
+        .map(id -> getFacilityAsync(asyncCommands, id))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+   return CompletableFutures.successfulAsList(facilityFutures, t -> {
+      LOGGER.error("Fetching one of the facilities failed", t);
+      return null;
+    }).thenApply(
+        results -> results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+  }
 
   private List<Facility> fetchBatch(final RedisAsyncCommands<String, String> asyncCommands, final List<String> ids) {
     if (asyncCommands == null || ids == null) {
       return new ArrayList<>(0);
     }
 
+
     // #5 Fetch each facility
     final List<CompletionStage<Facility>> facilityFutures =
         ids.stream().map(id -> getFacilityAsync(asyncCommands, id))
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     final CompletableFuture<List<Facility>>
-      batchFuture = CompletableFutures.successfulAsList(facilityFutures, t -> {
+        batchFuture = CompletableFutures.successfulAsList(facilityFutures, t -> {
       LOGGER.error("Fetching one of the facilities failed", t);
       return null;
-    }).thenApply(results -> results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+    }).thenApply(
+        results -> results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+
+    asyncCommands.flushCommands();
 
     if (!LettuceFutures.awaitAll(Duration.ofSeconds(DEFAULT_TIMEOUT), batchFuture)) {
       return new ArrayList<>(0);
     }
 
     return batchFuture.getNow(new ArrayList<>(0));
+
+
   }
 
   @Override
@@ -401,27 +668,25 @@ public class RedisFacilityDao implements IFacilityDao {
     return SearchResults.searchResults(0L);
   }
 
+
   private SearchResults<FacilityWithRadius> getFacilityWithRadiusSearchResults(final double longitude,
       final double latitude, final String geoUnit, final RedisAsyncCommands<String, String> asyncCommands,
-      final RedisFuture<Long> geoServicesIntersectionFuture, final List<String> ids)
-      throws InterruptedException, java.util.concurrent.ExecutionException {
+      final CompletionStage<Long> geoServicesIntersectionFuture, final List<String> ids) {
 
     final List<FacilityWithRadius> searchResults =
         fetchBatch(asyncCommands, ids)
             .stream()
             .map(facility -> {
-              if (facility.getLocation() != null) {
-                return new FacilityWithRadius(facility, facility.getLocation()
-                    .getDistance(GeoPoint.geoPoint(latitude, longitude), geoUnit),
-                    geoUnit);
-              }
+              final AvailableServices availableServices = getAvailableServices(facility);
+              facility.setAvailableServices(availableServices);
 
-              return new FacilityWithRadius(facility, 0.0, geoUnit);
+              return toFacilityWithRadius(facility, latitude, longitude, geoUnit);
             })
            .collect(Collectors.toList());
 
-    return SearchResults.searchResults(geoServicesIntersectionFuture.get(), searchResults);
+    return SearchResults.searchResults(geoServicesIntersectionFuture.toCompletableFuture().getNow(0L), searchResults);
   }
+
 
   @Override
   @Deprecated
@@ -679,7 +944,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     for (final String categoryCode : facility.getCategoryCodes()) {
       final Category availableCategory =
-          availableServicesByCategory.getOrDefault(categoryCode, new Category(categoryCode, "",  new HashSet<>()));
+          availableServicesByCategory.getOrDefault(categoryCode, new Category(categoryCode, "",  new HashSet<String>()));
       availableServicesByCategory.putIfAbsent(categoryCode, availableCategory);
 
       try {

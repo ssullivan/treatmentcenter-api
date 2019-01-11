@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
@@ -26,6 +27,11 @@ public class Category {
     this.name = name;
     this.serviceCodes = new HashSet<>(serviceCodes);
     this.services = new HashSet<>();
+  }
+
+  public Category(final String code, final String name, final Collection<Service> services) {
+    this(code, name, services.stream().map(Service::getCode).collect(Collectors.toSet()));
+    this.services = new HashSet<>(services);
   }
 
 

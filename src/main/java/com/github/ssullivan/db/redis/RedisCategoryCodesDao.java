@@ -56,6 +56,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
     }
   }
 
+
   @Override
   public Category get(String id, boolean fromCache) throws IOException {
     try {
