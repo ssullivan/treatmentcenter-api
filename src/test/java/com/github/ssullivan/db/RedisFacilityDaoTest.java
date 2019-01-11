@@ -113,7 +113,7 @@ public class RedisFacilityDaoTest {
     MatcherAssert.assertThat(fromDb.getZip(), Matchers.equalTo(original.getZip()));
   }
 
-  @Test
+
   public void testSearchRequestByServiceCode() throws Exception {
 
     final Service service = new Service("BIZZ", "", "", "TEST");

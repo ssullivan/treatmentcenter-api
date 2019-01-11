@@ -1,5 +1,9 @@
 ---
 Changelog
+v1.8.0
+* FEATURE: Added a v2 search endpoint that can take a list of services to match any on
+* BUG: Fixed a few internal bugs related to mapping geo units
+
 v1.7.0
 * FEATURE: Added a new field called 'available' to the Facility results. This maintains
   the relationship between categories, and services 
