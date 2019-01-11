@@ -5,7 +5,7 @@ import io.lettuce.core.GeoArgs.Unit;
 
 public enum GeoUnit {
 
-  MILE("m", 0.621371), // miles per km
+  MILE("mi", 0.621371), // miles per km
   KILOMETER("km", 1.0), // km per km
   METER("m", 1000.0), // meters per km
   FEET("ft", 3280.84); // feet per km
@@ -16,6 +16,7 @@ public enum GeoUnit {
 
 
   GeoUnit(String abbrev, double scale) {
+    this.abbrev = abbrev;
     this.scale = scale;
   }
 
@@ -45,7 +46,22 @@ public enum GeoUnit {
       case KILOMETER:
         return Unit.km;
       default:
-        return Unit.m;
+        return Unit.mi;
+    }
+  }
+
+  public static GeoUnit asGeoUnit(final String unit) {
+    switch (unit) {
+      case "mi":
+        return MILE;
+      case "km":
+        return KILOMETER;
+      case "m":
+        return METER;
+      case "ft":
+        return FEET;
+      default:
+        return MILE;
     }
   }
 

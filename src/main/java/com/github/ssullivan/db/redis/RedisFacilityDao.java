@@ -141,7 +141,7 @@ public class RedisFacilityDao implements IFacilityDao {
     final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
 
     final RedisAsyncCommands<String, String> redis = connection.async();
-    redis.setAutoFlushCommands(false);
+    redis.setAutoFlushCommands(true);
 
     // Perform the following operations in Batch
     try {
@@ -154,7 +154,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
       final ServicesCondition first = searchRequest.getFirstCondition();
       final ServicesCondition second = searchRequest.getSecondCondition();
-      final ServicesCondition mustNot = searchRequest.getSecondCondition();
+      final ServicesCondition mustNot = searchRequest.getMustNotCondition();
 
       // A
       final boolean hasFirstCondition = createServiceSearchSet(redis, firstKey, first);
@@ -189,7 +189,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
       if ((hasFirstCondition || hasSecondCondition) &&
           mustNot != null &&
-          mustNot.getServices().isEmpty()) {
+          !mustNot.getServices().isEmpty()) {
         // This is an optimization - We don't need to calc the diff against
         // all service keys. We can just do the diff against the ones that matched
         // above that are stored in the resultKey
@@ -202,7 +202,7 @@ public class RedisFacilityDao implements IFacilityDao {
       }
       else if ((!hasFirstCondition && !hasSecondCondition) &&
           mustNot != null &&
-          mustNot.getServices().isEmpty()) {
+          !mustNot.getServices().isEmpty()) {
         // If nothing was specified for what we want
         // then we need to find all of the facilities that
         // don't have the specified services
