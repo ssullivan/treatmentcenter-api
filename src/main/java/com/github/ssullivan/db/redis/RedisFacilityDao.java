@@ -25,6 +25,7 @@ import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
@@ -138,10 +139,10 @@ public class RedisFacilityDao implements IFacilityDao {
 
     final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection();
 
-    final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
+    final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ) + ":" + System.currentTimeMillis() + ":";
 
     final RedisAsyncCommands<String, String> redis = connection.async();
-    redis.setAutoFlushCommands(true);
+    redis.setAutoFlushCommands(false);
 
     // Perform the following operations in Batch
     try {
@@ -186,7 +187,6 @@ public class RedisFacilityDao implements IFacilityDao {
         hasResultKey = true;
       }
 
-
       if ((hasFirstCondition || hasSecondCondition) &&
           mustNot != null &&
           !mustNot.getServices().isEmpty()) {
@@ -206,9 +206,10 @@ public class RedisFacilityDao implements IFacilityDao {
         // If nothing was specified for what we want
         // then we need to find all of the facilities that
         // don't have the specified services
-        createServiceSearchSet(redis, resultKey, mustNot);
 
-        hasResultKey = true;
+
+        // TODO
+        hasResultKey = false;
       }
 
 
@@ -252,6 +253,13 @@ public class RedisFacilityDao implements IFacilityDao {
               .peek(facility -> {
                 final AvailableServices availableServices = getAvailableServices(facility);
                 facility.setAvailableServices(availableServices);
+              })
+              .filter(facility -> {
+                if (mustNot != null && mustNot.getServices() != null && !mustNot.getServices().isEmpty()) {
+                  final Set<String> intersection = Sets.intersection(facility.getServiceCodes(), mustNot.getServices());
+                  return intersection.isEmpty();
+                }
+                return true;
               })
               .map(facility -> {
                 if (hasGeoSet) {

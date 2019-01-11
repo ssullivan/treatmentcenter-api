@@ -88,7 +88,7 @@ public class RedisFacilityDaoTest {
     final Facility original = new Facility();
     original.setId(99);
     original.setCategoryCodes(Sets.newHashSet("TEST"));
-    original.setServiceCodes(Sets.newHashSet("BIZZ"));
+    original.setServiceCodes(Sets.newHashSet("BIZZBIZZ"));
     original.setCity("New York");
     original.setState("NY");
     original.setFormattedAddress("Test St. 1234");
@@ -96,7 +96,7 @@ public class RedisFacilityDaoTest {
     original.setZip("10001");
 
     _dao.addFacility(original);
-    final SearchResults ret = _dao.findByServiceCodes(ImmutableSet.of("BIZZ"), Page.page());
+    final SearchResults ret = _dao.findByServiceCodes(ImmutableSet.of("BIZZBIZZ"), Page.page());
     MatcherAssert.assertThat(ret, Matchers.notNullValue());
     MatcherAssert.assertThat(ret.totalHits(), Matchers.equalTo(1L));
 
@@ -104,7 +104,7 @@ public class RedisFacilityDaoTest {
     MatcherAssert.assertThat(fromDb, Matchers.notNullValue());
     MatcherAssert.assertThat(fromDb.getId(), Matchers.equalTo(original.getId()));
     MatcherAssert.assertThat(fromDb.getCategoryCodes(), Matchers.containsInAnyOrder("TEST"));
-    MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BIZZ"));
+    MatcherAssert.assertThat(fromDb.getServiceCodes(), Matchers.containsInAnyOrder("BIZZBIZZ"));
     MatcherAssert.assertThat(fromDb.getCity(), Matchers.equalToIgnoringCase(original.getCity()));
     MatcherAssert.assertThat(fromDb.getState(), Matchers.equalTo(original.getState()));
     MatcherAssert
