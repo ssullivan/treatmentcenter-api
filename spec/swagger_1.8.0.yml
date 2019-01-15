@@ -11,7 +11,7 @@
     "title" : "Treatmentcenter API"
 
   },
-  "host" : "api.centerlocator.org",
+
   "tags" : [ {
 
                "name" : "categories"
