@@ -1,5 +1,6 @@
 package com.github.ssullivan.resources;
 
+import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.db.IFacilityDao;
@@ -119,15 +120,18 @@ public class FacilitySearchResource {
         return;
       }
 
+      final List<String> flattenServicCodes = RequestUtils.flatten(serviceCodes);
+      final List<String> flattenMatchAny = RequestUtils.flatten(matchAnyServiceCodes);
+
       final List<String> mustNotServiceCodes =
-          serviceCodes
+          flattenServicCodes
               .stream()
               .filter(it -> it.startsWith("!"))
               .map(it -> it.substring(1))
               .collect(Collectors.toList());
 
       final List<String> mustServiceCodes =
-          serviceCodes
+          flattenServicCodes
               .stream()
               .filter(it -> !it.startsWith("!"))
               .collect(Collectors.toList());
@@ -135,7 +139,7 @@ public class FacilitySearchResource {
       final SearchRequest searchRequest = new SearchRequest();
       searchRequest.setMustNotCondition(new ServicesCondition(mustNotServiceCodes, MatchOperator.MUST_NOT));
       searchRequest.setFirstCondition(new ServicesCondition(mustServiceCodes, MatchOperator.MUST));
-      searchRequest.setSecondCondition(new ServicesCondition(matchAnyServiceCodes, MatchOperator.SHOULD));
+      searchRequest.setSecondCondition(new ServicesCondition(flattenMatchAny, MatchOperator.SHOULD));
 
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {

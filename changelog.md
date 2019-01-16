@@ -1,5 +1,7 @@
 ---
 Changelog
+v1.8.1
+* FEATURE: Added the ability to specify service as comma separated lists (this only affects the v2)
 
 v1.8.0
 * FEATURE: Added a v2 search endpoint that can take a list of services to match any on
