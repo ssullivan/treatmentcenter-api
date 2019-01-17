@@ -218,12 +218,7 @@ public class FacilitySearchResource {
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
 
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
-      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
-
-      @ApiParam(value="When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined")
-      @Pattern(regexp = "AND|OR")
-      @DefaultValue("AND")
-      final String op
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size
       ) {
     try {
       if (postalCode != null && postalCode.length() > 10) {
