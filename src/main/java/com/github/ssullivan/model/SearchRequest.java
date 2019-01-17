@@ -10,6 +10,8 @@ public class SearchRequest {
   private ServicesCondition firstCondition;
   private ServicesCondition secondCondition;
   private ServicesCondition mustNotCondition;
+  private SetOperation finalSetOperation;
+
 
   public GeoRadiusCondition getGeoRadiusCondition() {
     return geoRadiusCondition;
@@ -55,5 +57,13 @@ public class SearchRequest {
 
   public List<ServicesCondition> getConditions() {
     return conditions;
+  }
+
+  public SetOperation getFinalSetOperation() {
+    return finalSetOperation;
+  }
+
+  public void setFinalSetOperation(SetOperation finalSetOperation) {
+    this.finalSetOperation = finalSetOperation;
   }
 }
