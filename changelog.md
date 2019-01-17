@@ -1,5 +1,9 @@
 ---
 Changelog
+--
+v1.8.2
+* FEATURE: Allow the specification of multiple search sets to search by. This is achieved by doing something like serviceCodes=a,b,c&serviceCodes=d,e,f&matchAny=x,y,z
+
 v1.8.1
 * FEATURE: Added the ability to specify service as comma separated lists (this only affects the v2)
 
