@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+v1.8.3:
+* Made the join operation for multiple search sets configurable 
+
 v1.8.2
 * FEATURE: Allow the specification of multiple search sets to search by. This is achieved by doing something like serviceCodes=a,b,c&serviceCodes=d,e,f&matchAny=x,y,z
 

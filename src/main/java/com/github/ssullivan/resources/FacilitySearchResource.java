@@ -12,6 +12,7 @@ import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
 import com.github.ssullivan.model.ServicesConditionFactory;
+import com.github.ssullivan.model.SetOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
@@ -37,6 +38,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.apiguardian.api.API;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +102,15 @@ public class FacilitySearchResource {
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
 
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
-      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
+
+      @ApiParam(value="When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
+          , allowableValues = "AND,OR", defaultValue = "AND")
+      @Pattern(regexp = "AND|OR")
+      @DefaultValue("AND")
+      @QueryParam("operation")
+      final String op) {
+
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
@@ -124,6 +134,7 @@ public class FacilitySearchResource {
 
       final SearchRequest searchRequest = new SearchRequest();
       final ServicesConditionFactory factory = new ServicesConditionFactory();
+      searchRequest.setFinalSetOperation(SetOperation.fromBooleanOp(op));
       searchRequest.setServiceConditions(factory.fromRequestParams(serviceCodes, matchAnyServiceCodes));
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
@@ -207,7 +218,13 @@ public class FacilitySearchResource {
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
 
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
-      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
+
+      @ApiParam(value="When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined")
+      @Pattern(regexp = "AND|OR")
+      @DefaultValue("AND")
+      final String op
+      ) {
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
