@@ -329,7 +329,16 @@ public class RedisFacilityDao implements IFacilityDao {
           keys[counter] = key;
           counter = counter + 1;
         }
-        redis.sunionstore(resultKey, keys);
+
+        switch (searchRequest.getFinalSetOperation()) {
+          case INTERSECTION:
+            redis.sinterstore(resultKey, keys);
+          case UNION:
+            redis.sunionstore(resultKey, keys);
+          default:
+            redis.sinterstore(resultKey, keys);
+        }
+
         redis.del(keys);
         hasResultKey = true;
       }
