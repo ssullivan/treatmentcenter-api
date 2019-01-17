@@ -11,6 +11,8 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
+import com.github.ssullivan.model.ServicesConditionFactory;
+import com.github.ssullivan.model.SetOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
@@ -36,6 +38,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.apiguardian.api.API;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +61,7 @@ public class FacilitySearchResource {
     this.postalcodeService = postalcodeService;
   }
 
-  @ApiOperation(value = "Find treatment facilities by their services and location",
+  @ApiOperation(value = "Find treatment facilities by their services and location. When multiple serviceCode, and matchAny sets are specified those results will be unified together",
       response = SearchResults.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200,
@@ -75,9 +78,10 @@ public class FacilitySearchResource {
       @QueryParam("postalCode") final String postalCode,
 
 
-      @ApiParam(value = "The SAMSHA service code. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
+      @ApiParam(value = "A comma separated list of service codes. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
+      @ApiParam(value = "A comma separated list of service codes.", allowMultiple = true)
       @QueryParam("matchAny") final List<String> matchAnyServiceCodes,
 
       @ApiParam(value = "the latitude coordinate according to WGS84", allowableValues = "range[-90,90]")
@@ -98,7 +102,15 @@ public class FacilitySearchResource {
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
 
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
-      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
+
+      @ApiParam(value="When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
+          , allowableValues = "AND,OR", defaultValue = "AND")
+      @Pattern(regexp = "AND|OR")
+      @DefaultValue("AND")
+      @QueryParam("operation")
+      final String op) {
+
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
@@ -120,27 +132,10 @@ public class FacilitySearchResource {
         return;
       }
 
-      final List<String> flattenServicCodes = RequestUtils.flatten(serviceCodes);
-      final List<String> flattenMatchAny = RequestUtils.flatten(matchAnyServiceCodes);
-
-      final List<String> mustNotServiceCodes =
-          flattenServicCodes
-              .stream()
-              .filter(it -> it.startsWith("!"))
-              .map(it -> it.substring(1))
-              .collect(Collectors.toList());
-
-      final List<String> mustServiceCodes =
-          flattenServicCodes
-              .stream()
-              .filter(it -> !it.startsWith("!"))
-              .collect(Collectors.toList());
-
       final SearchRequest searchRequest = new SearchRequest();
-      searchRequest.setMustNotCondition(new ServicesCondition(mustNotServiceCodes, MatchOperator.MUST_NOT));
-      searchRequest.setFirstCondition(new ServicesCondition(mustServiceCodes, MatchOperator.MUST));
-      searchRequest.setSecondCondition(new ServicesCondition(flattenMatchAny, MatchOperator.SHOULD));
-
+      final ServicesConditionFactory factory = new ServicesConditionFactory();
+      searchRequest.setFinalSetOperation(SetOperation.fromBooleanOp(op));
+      searchRequest.setServiceConditions(factory.fromRequestParams(serviceCodes, matchAnyServiceCodes));
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
         asyncResponse.resume(
@@ -161,7 +156,7 @@ public class FacilitySearchResource {
           searchRequest.setGeoRadiusCondition(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
         }
       }
-      this.facilityDao.find(searchRequest, Page.page(offset, size))
+      this.facilityDao.findV3(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
               if (error != null) {
                 LOGGER.error("Failed to find facilities with service codes`", error);
@@ -223,7 +218,8 @@ public class FacilitySearchResource {
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
 
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
-      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size) {
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size
+      ) {
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
