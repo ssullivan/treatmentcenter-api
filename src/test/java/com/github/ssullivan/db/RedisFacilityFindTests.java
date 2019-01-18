@@ -1,5 +1,8 @@
 package com.github.ssullivan.db;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
@@ -7,7 +10,9 @@ import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
-import com.github.ssullivan.model.FacilityWithRadius;
+import com.github.ssullivan.model.GeoPoint;
+import com.github.ssullivan.model.GeoRadiusCondition;
+import com.github.ssullivan.model.GeoUnit;
 import com.github.ssullivan.model.MatchOperator;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
@@ -20,9 +25,11 @@ import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.io.IOException;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
+import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -66,12 +73,52 @@ public class RedisFacilityFindTests {
 
 
   @Test
-  public void test() throws Exception {
+  public void testSearchingForASingleCondition() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     ServicesCondition servicesCondition = new ServicesCondition(ImmutableList.of("MALE"), MatchOperator.MUST);
     searchRequest.setServiceConditions(ImmutableList.of(servicesCondition));
 
-    CompletionStage<SearchResults<Facility>> results  = dao.find(searchRequest, Page.page());
+    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+        .toCompletableFuture();
 
+    Awaitility.await()
+        .atMost(1, TimeUnit.SECONDS)
+        .pollInterval(10, TimeUnit.MILLISECONDS)
+        .until(promise::isDone);
+
+    final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
+    MatcherAssert.assertThat(searchResults.totalHits(),equalTo(8L));
+    MatcherAssert.assertThat(searchResults.hits(), hasSize(8));
+
+    final Facility firstFacility = searchResults.hits().get(0);
+    MatcherAssert.assertThat(firstFacility.getId(), equalTo(1L));
+    MatcherAssert.assertThat(firstFacility.getName1(), equalTo("Location 1"));
+  }
+
+  @Test
+  public void testSearchingByGeoCondition() throws Exception {
+    SearchRequest searchRequest = new SearchRequest();
+    GeoRadiusCondition geoRadiusCondition = new GeoRadiusCondition(GeoPoint.geoPoint(38.80, -76.80), 15, GeoUnit.MILE);
+    searchRequest.setGeoRadiusCondition(geoRadiusCondition);
+
+    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+        .toCompletableFuture();
+
+    Awaitility.await()
+        .atMost(1, TimeUnit.SECONDS)
+        .pollInterval(10, TimeUnit.MILLISECONDS)
+        .until(promise::isDone);
+
+    final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
+    MatcherAssert.assertThat(searchResults.totalHits(),equalTo(2L));
+    MatcherAssert.assertThat(searchResults.hits(), hasSize(2));
+
+    final Facility firstFacility = searchResults.hits().get(0);
+    MatcherAssert.assertThat(firstFacility.getId(), equalTo(1L));
+    MatcherAssert.assertThat(firstFacility.getName1(), equalTo("Location 1"));
+
+    final Facility secondFacility = searchResults.hits().get(1);
+    MatcherAssert.assertThat(secondFacility.getId(), equalTo(2L));
+    MatcherAssert.assertThat(secondFacility.getName1(), equalTo("Location 2"));
   }
 }

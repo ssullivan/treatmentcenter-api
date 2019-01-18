@@ -142,108 +142,103 @@ public class RedisFacilityDao implements IFacilityDao {
     final RedisAsyncCommands<String, String> redis = connection.async();
     redis.setAutoFlushCommands(false);
 
-    try {
-      // Perform the following operations in Batch
-      boolean hasResultKey = false;
-      final List<ServicesCondition> servicesConditions = searchRequest.getConditions();
 
-      if (!servicesConditions.isEmpty()) {
-        int counter = 0;
+    // Perform the following operations in Batch
+    boolean hasResultKey = false;
+    final List<ServicesCondition> servicesConditions = searchRequest.getConditions();
 
-        final String[] keys = new String[servicesConditions.size()];
-        for (final ServicesCondition servicesCondition : servicesConditions) {
-          final String key = searchKey + "s:" + counter;
-          if (!createServiceSearchSet(redis, key, servicesCondition)) {
-            LOGGER.warn("Failed to create search set: {}", key);
-          }
-          keys[counter] = key;
-          counter = counter + 1;
+    if (!servicesConditions.isEmpty()) {
+      int counter = 0;
+
+      final String[] keys = new String[servicesConditions.size()];
+      for (final ServicesCondition servicesCondition : servicesConditions) {
+        final String key = searchKey + "s:" + counter;
+        if (!createServiceSearchSet(redis, key, servicesCondition)) {
+          LOGGER.warn("Failed to create search set: {}", key);
         }
+        keys[counter] = key;
+        counter = counter + 1;
+      }
 
-        switch (searchRequest.getFinalSetOperation()) {
-          case INTERSECTION:
-            redis.sinterstore(resultKey, keys);
-          case UNION:
-            redis.sunionstore(resultKey, keys);
-          default:
-            redis.sinterstore(resultKey, keys);
+      switch (searchRequest.getFinalSetOperation()) {
+        case INTERSECTION:
+          redis.sinterstore(resultKey, keys);
+        case UNION:
+          redis.sunionstore(resultKey, keys);
+        default:
+          redis.sinterstore(resultKey, keys);
+      }
+
+      redis.del(keys);
+      hasResultKey = true;
+    }
+
+    final boolean hasGeoSet = createGeoSearchSet(redis,
+        geoKey,
+        searchRequest.getGeoRadiusCondition());
+
+    CompletionStage<Long> totalSearchResultsFuture = CompletableFuture.completedFuture(0L);
+    if (hasResultKey && hasGeoSet) {
+
+      redis.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), resultKey);
+
+      // #3 Find the intersection of the places that have our services we want and
+      //    are within a specific radius
+      totalSearchResultsFuture = redis.zinterstore(searchKey, searchKey, geoKey);
+      redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
+      redis.del(resultKey, geoKey);
+    }
+    else if (hasResultKey) {
+      totalSearchResultsFuture = redis.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), resultKey);
+      redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
+      redis.del(resultKey);
+    }
+    else if (hasGeoSet) {
+      totalSearchResultsFuture = redis.zinterstore(searchKey, geoKey);
+      redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
+      redis.del(geoKey);
+    }
+
+    redis.flushCommands();
+    redis.setAutoFlushCommands(true);
+
+
+    // #4 Fetch the results
+  final CompletionStage<List<String>> idFutures = connection.async()
+      .zrange(searchKey, page.offset(), page.offset() + page.size());
+    redis.getStatefulConnection().setAutoFlushCommands(true);
+  return CompletableFutures.combineFutures(idFutures, totalSearchResultsFuture, (ids, totalResults) -> fetchBatchAsync(redis, ids)
+      .thenApply(facilities -> facilities
+          .stream()
+          .peek(facility -> {
+            final AvailableServices availableServices = getAvailableServices(facility);
+            facility.setAvailableServices(availableServices);
+          })
+          .map(facility -> {
+            if (hasGeoSet) {
+              final double latitude = searchRequest.getGeoRadiusCondition().getGeoPoint()
+                  .lat();
+              final double longitude = searchRequest.getGeoRadiusCondition().getGeoPoint()
+                  .lon();
+              final String geoUnit = searchRequest.getGeoRadiusCondition().getGeoUnit()
+                  .getAbbrev();
+
+              return toFacilityWithRadius(facility, latitude, longitude, geoUnit);
+            }
+
+            return facility;
+          })
+          .collect(Collectors.toList()))
+      .thenApply(facilities -> SearchResults.searchResults(totalResults, facilities)))
+      .whenComplete((result, error) -> {
+        if (error != null) {
+          LOGGER.error("An error occurred while processing search", error);
         }
-
-        redis.del(keys);
-        hasResultKey = true;
-      }
-
-      final boolean hasGeoSet = createGeoSearchSet(redis,
-          geoKey,
-          searchRequest.getGeoRadiusCondition());
-
-      CompletionStage<Long> totalSearchResultsFuture = CompletableFuture.completedFuture(0L);
-      if (hasResultKey && hasGeoSet) {
-
-        redis.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), resultKey);
-
-        // #3 Find the intersection of the places that have our services we want and
-        //    are within a specific radius
-        totalSearchResultsFuture = redis.zinterstore(searchKey, searchKey, geoKey);
-        redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
-        redis.del(resultKey, geoKey);
-      }
-      else if (hasResultKey) {
-        totalSearchResultsFuture = redis.zinterstore(searchKey, ZStoreArgs.Builder.weights(1.0), resultKey);
-        redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
-        redis.del(resultKey);
-      }
-      else if (hasGeoSet) {
-        totalSearchResultsFuture = redis.zinterstore(searchKey, geoKey);
-        redis.expire(searchKey, DEFAULT_EXPIRE_SECONDS);
-        redis.del(geoKey);
-      }
-
-      redis.flushCommands();
-      redis.setAutoFlushCommands(true);
-
-
-      // #4 Fetch the results
-    final CompletionStage<List<String>> idFutures = connection.async()
-        .zrange(searchKey, page.offset(), page.offset() + page.size());
-
-    return CompletableFutures.combineFutures(idFutures, totalSearchResultsFuture, (ids, totalResults) -> fetchBatchAsync(redis, ids)
-        .thenApply(facilities -> facilities
-            .stream()
-            .peek(facility -> {
-              final AvailableServices availableServices = getAvailableServices(facility);
-              facility.setAvailableServices(availableServices);
-            })
-            .map(facility -> {
-              if (hasGeoSet) {
-                final double latitude = searchRequest.getGeoRadiusCondition().getGeoPoint()
-                    .lat();
-                final double longitude = searchRequest.getGeoRadiusCondition().getGeoPoint()
-                    .lon();
-                final String geoUnit = searchRequest.getGeoRadiusCondition().getGeoUnit()
-                    .getAbbrev();
-
-                return toFacilityWithRadius(facility, latitude, longitude, geoUnit);
-              }
-
-              return facility;
-            })
-            .collect(Collectors.toList()))
-        .thenApply(facilities -> SearchResults.searchResults(totalResults, facilities)))
-        .whenComplete((result, error) -> {
-          if (error != null) {
-            LOGGER.error("An error occurred while processing search", error);
-          }
-          // #6 Explicitly delete the keys
-          redis.del(searchKey);
-          connection.setAutoFlushCommands(true);
-          connection.close();
-        });
-
-    }
-    finally {
-      redis.getStatefulConnection().setAutoFlushCommands(true);
-    }
+        // #6 Explicitly delete the keys
+        redis.del(searchKey);
+        connection.setAutoFlushCommands(true);
+        connection.close();
+      });
   }
 
 

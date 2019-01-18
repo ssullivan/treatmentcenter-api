@@ -9,6 +9,10 @@ public class SearchRequest {
   private List<ServicesCondition> conditions;
   private SetOperation finalSetOperation;
 
+  public SearchRequest() {
+    this.finalSetOperation = SetOperation.INTERSECTION;
+  }
+
   public GeoRadiusCondition getGeoRadiusCondition() {
     return geoRadiusCondition;
   }
@@ -22,6 +26,9 @@ public class SearchRequest {
   }
 
   public List<ServicesCondition> getConditions() {
+    if (this.conditions == null) {
+      return ImmutableList.of();
+    }
     return conditions;
   }
 

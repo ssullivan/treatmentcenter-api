@@ -51,6 +51,6 @@ public class LoadCategoriesAndServicesTask extends Command {
     final Injector injector = Guice.createInjector(new RedisClientModule(redisConfig));
     final LoadCategoriesAndServicesFunctor loadCategoriesAndServicesFunctor =
         injector.getInstance(LoadCategoriesAndServicesFunctor.class);
-    loadCategoriesAndServicesFunctor.run(namespace.get("File"));
+    loadCategoriesAndServicesFunctor.loadFile(namespace.get("File"));
   }
 }
