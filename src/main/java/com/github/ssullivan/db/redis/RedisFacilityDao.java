@@ -19,7 +19,6 @@ import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
 import io.lettuce.core.GeoRadiusStoreArgs;
@@ -45,7 +44,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -70,17 +68,23 @@ public class RedisFacilityDao implements IFacilityDao {
 
 
   private IRedisConnectionPool redis;
+  private IAsyncRedisConnectionPool asyncPool;
   private ICategoryCodesDao categoryCodesDao;
   private IServiceCodesDao serviceCodesDao;
   private ObjectMapper objectMapper;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
+  private SearchIdGenerator searchIdGenerator;
 
   @Inject
   public RedisFacilityDao(IRedisConnectionPool connectionPool,
+      IAsyncRedisConnectionPool asyncConnectionPool,
       ICategoryCodesDao categoryCodesDao,
       IServiceCodesDao serviceCodesDao,
+      SearchIdGenerator searchIdGenerator,
       ObjectMapper objectMapper) {
+    this.searchIdGenerator = searchIdGenerator;
+    this.asyncPool = asyncConnectionPool;
     this.categoryCodesDao = categoryCodesDao;
     this.serviceCodesDao = serviceCodesDao;
     this.redis = connectionPool;
@@ -124,6 +128,9 @@ public class RedisFacilityDao implements IFacilityDao {
     }
   }
 
+
+
+
   @Override
   public CompletionStage<SearchResults<Facility>> find(SearchRequest searchRequest,
       Page page) throws Exception {
@@ -134,8 +141,7 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
     final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection();
-
-    final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ) + ":" + System.currentTimeMillis() + ":";
+    final String searchKey = "s:" + this.searchIdGenerator.generateId(SEARCH_REQ) + ":" + System.currentTimeMillis() + ":";
     final String resultKey = searchKey + ":0";
     final String geoKey = searchKey + ":geo";
 
@@ -369,7 +375,7 @@ public class RedisFacilityDao implements IFacilityDao {
       throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
-      final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
+      final String searchKey = "s:" + this.searchIdGenerator.generateId(SEARCH_REQ);
 
       final String[] serviceCodeSets = getServiceCodeIndices(serviceCodes);
 
@@ -463,7 +469,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
-      final String searchKey = "s:" + connection.sync().incr(SEARCH_REQ);
+      final String searchKey = "s:" + this.searchIdGenerator.generateId(SEARCH_REQ);
 
 
       long numResults = 0;
@@ -558,7 +564,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
-      final String searchId = connection.sync().incr(SEARCH_REQ) + "";
+      final String searchId = this.searchIdGenerator.generateId(SEARCH_REQ) + "";
       final String searchKey = "s:" + searchId;
       final String searchKeyMust = searchKey + ":m";
       final String searchKeyMustNot = searchKey + ":n";
@@ -667,7 +673,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
-      final String searchId = connection.sync().incr(SEARCH_REQ) + "";
+      final String searchId = this.searchIdGenerator.generateId(SEARCH_REQ) + "";
       final String searchKey = "s:" + searchId;
       final String radiusKey = "s:geo:" + searchId;
 
