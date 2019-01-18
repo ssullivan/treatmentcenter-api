@@ -1,0 +1,190 @@
+{"category_code": "TC", "category_name": "Type of Care", "service_code": "DT", "service_name": "Detoxification", "service_description": ""}
+{"category_code": "TC", "category_name": "Type of Care", "service_code": "HH", "service_name": "Transitional housing or halfway house", "service_description": ""}
+{"category_code": "TC", "category_name": "Type of Care", "service_code": "SA", "service_name": "Substance abuse treatment", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "DDF", "service_name": "Department of Defense", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "IH", "service_name": "Indian Health Service", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "LCCG", "service_name": "Local, county, or community government", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "PVT", "service_name": "Private organization", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "STG", "service_name": "State government", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "TBG", "service_name": "Tribal government", "service_description": ""}
+{"category_code": "FOP", "category_name": "Facility Operation (e.g. Private, Public)", "service_code": "VAMC", "service_name": "U.S. Department of Veterans Affairs", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "STAG", "service_name": "State substance abuse agency", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "STDH", "service_name": "State department of health", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "STMH", "service_name": "State mental health department", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "CARF", "service_name": "Commission on Accreditation of Rehabilitation Facilities", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "COA", "service_name": "Council on Accreditation", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "HFAP", "service_name": "Healthcare Facilities Accreditation Program", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "HLA", "service_name": "Hospital licensing authority", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "JC", "service_name": "The Joint Commission", "service_description": ""}
+{"category_code": "LCA", "category_name": "License/Certification/Accreditation", "service_code": "NCQA", "service_name": "National Committee for Quality Assurance", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "ATR", "service_name": "Access to recovery (ATR) voucher", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "FSA", "service_name": "Federal, or any government funding for substance abuse programs", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "ITU", "service_name": "IHS/Tribal/Urban (ITU) funds", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "MC", "service_name": "Medicare", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "MD", "service_name": "Medicaid", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "MI", "service_name": "Military insurance (e.g., TRICARE)", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "NP", "service_name": "No payment accepted", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "PI", "service_name": "Private health insurance", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "SF", "service_name": "Cash or self-payment", "service_description": ""}
+{"category_code": "PAY", "category_name": "Payment/Insurance/Funding Accepted", "service_code": "SI", "service_name": "State financed health insurance plan other than Medicaid", "service_description": ""}
+{"category_code": "PYAS", "category_name": "Payment Assistance Available", "service_code": "PA", "service_name": "Payment assistance (check with facility for details)", "service_description": ""}
+{"category_code": "PYAS", "category_name": "Payment Assistance Available", "service_code": "SS", "service_name": "Sliding fee scale (fee is based on income and other factors)", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "AD", "service_name": "Adolescents", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "TAY", "service_name": "Transitional age young adults", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "WN", "service_name": "Adult women", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "PW", "service_name": "Pregnant/postpartum women", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "MN", "service_name": "Adult men", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "SE", "service_name": "Seniors or older adults", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "GL", "service_name": "Lesbian, gay, bisexual, or transgender (LGBT) clients", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "VET", "service_name": "Veterans", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "ADM", "service_name": "Active duty military", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "MF", "service_name": "Military families", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "CJ", "service_name": "Clients referred from the court/judicial system", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "CO", "service_name": "Persons with co-occurring mental and substance abuse disorders", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "HV", "service_name": "Persons with HIV or AIDS", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "XA", "service_name": "Persons who have experienced sexual abuse", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "DV", "service_name": "Persons who have experienced intimate partner violence, domestic violence", "service_description": ""}
+{"category_code": "SG", "category_name": "Special Programs/Groups Offered", "service_code": "TRMA", "service_name": "Persons who have experienced trauma", "service_description": ""}
+{"category_code": "ASSES", "category_name": "Assessment/Pre-treatment", "service_code": "CMHA", "service_name": "Comprehensive mental health assessment", "service_description": ""}
+{"category_code": "ASSES", "category_name": "Assessment/Pre-treatment", "service_code": "CSAA", "service_name": "Comprehensive substance abuse assessment", "service_description": ""}
+{"category_code": "ASSES", "category_name": "Assessment/Pre-treatment", "service_code": "ISC", "service_name": "Interim services for clients", "service_description": ""}
+{"category_code": "ASSES", "category_name": "Assessment/Pre-treatment", "service_code": "OPC", "service_name": "Outreach to persons in the community", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "BABA", "service_name": "Breath analyzer or blood alcohol testing", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "DAUT", "service_name": "Drug or alcohol urine screening", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "HIVT", "service_name": "HIV testing", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "SHB", "service_name": "Screening for Hepatitis B", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "SHC", "service_name": "Screening for Hepatitis C", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "SMHD", "service_name": "Screening for mental health disorders", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "SSA", "service_name": "Screening for substance abuse", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "STDT", "service_name": "STD testing", "service_description": ""}
+{"category_code": "SCR", "category_name": "Screening/Testing", "service_code": "TBS", "service_name": "TB screening", "service_description": ""}
+{"category_code": "TRSRV", "category_name": "Transitional Services", "service_code": "ACC", "service_name": "Aftercare/continuing care", "service_description": ""}
+{"category_code": "TRSRV", "category_name": "Transitional Services", "service_code": "DP", "service_name": "Discharge Planning", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "ACU", "service_name": "Acupuncture", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "AOSS", "service_name": "Assistance with obtaining social services", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "BC", "service_name": "Residential beds for clients children", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "CCC", "service_name": "Child care for clients children", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "CM", "service_name": "Case management", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "DVFP", "service_name": "Domestic violence services-family or partner", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "EIH", "service_name": "Early intervention for HIV", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "HS", "service_name": "Housing services", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "MHS", "service_name": "Mental health services", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "PEER", "service_name": "Consumer-run (peer-support) services", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "SHG", "service_name": "Self-help groups", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "SSD", "service_name": "Social skills development", "service_description": ""}
+{"category_code": "AS", "category_name": "Ancillary Services", "service_code": "TA", "service_name": "Transportation assistance", "service_description": ""}
+{"category_code": "OTHR", "category_name": "Other Addictions", "service_code": "ADD", "service_name": "Treatment for non-substance abuse addiction disorder", "service_description": ""}
+{"category_code": "OTHR", "category_name": "Other Addictions", "service_code": "TGD", "service_name": "Treatment for gambling disorder", "service_description": ""}
+{"category_code": "OTHR", "category_name": "Other Addictions", "service_code": "TID", "service_name": "Treatment for internet use disorder", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "CT", "service_name": "Computerized treatment", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "HI", "service_name": "Hospital inpatient", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "OP", "service_name": "Outpatient", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "RES", "service_name": "Residential", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "HID", "service_name": "Hospital inpatient detoxification", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "HIT", "service_name": "Hospital inpatient treatment", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "OD", "service_name": "Outpatient detoxification", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "ODT", "service_name": "Outpatient day treatment or partial hospitalization", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "OIT", "service_name": "Intensive outpatient treatment", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "OMB", "service_name": "Outpatient methadone/buprenorphine or naltrexone", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "ORT", "service_name": "Regular outpatient treatment", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "RD", "service_name": "Residential detoxification", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "RL", "service_name": "Long-term residential", "service_description": ""}
+{"category_code": "SET", "category_name": "Service Settings (e.g., Outpatient, Residential, etc.)", "service_code": "RS", "service_name": "Short-term residential", "service_description": ""}
+{"category_code": "DETOX", "category_name": "Detoxification", "service_code": "ADTX", "service_name": "Alcohol Detoxification", "service_description": ""}
+{"category_code": "DETOX", "category_name": "Detoxification", "service_code": "BDTX", "service_name": "Benzodiazepines Detoxification", "service_description": ""}
+{"category_code": "DETOX", "category_name": "Detoxification", "service_code": "CDTX", "service_name": "Cocaine Detoxification", "service_description": ""}
+{"category_code": "DETOX", "category_name": "Detoxification", "service_code": "MDTX", "service_name": "Methamphetamines Detoxification", "service_description": ""}
+{"category_code": "DETOX", "category_name": "Detoxification", "service_code": "ODTX", "service_name": "Opioids Detoxification", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "ICO", "service_name": "Individual counseling offered", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "GCO", "service_name": "Group counseling offered", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "FCO", "service_name": "Family counseling offered", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "MCO", "service_name": "Marital/couples counseling offered", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "SAE", "service_name": "Substance abuse education", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "TAEC", "service_name": "Hepatitis education, counseling, or support", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "HAEC", "service_name": "HIV or AIDS education, counseling, or support", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "HEOH", "service_name": "Health education services other than HIV/AIDS or hepatitis", "service_description": ""}
+{"category_code": "EDU", "category_name": "Counseling Services and Education", "service_code": "EMP", "service_name": "Employment counseling or training", "service_description": ""}
+{"category_code": "TOBAC", "category_name": "Tobacco/Screening Services", "service_code": "NRT", "service_name": "Nicotine replacement therapy", "service_description": ""}
+{"category_code": "TOBAC", "category_name": "Tobacco/Screening Services", "service_code": "NSC", "service_name": "Non-nicotine smoking/tobacco cessation medications", "service_description": ""}
+{"category_code": "TOBAC", "category_name": "Tobacco/Screening Services", "service_code": "STU", "service_name": "Screening for tobacco use", "service_description": ""}
+{"category_code": "TOBAC", "category_name": "Tobacco/Screening Services", "service_code": "TCC", "service_name": "Smoking/tobacco cessation counseling", "service_description": ""}
+{"category_code": "SMP", "category_name": "Facility Smoking Policy", "service_code": "SMON", "service_name": "Smoking not permitted", "service_description": ""}
+{"category_code": "SMP", "category_name": "Facility Smoking Policy", "service_code": "SMOP", "service_name": "Smoking permitted without restriction", "service_description": ""}
+{"category_code": "SMP", "category_name": "Facility Smoking Policy", "service_code": "SMPD", "service_name": "Smoking permitted in designated area", "service_description": ""}
+{"category_code": "AGE", "category_name": "Age Groups Accepted", "service_code": "ADLT", "service_name": "Adults", "service_description": ""}
+{"category_code": "AGE", "category_name": "Age Groups Accepted", "service_code": "CHLD", "service_name": "Children/adolescents", "service_description": ""}
+{"category_code": "AGE", "category_name": "Age Groups Accepted", "service_code": "YAD", "service_name": "Young adults", "service_description": ""}
+{"category_code": "GN", "category_name": "Gender Accepted", "service_code": "FEM", "service_name": "Female", "service_description": ""}
+{"category_code": "GN", "category_name": "Gender Accepted", "service_code": "MALE", "service_name": "Male", "service_description": ""}
+{"category_code": "EXCL", "category_name": "Exclusive Services", "service_code": "BMO", "service_name": "Methadone and buprenorphine clients only", "service_description": ""}
+{"category_code": "EXCL", "category_name": "Exclusive Services", "service_code": "DU", "service_name": "DUI/DWI clients", "service_description": ""}
+{"category_code": "EXCL", "category_name": "Exclusive Services", "service_code": "DUO", "service_name": "Serve only DWI clients", "service_description": ""}
+{"category_code": "EXCL", "category_name": "Exclusive Services", "service_code": "MO", "service_name": "Methadone clients only", "service_description": ""}
+{"category_code": "EXCL", "category_name": "Exclusive Services", "service_code": "OTPA", "service_name": "All Clients in Opioid Treatment Program", "service_description": ""}
+{"category_code": "SL", "category_name": "Language Services", "service_code": "AH", "service_name": "Services for the deaf and hard of hearing", "service_description": ""}
+{"category_code": "SL", "category_name": "Language Services", "service_code": "NX", "service_name": "Native American Indian or Alaska Native languages", "service_description": ""}
+{"category_code": "SL", "category_name": "Language Services", "service_code": "FX", "service_name": "Other languages(excluding Spanish)", "service_description": ""}
+{"category_code": "SL", "category_name": "Language Services", "service_code": "SP", "service_name": "Spanish", "service_description": ""}
+{"category_code": "AIL", "category_name": "American Indian or Alaskan Native Languages", "service_code": "N13", "service_name": "Hopi", "service_description": ""}
+{"category_code": "AIL", "category_name": "American Indian or Alaskan Native Languages", "service_code": "N18", "service_name": "Lakota", "service_description": ""}
+{"category_code": "AIL", "category_name": "American Indian or Alaskan Native Languages", "service_code": "N23", "service_name": "Navajo", "service_description": ""}
+{"category_code": "AIL", "category_name": "American Indian or Alaskan Native Languages", "service_code": "N24", "service_name": "Ojibwa", "service_description": ""}
+{"category_code": "AIL", "category_name": "American Indian or Alaskan Native Languages", "service_code": "N40", "service_name": "Yupik", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F4", "service_name": "Arabic", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F17", "service_name": "Any Chinese Language", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F19", "service_name": "Creole", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F25", "service_name": "Farsi", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F28", "service_name": "French", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F30", "service_name": "German", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F31", "service_name": "Greek", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F35", "service_name": "Hebrew", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F36", "service_name": "Hindi", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F37", "service_name": "Hmong", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F42", "service_name": "Italian", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F43", "service_name": "Japanese", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F47", "service_name": "Korean", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F66", "service_name": "Polish", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F67", "service_name": "Portuguese", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F70", "service_name": "Russian", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F81", "service_name": "Tagalog", "service_description": ""}
+{"category_code": "OL", "category_name": "Other Languages", "service_code": "F92", "service_name": "Vietnamese", "service_description": ""}
+{"category_code": "HOSP", "category_name": "Hospitals", "service_code": "GH", "service_name": "General Hospital (including VA hospital)", "service_description": ""}
+{"category_code": "HOSP", "category_name": "Hospitals", "service_code": "PSYH", "service_name": "Psychiatric hospital", "service_description": ""}
+{"category_code": "OM", "category_name": "Opioid Medications used in Treatment", "service_code": "MU", "service_name": "Methadone used in Treatment", "service_description": ""}
+{"category_code": "OM", "category_name": "Opioid Medications used in Treatment", "service_code": "BU", "service_name": "Buprenorphine used in Treatment", "service_description": ""}
+{"category_code": "OM", "category_name": "Opioid Medications used in Treatment", "service_code": "NU", "service_name": "Naltrexone used in Treatment", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "DB", "service_name": "Buprenorphine detoxification", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "BUM", "service_name": "Buprenorphine maintenance", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "BMW", "service_name": "Buprenorphine maintenance for predetermined time", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "OTP", "service_name": "SAMHSA-certified Opioid Treatment Program", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "DM", "service_name": "Methadone detoxification", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "MM", "service_name": "Methadone maintenance", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "MMW", "service_name": "Methadone maintenance for predetermined time", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "UBN", "service_name": "Prescribes/administer buprenorphine and/or naltrexone", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "RPN", "service_name": "Relapse prevention from naltrexone", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "PAIN", "service_name": "Use methadone/buprenorphine for pain management or emergency dosing", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "MOA", "service_name": "Accepts clients on opioid medication", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "NMOA", "service_name": "Do not use medication for opioid addiction", "service_description": ""}
+{"category_code": "OT", "category_name": "Type of Opioid Treatment", "service_code": "NOOP", "service_name": "Do not treat opioid addiction", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "ACM", "service_name": "Acamprosate (Campral\u00ae)", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "DSF", "service_name": "Disulfiram (Antabuse\u00ae)", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "METH", "service_name": "Methadone", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "BSDM", "service_name": "Buprenorphine sub-dermal implant (Probuphine\u00ae)", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "BWN", "service_name": "Buprenorphine with naloxone  (Suboxone\u00ae)", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "BWON", "service_name": "Buprenorphine without naloxone", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "NXN", "service_name": "Naltrexone (oral)", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "VTRL", "service_name": "Extended-release, injectible Naltrexone (Vivitrol\u00ae)", "service_description": ""}
+{"category_code": "PHR", "category_name": "Pharmacotherapies", "service_code": "MPD", "service_name": "Medications for psychiatric disorders", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "ANG", "service_name": "Anger management", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "BIA", "service_name": "Brief intervention approach", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "CBT", "service_name": "Cognitive/behavioral therapy", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "CMI", "service_name": "Contingency management/motivational incentive", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "CRV", "service_name": "Community reinforcement plus vouchers", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "DBT", "service_name": "Dialectical behavioral therapy", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "MOTI", "service_name": "Motivational interviewing", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "MXM", "service_name": "Martix Model", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "REBT", "service_name": "Rational emotive behavioral therapy", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "RELP", "service_name": "Relapse prevention", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "SACA", "service_name": "Substance abuse counseling approach", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "TRC", "service_name": "Trauma-related counseling", "service_description": ""}
+{"category_code": "TAP", "category_name": "Treatment Approaches", "service_code": "TWFA", "service_name": "12-step facilitation approach", "service_description": ""}

@@ -2,6 +2,7 @@ package com.github.ssullivan.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.util.Objects;
 
 @ApiModel
 public class FacilityWithRadius extends Facility {
@@ -44,5 +45,23 @@ public class FacilityWithRadius extends Facility {
 
   public void setGeoUnit(String geoUnit) {
     this.geoUnit = geoUnit;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    FacilityWithRadius that = (FacilityWithRadius) o;
+    return Double.compare(that.radius, radius) == 0 &&
+        Objects.equals(geoUnit, that.geoUnit);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(radius, geoUnit);
   }
 }

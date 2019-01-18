@@ -209,4 +209,12 @@ public class Facility {
   public void setAvailableServices(AvailableServices availableServices) {
     this.availableServices = availableServices;
   }
+
+  @Override
+  public String toString() {
+    return "Facility{" +
+        "id=" + id +
+        ", name1='" + name1 + '\'' +
+        '}';
+  }
 }

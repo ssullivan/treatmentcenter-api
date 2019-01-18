@@ -29,9 +29,6 @@ public interface IFacilityDao {
 
   CompletionStage<SearchResults<Facility>> find(final SearchRequest searchRequest,
       final Page page) throws Exception;
-
-  CompletionStage<SearchResults<Facility>> findV3(final SearchRequest searchRequest,
-      final Page page) throws Exception;
   /**
    * Finds the all of the facilities that any of the specified service codes.
    *
