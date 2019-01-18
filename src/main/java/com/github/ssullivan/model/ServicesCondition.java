@@ -1,11 +1,8 @@
 package com.github.ssullivan.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
-import com.google.common.collect.Sets;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public class ServicesCondition {

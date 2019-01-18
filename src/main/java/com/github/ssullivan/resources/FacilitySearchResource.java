@@ -156,7 +156,7 @@ public class FacilitySearchResource {
           searchRequest.setGeoRadiusCondition(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
         }
       }
-      this.facilityDao.findV3(searchRequest, Page.page(offset, size))
+      this.facilityDao.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
               if (error != null) {
                 LOGGER.error("Failed to find facilities with service codes`", error);
@@ -218,8 +218,14 @@ public class FacilitySearchResource {
       @Min(0) @Max(9999) @DefaultValue("0") @QueryParam("offset") final int offset,
 
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
-      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size
-      ) {
+      @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
+
+      @ApiParam(value="When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
+          , allowableValues = "AND,OR", defaultValue = "AND")
+      @Pattern(regexp = "AND|OR")
+      @DefaultValue("AND")
+      @QueryParam("operation")
+      final String op) {
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
