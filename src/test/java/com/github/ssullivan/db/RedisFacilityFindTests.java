@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
+import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,6 +72,46 @@ public class RedisFacilityFindTests {
     _redisConnectionPool.close();
   }
 
+  @Test
+  public void testSearchingForMultipleServiceCodes_DifferentSets() throws Exception {
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setServiceConditions(ImmutableList.of( new ServicesCondition(ImmutableList.of("BIA"), MatchOperator.MUST),
+        new ServicesCondition(ImmutableList.of("SI"), MatchOperator.MUST)));
+
+    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+        .toCompletableFuture();
+
+    Awaitility.await()
+        .atMost(1, TimeUnit.SECONDS)
+        .pollInterval(10, TimeUnit.MILLISECONDS)
+        .until(promise::isDone);
+
+    final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
+    MatcherAssert.assertThat(searchResults.hits(), hasSize(3));
+    MatcherAssert.assertThat(searchResults.hits().get(0).getId(), equalTo(3L));
+    MatcherAssert.assertThat(searchResults.hits().get(1).getId(), equalTo(5L));
+    MatcherAssert.assertThat(searchResults.hits().get(2).getId(), equalTo(7L));
+  }
+
+  @Test
+  public void testSearchingForMultipleServiceCodes_SameSets() throws Exception {
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setServiceConditions(ImmutableList.of( new ServicesCondition(ImmutableList.of("BIA", "SI"), MatchOperator.MUST)));
+
+    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+        .toCompletableFuture();
+
+    Awaitility.await()
+        .atMost(1, TimeUnit.SECONDS)
+        .pollInterval(10, TimeUnit.MILLISECONDS)
+        .until(promise::isDone);
+
+    final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
+    MatcherAssert.assertThat(searchResults.hits(), hasSize(3));
+    MatcherAssert.assertThat(searchResults.hits().get(0).getId(), equalTo(3L));
+    MatcherAssert.assertThat(searchResults.hits().get(1).getId(), equalTo(5L));
+    MatcherAssert.assertThat(searchResults.hits().get(2).getId(), equalTo(7L));
+  }
 
   @Test
   public void testSearchingForASingleCondition() throws Exception {
