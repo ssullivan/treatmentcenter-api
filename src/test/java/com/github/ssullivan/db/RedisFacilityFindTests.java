@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
-import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -61,8 +60,10 @@ public class RedisFacilityFindTests {
   }
 
   private void loadFixtures() throws IOException {
-    this.loadCategoriesAndServicesFunctor.loadStream(Resources.getResource("fixtures/service_codes_records.json").openStream());
-    this.loadTreatmentFacilitiesFunctor.loadStream(Resources.getResource("fixtures/locations_geocoded.json").openStream());
+    this.loadCategoriesAndServicesFunctor.loadStream(Resources.getResource(
+        "fixtures/service_codes_records.json").openStream());
+    this.loadTreatmentFacilitiesFunctor.loadStream(Resources.getResource(
+        "fixtures/locations_geocoded.json").openStream());
   }
 
 
