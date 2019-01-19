@@ -8,7 +8,7 @@ import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
-import com.github.ssullivan.db.redis.SearchIdGenerator;
+import com.github.ssullivan.db.redis.RollingIdGenerator;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -58,9 +58,9 @@ public class RedisFacilityFindTests {
     this.loadTreatmentFacilitiesFunctor = injector.getInstance(LoadTreatmentFacilitiesFunctor.class);
 
     try {
-      final Long value = injector.getInstance(SearchIdGenerator.class)
+      final Long value = injector.getInstance(RollingIdGenerator.class)
           .generateId("foobarbaz", Long.MAX_VALUE);
-      final Long value1 = injector.getInstance(SearchIdGenerator.class)
+      final Long value1 = injector.getInstance(RollingIdGenerator.class)
           .generateId("foobarbaz", Long.MAX_VALUE);
       int j = 0;
     } catch (Exception e) {

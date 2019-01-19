@@ -74,14 +74,14 @@ public class RedisFacilityDao implements IFacilityDao {
   private ObjectMapper objectMapper;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
-  private SearchIdGenerator searchIdGenerator;
+  private RollingIdGenerator searchIdGenerator;
 
   @Inject
   public RedisFacilityDao(IRedisConnectionPool connectionPool,
       IAsyncRedisConnectionPool asyncConnectionPool,
       ICategoryCodesDao categoryCodesDao,
       IServiceCodesDao serviceCodesDao,
-      SearchIdGenerator searchIdGenerator,
+      RollingIdGenerator searchIdGenerator,
       ObjectMapper objectMapper) {
     this.searchIdGenerator = searchIdGenerator;
     this.asyncPool = asyncConnectionPool;

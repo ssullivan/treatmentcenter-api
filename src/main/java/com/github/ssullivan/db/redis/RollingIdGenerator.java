@@ -4,12 +4,12 @@ import io.lettuce.core.RedisCommandExecutionException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import javax.inject.Inject;
 
-public class SearchIdGenerator {
+public class RollingIdGenerator {
 
   private IRedisConnectionPool redisConnectionPool;
 
   @Inject
-  SearchIdGenerator(IRedisConnectionPool redisConnectionPool) {
+  RollingIdGenerator(IRedisConnectionPool redisConnectionPool) {
 
     this.redisConnectionPool = redisConnectionPool;
   }
