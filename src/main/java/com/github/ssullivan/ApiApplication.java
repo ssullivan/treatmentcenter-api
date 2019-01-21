@@ -37,6 +37,8 @@ public class ApiApplication extends Application<AppConfig> {
 
   @Override
   public void initialize(Bootstrap<AppConfig> bootstrap) {
+
+
     bootstrap.addCommand(new LoadCategoriesAndServicesTask());
     bootstrap.addCommand(new LoadTreatmentFacilitiesTask());
 
@@ -84,6 +86,9 @@ public class ApiApplication extends Application<AppConfig> {
         } else {
           LOGGER.info("No configuration provided for Redis/ElastiCache");
         }
+
+        LOGGER.info("Attempting to get config from S3");
+
       }
     };
 
@@ -91,7 +96,8 @@ public class ApiApplication extends Application<AppConfig> {
       @Override
       protected void configure() {
         bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);
-        bindConstant().annotatedWith(PropPostalcodesPath.class).to(getProperty("POSTALCODES_US_PATH", "/treatmentcenter-api-latest/data/US.txt"));
+        bindConstant().annotatedWith(PropPostalcodesPath.class).to(getProperty("POSTALCODES_US_PATH",
+            "/treatmentcenter-api-latest/data/US.txt"));
       }
     }));
   }
@@ -127,6 +133,9 @@ public class ApiApplication extends Application<AppConfig> {
 
   @Override
   public void run(AppConfig configuration, Environment environment) throws Exception {
+
+    LOGGER.info("Attempting to get config from S3");
+
     final Injector injector = InjectorRegistry.getInjector(this);
     environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(), injector.getInstance(RedisHealthCheck.class));
     environment.healthChecks().runHealthChecks()

@@ -19,7 +19,8 @@ public class Category {
   private Set<Service> services;
 
   public Category() {
-
+    this.serviceCodes = new HashSet<>();
+    this.services = new HashSet<>();
   }
 
   public Category(final String code, final String name, final Set<String> serviceCodes) {

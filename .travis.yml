@@ -37,6 +37,12 @@ matrix:
           script: ./gradlew dockerTagImageProdLatest pushImageProdLatest
           on:
             branch: master
+        - skip_cleanup: true
+          provider: script
+          script: ./graldew dockerTagImageDevLatest pushImageDevLatest
+          on:
+            all_branches: true
+            condition: $TRAVIS_BRANCH =~ ^develop|feature/.*?$
     - language: node_js
       node_js:
         - "node"

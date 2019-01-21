@@ -19,6 +19,7 @@ public class Facility {
   private String street;
   private String city;
   private String state;
+  private String county;
   private String googlePlaceId;
   private GeoPoint location;
   private String formattedAddress;
@@ -45,6 +46,7 @@ public class Facility {
     this.location = facility.getLocation();
     this.formattedAddress = facility.getFormattedAddress();
     this.website = facility.getWebsite();
+    this.county = facility.getCounty();
 
     if (facility.getPhoneNumbers() != null)
       this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
@@ -76,12 +78,13 @@ public class Facility {
    * @param serviceCodes services offered by the facility
    */
   public Facility(long id, String name1, String name2, String zip, String street,
-      String city, String state, String googlePlaceId, GeoPoint location,
+      String city, String state, String county, String googlePlaceId, GeoPoint location,
       String formattedAddress, String website, Set<String> phoneNumbers,
       Set<String> categoryCodes, Set<String> serviceCodes) {
     this.id = id;
     this.name1 = name1;
     this.name2 = name2;
+    this.county = county;
     this.zip = zip;
     this.street = street;
     this.city = city;
@@ -93,6 +96,14 @@ public class Facility {
     this.phoneNumbers = phoneNumbers;
     this.categoryCodes = categoryCodes;
     this.serviceCodes = serviceCodes;
+  }
+
+  public String getCounty() {
+    return county;
+  }
+
+  public void setCounty(String county) {
+    this.county = county;
   }
 
   public String getStreet() {

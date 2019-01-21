@@ -120,7 +120,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   }
 
   @Override
-  public boolean addCategory(Category category) throws IOException {
+  public boolean addCategory(String feed, Category category) throws IOException {
     try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
       return connection.sync().hset(KEY, category.getCode(),
           serialize(category));
@@ -128,6 +128,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
+
 
   private String serialize(@Nonnull final Category category) throws IOException {
     return objectWriter.writeValueAsString(category);

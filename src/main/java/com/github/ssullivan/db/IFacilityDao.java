@@ -19,7 +19,12 @@ public interface IFacilityDao {
   /**
    * Adds the Facility to the database.
    */
-  void addFacility(final Facility facility) throws IOException;
+  void addFacility(final String feed, final Facility facility) throws IOException;
+
+  // backwards compatability
+  default void addFacility(final Facility facility) throws IOException {
+    addFacility("", facility);
+  }
 
   Facility getFacility(final String pk) throws IOException;
 
