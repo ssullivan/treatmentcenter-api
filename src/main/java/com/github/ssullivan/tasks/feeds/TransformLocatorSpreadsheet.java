@@ -51,6 +51,9 @@ public class TransformLocatorSpreadsheet {
     final Pair<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(serviceCodes);
     final Collection<Facility> facilities = transformToFacilities(locations, serviceCodes);
 
+    workbook.close();
+
+
     final Injector injector = Guice.createInjector(new RedisClientModule(new RedisConfig()));
     IFacilityDao facilityDao = injector.getInstance(IFacilityDao.class);
     IFeedDao feedDao = injector.getInstance(IFeedDao.class);

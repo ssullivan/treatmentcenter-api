@@ -221,6 +221,8 @@ public class RedisFacilityDao implements IFacilityDao {
           facility.setId(primaryKeys.get(i));
           final Map<String, String> stringStringMap = toStringMap(facility);
           final CompletableFuture<String> storeFacilityPromise = connection.async().hmset(KEY + ":" + facility.getId(), stringStringMap).toCompletableFuture();
+
+
           final CompletableFuture<Boolean> indexPromise = indexFacilityAsync(connection.async(), feed, facility).toCompletableFuture();
 
           final CompletionStage<Boolean> combined = CompletableFutures.combineFutures(storeFacilityPromise, indexPromise, (firstResult, secondResult) -> CompletableFuture.completedFuture(true));
@@ -966,7 +968,7 @@ public class RedisFacilityDao implements IFacilityDao {
               .toCompletableFuture();
         })
         .collect(Collectors.toList());
-
+    async.getStatefulConnection().flushCommands();
     return CompletableFutures.successfulAsList(promises, e -> {
       LOGGER.error("", e);
       return 0L;
@@ -1021,6 +1023,8 @@ public class RedisFacilityDao implements IFacilityDao {
           return async.sadd(key, Long.toString(facility.getId(), 10)).toCompletableFuture();
         })
         .collect(Collectors.toList());
+
+    async.getStatefulConnection().flushCommands();
 
     return CompletableFutures.successfulAsList(promises, e -> {
       LOGGER.error("", e);
