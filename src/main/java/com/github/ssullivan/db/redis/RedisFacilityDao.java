@@ -19,6 +19,7 @@ import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.GeoArgs.Unit;
@@ -107,13 +108,41 @@ public class RedisFacilityDao implements IFacilityDao {
 
   private long generatePrimaryKey() throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      return connection.sync().incr(PK_KEY);
+      return generatePrimaryKey(connection.sync());
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
       throw new IOException("Failed to get connection to REDIS", e);
     }
+  }
+
+  private long generatePrimaryKey(RedisCommands<String, String> redis) throws IOException {
+    try {
+      return redis.incr(PK_KEY);
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  private List<Long> generatePrimaryKeys(RedisCommands<String, String> redis, final int numKeys) throws IOException {
+    final ImmutableList.Builder<Long> builder = new Builder<>();
+    for (int i = 1; i <= numKeys; ++i) {
+      builder.add(redis.incr(PK_KEY));
+    }
+    return builder.build();
+  }
+
+  private CompletionStage<List<Long>> generatePrimaryKeysAysnc(RedisAsyncCommands<String, String> redis, final int numKeys) {
+    final ImmutableList.Builder<CompletionStage<Long>> builder = new Builder<>();
+    for (int i = 1; i <= numKeys; ++i) {
+      builder.add(redis.incr(PK_KEY));
+    }
+    redis.getStatefulConnection().flushCommands();
+    return CompletableFutures.allAsList(builder.build());
   }
 
   public List<Facility> list(final Page page) {
@@ -128,17 +157,97 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      final Map<String, String> stringStringMap = toStringMap(facility);
       connection.setAutoFlushCommands(false);
 
-      connection.sync().hmset(KEY + ":" + facility.getId(), stringStringMap);
-      // connection.sync().expire(KEY + ":" + facility.getId(), 86400 * 180);
-
-      indexFacility(connection.sync(), feed, facility);
+      addFacility(connection.sync(), feed, facility);
 
       connection.setAutoFlushCommands(true);
       connection.flushCommands();
     } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  private void addFacility(final RedisCommands<String, String> redis, String feed, Facility facility) throws IOException {
+    if (facility.getId() <= 0) {
+      final long pk = generatePrimaryKey();
+      facility.setId(pk);
+    }
+
+      final Map<String, String> stringStringMap = toStringMap(facility);
+      redis.hmset(KEY + ":" + facility.getId(), stringStringMap);
+      // connection.sync().expire(KEY + ":" + facility.getId(), 86400 * 180);
+
+      indexFacility(redis, feed, facility);
+  }
+
+
+  @Override
+  public CompletableFuture<List<Boolean>> addFacilitiesAsync(final String feed, final Collection<Facility> batch) throws IOException {
+    StatefulRedisConnection<String, String> connection = null;
+    try {
+      connection = this.redis.borrowConnection();
+
+      final RedisCommands<String, String> sync = connection.sync();
+
+      List<Long> primaryKeys = null;
+
+      try {
+        connection.setAutoFlushCommands(false);
+        primaryKeys =
+            generatePrimaryKeysAysnc(connection.async(), batch.size())
+            .toCompletableFuture()
+            .get(30, TimeUnit.SECONDS);
+        connection.flushCommands();
+      }
+      finally {
+        connection.setAutoFlushCommands(true);
+      }
+
+      if (null == primaryKeys || primaryKeys.size() != batch.size()) {
+        connection.close();
+        throw new IOException("Failed to generate primary keys for batch!");
+      }
+
+
+      int i = 0;
+      List<CompletableFuture<Boolean>> promises = new ArrayList<>();
+      try {
+        connection.setAutoFlushCommands(false);
+        for (final Facility facility : batch) {
+          facility.setId(primaryKeys.get(i));
+          final Map<String, String> stringStringMap = toStringMap(facility);
+          final CompletableFuture<String> storeFacilityPromise = connection.async().hmset(KEY + ":" + facility.getId(), stringStringMap).toCompletableFuture();
+          final CompletableFuture<Boolean> indexPromise = indexFacilityAsync(connection.async(), feed, facility).toCompletableFuture();
+
+          final CompletionStage<Boolean> combined = CompletableFutures.combineFutures(storeFacilityPromise, indexPromise, (firstResult, secondResult) -> CompletableFuture.completedFuture(true));
+          promises.add(combined.toCompletableFuture());
+
+          connection.flushCommands();
+          i = i + 1;
+        }
+      }
+      finally {
+        connection.setAutoFlushCommands(true);
+      }
+
+      final StatefulRedisConnection<String, String> redis = connection;
+      return CompletableFutures.allAsList(promises)
+          .whenComplete((result, error) -> {
+            redis.setAutoFlushCommands(true);
+            redis.close();
+          });
+    } catch (Exception e) {
+      if (connection != null) {
+        connection.close();
+      }
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+
       throw new IOException("Failed to get connection to REDIS", e);
     }
   }
@@ -766,11 +875,42 @@ public class RedisFacilityDao implements IFacilityDao {
     indexFacility(sync, "", facility);
   }
 
-  public void indexFacility(final RedisCommands<String, String> sync, final String feed, final Facility facility)
+  private void indexFacility(final RedisCommands<String, String> sync, final String feed, final Facility facility)
       throws IOException {
     indexFacilityByGeo(sync, feed, facility);
     indexFacilityByServiceCodes(sync, feed, facility);
     indexFacilityByCategoryCodes(sync, feed, facility);
+  }
+
+  private CompletionStage<Boolean> indexFacilityAsync(final RedisAsyncCommands<String, String> async, final String feed, final Facility facility)
+      throws IOException {
+    CompletableFuture<Long> geoPromise = indexFacilityByGeoAsync(async, feed, facility);
+    CompletableFuture<List<Long>> servicesPromise = indexFacilityByServiceCodesAsync(async, feed, facility);
+    CompletableFuture<List<Long>> catsPromise = indexFacilityByCategoryCodesAsync(async, feed, facility);
+
+    return CompletableFutures.combineFutures(geoPromise, servicesPromise, catsPromise, (geoResult, servicesResult, catsResult)-> {
+      LOGGER.debug("Finished indexing facility");
+      return CompletableFuture.completedFuture(true);
+    });
+  }
+
+  private CompletableFuture<Long> indexFacilityByGeoAsync(final RedisAsyncCommands<String, String> async, final String feed, final Facility facility) {
+    if (facility == null) {
+      throw new NullPointerException("Facility must not be null");
+    }
+
+    if (facility.getId() == 0) {
+      throw new IllegalArgumentException("id must be non zero");
+    }
+
+    if (facility.getLocation() == null) {
+      throw new NullPointerException("Location must not be null");
+    }
+
+    return async
+        .geoadd(indexByGeoKey(feed), facility.getLocation().lon(), facility.getLocation().lat(),
+            Long.toString(facility.getId(), 10))
+        .toCompletableFuture();
   }
 
   private void indexFacilityByGeo(final RedisCommands<String, String> sync, final String feed, final Facility facility) {
@@ -803,6 +943,37 @@ public class RedisFacilityDao implements IFacilityDao {
     return key;
   }
 
+  private CompletableFuture<List<Long>> indexFacilityByCategoryCodesAsync(final RedisAsyncCommands<String, String> async,
+      final String feed, final Facility facility) {
+    if (facility == null) {
+      throw new NullPointerException("facility must not be null");
+    }
+
+    if (facility.getId() == 0) {
+      throw new IllegalArgumentException("id must be non zero");
+    }
+
+    final List<CompletableFuture<Long>> promises  = facility.getCategoryCodes()
+        .stream()
+        .filter(Objects::nonNull)
+        .filter(it -> !it.isEmpty())
+        .map(code -> {
+          String key = INDEX_BY_CATEGORIES + ":" + code;
+          if (feed != null && !feed.isEmpty()) {
+            key = INDEX_BY_CATEGORIES + ":" + feed + ":" + code;
+          }
+          return async.sadd(key, Long.toString(facility.getId(), 10))
+              .toCompletableFuture();
+        })
+        .collect(Collectors.toList());
+
+    return CompletableFutures.successfulAsList(promises, e -> {
+      LOGGER.error("", e);
+      return 0L;
+    });
+
+  }
+
   private void indexFacilityByCategoryCodes(final RedisCommands<String, String> sync,
       final String feed, final Facility facility) {
     if (facility == null) {
@@ -826,7 +997,39 @@ public class RedisFacilityDao implements IFacilityDao {
         });
   }
 
-  public void indexFacilityByServiceCodes(final RedisCommands<String, String> sync,
+
+  private CompletableFuture<List<Long>> indexFacilityByServiceCodesAsync(final RedisAsyncCommands<String, String> async,
+      final String feed,
+      final Facility facility) throws IOException {
+    if (facility == null) {
+      throw new NullPointerException("Facility must not be null");
+    }
+
+    if (facility.getId() == 0) {
+      throw new IllegalArgumentException("id must be non zero");
+    }
+
+    final List<CompletableFuture<Long>> promises  = facility.getServiceCodes()
+        .stream()
+        .filter(Objects::nonNull)
+        .filter(it -> !it.isEmpty())
+        .map(code -> {
+          String key = INDEX_BY_SERVICES + ":" + code;
+          if (feed != null && !feed.isEmpty()) {
+            key = INDEX_BY_SERVICES + ":" + feed + ":" + code;
+          }
+          return async.sadd(key, Long.toString(facility.getId(), 10)).toCompletableFuture();
+        })
+        .collect(Collectors.toList());
+
+    return CompletableFutures.successfulAsList(promises, e -> {
+      LOGGER.error("", e);
+      return 0L;
+    });
+
+  }
+
+  private void indexFacilityByServiceCodes(final RedisCommands<String, String> sync,
       final String feed,
       final Facility facility) throws IOException {
     if (facility == null) {

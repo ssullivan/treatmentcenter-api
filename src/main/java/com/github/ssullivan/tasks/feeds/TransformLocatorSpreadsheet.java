@@ -1,6 +1,9 @@
-package com.github.ssullivan.tasks;
+package com.github.ssullivan.tasks.feeds;
 
-import com.github.ssullivan.model.AvailableServices;
+import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -9,7 +12,8 @@ import com.github.ssullivan.model.Service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.ImmutableSet;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +41,7 @@ public class TransformLocatorSpreadsheet {
 
   public static void main(String[] args) throws IOException {
     final Workbook workbook =
-        WorkbookFactory.create(new File(""));
+        WorkbookFactory.create(new File(args[0]));
     final Sheet facilitySheet = workbook.getSheetAt(FACILITIES_WITH_SERVICE_CODE_DETAIL);
     final Sheet serviceCodeSheet = workbook.getSheetAt(SERVICE_CODER_REFERENCE);
 
@@ -46,6 +50,18 @@ public class TransformLocatorSpreadsheet {
 
     final Pair<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(serviceCodes);
     final Collection<Facility> facilities = transformToFacilities(locations, serviceCodes);
+
+    final Injector injector = Guice.createInjector(new RedisClientModule(new RedisConfig()));
+    IFacilityDao facilityDao = injector.getInstance(IFacilityDao.class);
+    IFeedDao feedDao = injector.getInstance(IFeedDao.class);
+
+    final String feedId = feedDao.nextFeedId().orElse("");
+    final List<Boolean> results = facilityDao.addFacilitiesAsync(feedId, facilities)
+        .join();
+
+
+
+
 
     int j = 0;
   }
@@ -147,8 +163,8 @@ public class TransformLocatorSpreadsheet {
       return null;
     }
 
-    final Double lat = Double.parseDouble(latOrig);
-    final Double lon = Double.parseDouble(lonOrig);
+    final double lat = Double.parseDouble(latOrig);
+    final double lon = Double.parseDouble(lonOrig);
     return GeoPoint.geoPoint(lat, lon);
   }
 

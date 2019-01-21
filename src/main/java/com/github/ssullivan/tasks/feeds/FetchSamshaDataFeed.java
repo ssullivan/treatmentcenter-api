@@ -1,4 +1,4 @@
-package com.github.ssullivan.tasks;
+package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;

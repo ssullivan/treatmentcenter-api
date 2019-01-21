@@ -9,8 +9,10 @@ import com.github.ssullivan.model.SearchResults;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 @ImplementedBy(RedisFacilityDao.class)
@@ -20,6 +22,8 @@ public interface IFacilityDao {
    * Adds the Facility to the database.
    */
   void addFacility(final String feed, final Facility facility) throws IOException;
+
+  CompletableFuture<List<Boolean>> addFacilitiesAsync(final String feed, final Collection<Facility> facility) throws IOException;
 
   // backwards compatability
   default void addFacility(final Facility facility) throws IOException {
