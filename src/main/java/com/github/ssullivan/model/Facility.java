@@ -220,10 +220,16 @@ public class Facility {
   }
 
   @JsonIgnore
-  public boolean hasServices(final String... services) {
+  public boolean hasAllOf(final String... services) {
     if (null == services || services.length <= 0) return false;
     return Stream.of(services)
         .allMatch(it -> this.getServiceCodes().contains(it));
+  }
+
+  public boolean hasAnyOf(final String... services) {
+    if (null == services || services.length <= 0) return false;
+    return Stream.of(services)
+        .anyMatch(it -> this.getServiceCodes().contains(it));
   }
 
   @Override

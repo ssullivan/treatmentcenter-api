@@ -1,5 +1,7 @@
 package com.github.ssullivan.core.analytics;
 
-public class IScoreFacility {
+import com.github.ssullivan.model.Facility;
 
+public interface IScoreFacility {
+  double score(final Facility facility);
 }
