@@ -16,7 +16,6 @@ public class ScoreByGender implements IScoreFacility {
     if (gender == null || gender.isEmpty()) {
       return 0;
     }
-
     switch (gender) {
       case FEMALE:
         if (facility.hasAllOf(FEMALE)) {
