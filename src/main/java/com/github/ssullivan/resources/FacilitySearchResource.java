@@ -6,6 +6,7 @@ import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.core.analytics.Importance;
+import com.github.ssullivan.core.analytics.TraumaTypes;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
@@ -101,7 +102,7 @@ public class FacilitySearchResource {
       @QueryParam("distance") final Double distance,
 
       @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)", allowableValues = "m,km,ft,mi")
-      @Pattern(regexp = "m|km|ft|mi")
+      @Pattern(regexp = "m|km|ft|mi", message = "Invalid distance unit")
       @DefaultValue("mi")
       @QueryParam("distanceUnit") final String distanceUnit,
 
@@ -113,7 +114,7 @@ public class FacilitySearchResource {
 
       @ApiParam(value="When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
           , allowableValues = "AND,OR", defaultValue = "AND")
-      @Pattern(regexp = "AND|OR")
+      @Pattern(regexp = "AND|OR", message = "Invalid boolean operator")
       @DefaultValue("AND")
       @QueryParam("operation")
       final String op,
@@ -121,12 +122,12 @@ public class FacilitySearchResource {
       // Params for scoring
 
       @ApiParam(value = "The users date of birth in YYYY-MM-DD format [used for scoring]", example = "1980-01-16", allowEmptyValue = true)
-      @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
+      @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Invalid date of birth")
       @QueryParam("dob")
       final String dateOfBirth,
 
       @ApiParam(value = "The users gender [used for scoring]", allowableValues = "MALE,FEMALE", allowEmptyValue = true)
-      @Pattern(regexp = "MALE|FEMALE|male|female|Male|Female")
+      @Pattern(regexp = "MALE|FEMALE|male|female|Male|Female", message = "Invalid gender")
       @QueryParam("gender")
       final String gender,
 
@@ -137,6 +138,7 @@ public class FacilitySearchResource {
       final boolean hearingSupport,
 
       @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = "VERY,SOMEWHAT,NOT", allowEmptyValue = true)
+      @Pattern(regexp="VERY|SOMEWHAT|NOT", message = "Invalid module importance")
       @DefaultValue("NOT")
       @QueryParam("hearingSupportImp")
       final Importance hearingSupportImportance,
@@ -148,6 +150,7 @@ public class FacilitySearchResource {
       final boolean englishFirst,
 
       @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = "VERY,SOMEWHAT,NOT", allowEmptyValue = true)
+      @Pattern(regexp="VERY|SOMEWHAT|NOT", message = "Invalid module importance")
       @DefaultValue("NOT")
       @QueryParam("langSupportImp")
       final Importance langSupportImp,
@@ -170,22 +173,38 @@ public class FacilitySearchResource {
       @QueryParam("militaryStatus")
       final boolean militaryStatus,
 
-      @ApiParam(value = "Indicates how important military support is", allowableValues = "VERY,SOMEHWAT,NOT", allowEmptyValue = true)
+      @ApiParam(value = "Indicates how important military support is", allowableValues = "VERY,SOMEWHAT,NOT", allowEmptyValue = true)
+      @Pattern(regexp="VERY|SOMEWHAT|NOT", message = "Invalid module importance")
       @DefaultValue("NOT")
       @QueryParam("militaryImp")
-      final Importance militaryImp
+      final Importance militaryImp,
 
       // Params for Service Setting
 
       // Params for Smoking Cessation
 
+      @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = "True,False", allowEmptyValue = True)
+      @DefaultValue("False")
+      @QueryParam("smokingCessation")
+      final boolean smokingCessation,
+
       // Params for Smoking Policy
+      @ApiParam(value = "Indicates if user is a smoker", allowableValues = "True,False", allowEmptyValue = True)
+      @DefaultValue("False")
+      @QueryParam("smoker")
+      final boolean isSmoker,
 
       // Params for Substance Detox Services
+      @ApiParam(value = "Indicates if user has started detox", allowableValues = "True,False", allowEmptyValue = True)
+      @DefaultValue("False")
+      @QueryParam("initDetox")
+      final boolean detoxStarted,
 
       // Params for Trauma Services
-
-      ) {
+      @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = "TRAUMA,DOMETIX,SEXUAL", allowEmptyValue = True, allowMultiple = True)
+      @DefaultValue("NONE")
+      @QueryParam("trauma")
+      final Set<TraumaTypes> traumaTypes) {
 
     try {
 
