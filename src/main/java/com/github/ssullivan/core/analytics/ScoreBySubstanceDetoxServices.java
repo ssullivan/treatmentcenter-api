@@ -30,6 +30,10 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
     this.initialDetox = initialDetox;
   }
 
+  public ScoreBySubstanceDetoxServices(Set<String> serviceCodes) {
+    this(serviceCodes, false);
+  }
+
   @Override
   public double score(final Facility facility) {
     if (!initialDetox) {

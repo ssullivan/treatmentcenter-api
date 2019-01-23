@@ -1,6 +1,7 @@
 package com.github.ssullivan.core.analytics;
 
-import static com.github.ssullivan.core.analytics.Constants.*;
+import static com.github.ssullivan.core.analytics.Constants.FEMALE;
+import static com.github.ssullivan.core.analytics.Constants.MALE;
 
 import com.github.ssullivan.model.Facility;
 
