@@ -33,7 +33,6 @@ public class ScoreByLang implements IScoreFacility {
   private static final String  F70="F70";
   private static final String  F81="F81";
   private static final String  F92="F92";
-  private static final String LSI = "LSI";
 
   private static final String[] LANGS = new String[]{
       N13,
@@ -88,7 +87,7 @@ public class ScoreByLang implements IScoreFacility {
     }
 
     if (!this.isEnglishFirst
-        && Sets.allMatch(selectedLangs, LSI)
+        && importance == Importance.SOMEHWAT
         && !selectedLangs.isEmpty()
         && !facility.hasAnyOf(selectedLangs)) {
       return .8;
