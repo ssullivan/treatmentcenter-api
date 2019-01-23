@@ -21,6 +21,7 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
+    if (facility == null) return 0.0;
     if (!this.isMilitary || importance == Importance.NOT) {
       return 1.0;
     }

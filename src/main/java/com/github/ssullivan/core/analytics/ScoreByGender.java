@@ -14,6 +14,7 @@ public class ScoreByGender implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
+    if (facility == null) return 0.0;
     if (gender == null || gender.isEmpty()) {
       return 0;
     }

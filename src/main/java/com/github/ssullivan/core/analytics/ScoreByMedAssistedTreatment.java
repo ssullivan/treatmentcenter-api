@@ -41,6 +41,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
+    if (facility == null) return 0.0;
     if (this.useMeds) {
       if (noPref() && usesMeds(facility)) {
         return 1.0;

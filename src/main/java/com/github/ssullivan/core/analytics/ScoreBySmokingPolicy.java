@@ -22,6 +22,7 @@ public class ScoreBySmokingPolicy implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
+    if (facility == null) return 0.0;
     if (isSmoker) {
       if (Sets.anyMatch(serviceCodes, SMON) && facility.hasAnyOf(SMON, SMPD, SMOP)) {
         return 1.0;

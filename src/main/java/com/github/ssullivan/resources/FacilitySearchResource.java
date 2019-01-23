@@ -3,7 +3,10 @@ package com.github.ssullivan.resources;
 import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilitySearchService;
+import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
 import com.github.ssullivan.model.MatchOperator;
@@ -15,6 +18,7 @@ import com.github.ssullivan.model.ServicesConditionFactory;
 import com.github.ssullivan.model.SetOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -23,6 +27,7 @@ import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
@@ -163,6 +168,7 @@ public class FacilitySearchResource {
                 asyncResponse.resume(Response.serverError().build());
               }
               else {
+                applyScores(searchRequest, result);
                 asyncResponse.resume(Response.ok(result).build());
               }
           });
@@ -279,19 +285,21 @@ public class FacilitySearchResource {
           );
         }
 
-        asyncResponse.resume(this.facilityDao
+        SearchResults<FacilityWithRadius> results = this.facilityDao
             .findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes,
                 matchAny,
                 geoPoints.get(0).lon(),
                 geoPoints.get(0).lat(),
                 distance,
                 distanceUnit,
-                Page.page(offset, size)));
+                Page.page(offset, size));
+        asyncResponse.resume(applyScores(ImmutableSet.copyOf(mustServiceCodes), results));
       }
       else {
+        final SearchResults<Facility> results = this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
+            matchAny, Page.page(offset, size));
         asyncResponse
-            .resume(this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
-                matchAny, Page.page(offset, size)));
+            .resume(applyScores(ImmutableSet.copyOf(mustServiceCodes), results));
       }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes`", e);
@@ -299,5 +307,17 @@ public class FacilitySearchResource {
     }
   }
 
+  private static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest, final SearchResults<F> searchResults) {
+    applyScores(searchRequest.allServiceCodes(), searchResults);
+    return searchResults;
+  }
+
+  private static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes, final SearchResults<F> searchResults) {
+    final CompositeFacilityScore score = new CompositeFacilityScore(serviceCodes);
+    searchResults.hits().forEach(facility -> {
+      facility.setScore(score.score(facility));
+    });
+    return searchResults;
+  }
 
 }

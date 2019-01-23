@@ -40,6 +40,7 @@ public class CompositeFacilityScore implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
+    if (facility == null) return 0.0;
     return Stream.of(scoreByAge,
         scoreByGender,
         scoreByHearingSupport,

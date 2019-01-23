@@ -25,6 +25,7 @@ public class ScoreBySmokingCessation implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
+    if (facility == null) return 0.0;
     if (this.smokingCessation) {
       if (facility.hasAnyOf(NRT, NSC, STU, TCC)) {
         return 1.0;

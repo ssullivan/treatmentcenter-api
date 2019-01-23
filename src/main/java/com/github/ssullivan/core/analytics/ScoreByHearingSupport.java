@@ -22,6 +22,7 @@ public class ScoreByHearingSupport implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
+    if (facility == null) return 0.0;
     if (!isDeafOrHardOfHearing || importance == Importance.NOT || facility.hasAnyOf(AH)) {
       return 1.0;
     }

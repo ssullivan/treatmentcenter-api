@@ -12,6 +12,7 @@ public class ScoreByServiceSetting implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
+    if (facility == null) return 0.0;
     if (serviceCodes.contains("IRL") && facility.hasService("RL")
       || serviceCodes.contains("IRS") && facility.hasService("RS")
       || serviceCodes.contains("IOIT") && facility.hasService("OIT")

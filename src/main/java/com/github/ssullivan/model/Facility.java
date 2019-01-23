@@ -26,6 +26,7 @@ public class Facility {
   private Set<String> categoryCodes;
   private Set<String> serviceCodes;
   private AvailableServices availableServices;
+  private double score = 0.0;
 
   public Facility() {
 
@@ -212,6 +213,14 @@ public class Facility {
 
   public void setAvailableServices(AvailableServices availableServices) {
     this.availableServices = availableServices;
+  }
+
+  public double getScore() {
+    return score;
+  }
+
+  public void setScore(double score) {
+    this.score = score;
   }
 
   @JsonIgnore
