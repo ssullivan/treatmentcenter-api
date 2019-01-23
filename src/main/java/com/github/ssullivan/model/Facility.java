@@ -1,9 +1,13 @@
 package com.github.ssullivan.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Sets;
 import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @ApiModel
 public class Facility {
@@ -22,6 +26,7 @@ public class Facility {
   private Set<String> categoryCodes;
   private Set<String> serviceCodes;
   private AvailableServices availableServices;
+  private double score = 0.0;
 
   public Facility() {
 
@@ -208,6 +213,40 @@ public class Facility {
 
   public void setAvailableServices(AvailableServices availableServices) {
     this.availableServices = availableServices;
+  }
+
+  public double getScore() {
+    return score;
+  }
+
+  public void setScore(double score) {
+    this.score = score;
+  }
+
+  @JsonIgnore
+  public boolean hasService(final String serviceCode) {
+    if (null == serviceCode || serviceCode.isEmpty()) return false;
+    return this.getServiceCodes().contains(serviceCode);
+  }
+
+  @JsonIgnore
+  public boolean hasAllOf(final String... services) {
+    if (null == services || services.length <= 0) return false;
+    return Stream.of(services)
+        .allMatch(it -> this.getServiceCodes().contains(it));
+  }
+
+  @JsonIgnore
+  public boolean hasAnyOf(final Set<String> services) {
+    if (null == services || services.isEmpty()) return false;
+    return !Sets.intersection(services, this.serviceCodes).isEmpty();
+  }
+
+  @JsonIgnore
+  public boolean hasAnyOf(final String... services) {
+    if (null == services || services.length <= 0) return false;
+    return Stream.of(services)
+        .anyMatch(it -> this.getServiceCodes().contains(it));
   }
 
   @Override
