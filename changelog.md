@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+v1.9.0:
+* Initial version of composite score. API still needs to be updated to provide the module inputs
+
 v1.8.3:
 * Made the join operation for multiple search sets configurable 
 
