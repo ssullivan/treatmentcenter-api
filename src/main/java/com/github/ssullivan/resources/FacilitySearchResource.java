@@ -183,25 +183,25 @@ public class FacilitySearchResource {
 
       // Params for Smoking Cessation
 
-      @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = "true,false", allowEmptyValue = True)
+      @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = "true,false", allowEmptyValue = true)
       @DefaultValue("false")
       @QueryParam("smokingCessation")
       final boolean smokingCessation,
 
       // Params for Smoking Policy
-      @ApiParam(value = "Indicates if user is a smoker", allowableValues = "true,false", allowEmptyValue = True)
+      @ApiParam(value = "Indicates if user is a smoker", allowableValues = "true,false", allowEmptyValue = true)
       @DefaultValue("false")
       @QueryParam("smoker")
       final boolean isSmoker,
 
       // Params for Substance Detox Services
-      @ApiParam(value = "Indicates if user has started detox", allowableValues = "true,false", allowEmptyValue = True)
+      @ApiParam(value = "Indicates if user has started detox", allowableValues = "true,false", allowEmptyValue = true)
       @DefaultValue("false")
       @QueryParam("initDetox")
       final boolean detoxStarted,
 
       // Params for Trauma Services
-      @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = "TRAUMA,DOMETIX,SEXUAL", allowEmptyValue = True, allowMultiple = True)
+      @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = "TRAUMA,DOMETIX,SEXUAL", allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
       @QueryParam("trauma")
       final Set<TraumaTypes> traumaTypes) {
