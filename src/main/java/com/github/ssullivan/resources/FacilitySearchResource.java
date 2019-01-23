@@ -1,9 +1,11 @@
 package com.github.ssullivan.resources;
 
+import com.fasterxml.jackson.jaxrs.json.annotation.JSONP.Def;
 import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
+import com.github.ssullivan.core.analytics.Importance;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
@@ -114,9 +116,79 @@ public class FacilitySearchResource {
       @Pattern(regexp = "AND|OR")
       @DefaultValue("AND")
       @QueryParam("operation")
-      final String op) {
+      final String op,
+
+      // Params for scoring
+
+      @ApiParam(value = "The users date of birth in YYYY-MM-DD format [used for scoring]", example = "1980-01-16", allowEmptyValue = true)
+      @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
+      @QueryParam("dob")
+      final String dateOfBirth,
+
+      @ApiParam(value = "The users gender [used for scoring]", allowableValues = "MALE,FEMALE", allowEmptyValue = true)
+      @Pattern(regexp = "MALE|FEMALE|male|female|Male|Female")
+      @QueryParam("gender")
+      final String gender,
+
+      // Params for heading support
+      @ApiParam(value = "true means hearing support is needed", allowableValues = "True,False", allowEmptyValue = true)
+      @DefaultValue("False")
+      @QueryParam("hearingSupport")
+      final boolean hearingSupport,
+
+      @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = "VERY,SOMEWHAT,NOT", allowEmptyValue = true)
+      @DefaultValue("NOT")
+      @QueryParam("hearingSupportImp")
+      final Importance hearingSupportImportance,
+
+      // Params for Lang support
+      @ApiParam(value = "Indicates if english is your first language", allowableValues = "True,False", allowEmptyValue = true)
+      @DefaultValue("True")
+      @QueryParam("englishFirst")
+      final boolean englishFirst,
+
+      @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = "VERY,SOMEWHAT,NOT", allowEmptyValue = true)
+      @DefaultValue("NOT")
+      @QueryParam("langSupportImp")
+      final Importance langSupportImp,
+
+      // Params for Med Assisted Treatment
+      @ApiParam(value = "Indicates if medication assisted treatment is needed/wanted", allowableValues = "True,False", allowEmptyValue = true)
+      @DefaultValue("False")
+      @QueryParam("medassist")
+      final boolean useMeds,
+
+      // Params for Mental Health
+      @ApiParam(value = "Indicates if mental health plays a role in the addiction", allowableValues = "True,False", allowEmptyValue = true)
+      @DefaultValue("False")
+      @QueryParam("mentalHealthRelated")
+      final boolean mentalHealthRelated,
+
+      // Params for Military Status,
+      @ApiParam(value = "Indicates if a facility with support for military is needed/wanted", allowableValues = "True,False", allowEmptyValue = true)
+      @DefaultValue("False")
+      @QueryParam("militaryStatus")
+      final boolean militaryStatus,
+
+      @ApiParam(value = "Indicates how important military support is", allowableValues = "VERY,SOMEHWAT,NOT", allowEmptyValue = true)
+      @DefaultValue("NOT")
+      @QueryParam("militaryImp")
+      final Importance militaryImp
+
+      // Params for Service Setting
+
+      // Params for Smoking Cessation
+
+      // Params for Smoking Policy
+
+      // Params for Substance Detox Services
+
+      // Params for Trauma Services
+
+      ) {
 
     try {
+
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
             .entity(ImmutableMap.of("message", "Invalid postal code: Too Long"))
