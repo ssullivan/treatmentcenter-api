@@ -2,6 +2,7 @@ package com.github.ssullivan.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Sets;
 import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
 import java.util.Set;
@@ -226,6 +227,13 @@ public class Facility {
         .allMatch(it -> this.getServiceCodes().contains(it));
   }
 
+  @JsonIgnore
+  public boolean hasAnyOf(final Set<String> services) {
+    if (null == services || services.isEmpty()) return false;
+    return !Sets.intersection(services, this.serviceCodes).isEmpty();
+  }
+
+  @JsonIgnore
   public boolean hasAnyOf(final String... services) {
     if (null == services || services.length <= 0) return false;
     return Stream.of(services)
