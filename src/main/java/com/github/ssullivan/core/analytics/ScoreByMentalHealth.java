@@ -13,9 +13,8 @@ public class ScoreByMentalHealth implements IScoreFacility {
   }
 
   public ScoreByMentalHealth(Set<String> serviceCodes) {
-    this.serviceCodes = serviceCodes;
-    this.mentalHealthRelated = Sets.anyMatch(serviceCodes, "GHF", "MHF", "MHSAF", "SAF",
-        "CBT", "DBT", "REBT", "SACA", "TRC", "MHS", "CSAA", "SMHD");
+    this(serviceCodes, Sets.anyMatch(serviceCodes, "GHF", "MHF", "MHSAF", "SAF",
+        "CBT", "DBT", "REBT", "SACA", "TRC", "MHS", "CSAA", "SMHD"));
   }
 
   @Override
