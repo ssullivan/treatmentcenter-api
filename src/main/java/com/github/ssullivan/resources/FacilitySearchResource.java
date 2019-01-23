@@ -132,8 +132,8 @@ public class FacilitySearchResource {
       final String gender,
 
       // Params for heading support
-      @ApiParam(value = "true means hearing support is needed", allowableValues = "True,False", allowEmptyValue = true)
-      @DefaultValue("False")
+      @ApiParam(value = "true means hearing support is needed", allowableValues = "true,false", allowEmptyValue = true)
+      @DefaultValue("false")
       @QueryParam("hearingSupport")
       final boolean hearingSupport,
 
@@ -144,8 +144,8 @@ public class FacilitySearchResource {
       final Importance hearingSupportImportance,
 
       // Params for Lang support
-      @ApiParam(value = "Indicates if english is your first language", allowableValues = "True,False", allowEmptyValue = true)
-      @DefaultValue("True")
+      @ApiParam(value = "Indicates if english is your first language", allowableValues = "true,false", allowEmptyValue = true)
+      @DefaultValue("true")
       @QueryParam("englishFirst")
       final boolean englishFirst,
 
@@ -156,20 +156,20 @@ public class FacilitySearchResource {
       final Importance langSupportImp,
 
       // Params for Med Assisted Treatment
-      @ApiParam(value = "Indicates if medication assisted treatment is needed/wanted", allowableValues = "True,False", allowEmptyValue = true)
-      @DefaultValue("False")
+      @ApiParam(value = "Indicates if medication assisted treatment is needed/wanted", allowableValues = "true,false", allowEmptyValue = true)
+      @DefaultValue("false")
       @QueryParam("medassist")
       final boolean useMeds,
 
       // Params for Mental Health
-      @ApiParam(value = "Indicates if mental health plays a role in the addiction", allowableValues = "True,False", allowEmptyValue = true)
-      @DefaultValue("False")
+      @ApiParam(value = "Indicates if mental health plays a role in the addiction", allowableValues = "true,false", allowEmptyValue = true)
+      @DefaultValue("false")
       @QueryParam("mentalHealthRelated")
       final boolean mentalHealthRelated,
 
       // Params for Military Status,
-      @ApiParam(value = "Indicates if a facility with support for military is needed/wanted", allowableValues = "True,False", allowEmptyValue = true)
-      @DefaultValue("False")
+      @ApiParam(value = "Indicates if a facility with support for military is needed/wanted", allowableValues = "true,false", allowEmptyValue = true)
+      @DefaultValue("false")
       @QueryParam("militaryStatus")
       final boolean militaryStatus,
 
@@ -183,20 +183,20 @@ public class FacilitySearchResource {
 
       // Params for Smoking Cessation
 
-      @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = "True,False", allowEmptyValue = True)
-      @DefaultValue("False")
+      @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = "true,false", allowEmptyValue = True)
+      @DefaultValue("false")
       @QueryParam("smokingCessation")
       final boolean smokingCessation,
 
       // Params for Smoking Policy
-      @ApiParam(value = "Indicates if user is a smoker", allowableValues = "True,False", allowEmptyValue = True)
-      @DefaultValue("False")
+      @ApiParam(value = "Indicates if user is a smoker", allowableValues = "true,false", allowEmptyValue = True)
+      @DefaultValue("false")
       @QueryParam("smoker")
       final boolean isSmoker,
 
       // Params for Substance Detox Services
-      @ApiParam(value = "Indicates if user has started detox", allowableValues = "True,False", allowEmptyValue = True)
-      @DefaultValue("False")
+      @ApiParam(value = "Indicates if user has started detox", allowableValues = "true,false", allowEmptyValue = True)
+      @DefaultValue("false")
       @QueryParam("initDetox")
       final boolean detoxStarted,
 
