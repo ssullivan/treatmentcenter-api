@@ -22,7 +22,9 @@ public class CompositeFacilityScore implements IScoreFacility {
   private Set<String> serviceCodes = ImmutableSet.of();
 
   public CompositeFacilityScore(final Set<String> serviceCodes) {
-    this.serviceCodes = serviceCodes;
+    if (this.serviceCodes != null) {
+      this.serviceCodes = serviceCodes;
+    }
 
     //
     // scoreByGender = Optional.of(new ScoreByGender())
