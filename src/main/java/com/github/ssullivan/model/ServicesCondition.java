@@ -26,12 +26,13 @@ public class ServicesCondition {
     final ImmutableSet.Builder<String> serviceCodesBuilder = new Builder<>();
     final ImmutableSet.Builder<String> mustNotServiceCodes = new Builder<>();
 
-    for (final String serviceCode : serviceCodes) {
-      if (serviceCode.startsWith("!")) {
-        mustNotServiceCodes.add(serviceCode.substring(1).trim());
-      }
-      else {
-        serviceCodesBuilder.add(serviceCode.trim());
+    if (serviceCodes != null) {
+      for (final String serviceCode : serviceCodes) {
+        if (serviceCode.startsWith("!")) {
+          mustNotServiceCodes.add(serviceCode.substring(1).trim());
+        } else {
+          serviceCodesBuilder.add(serviceCode.trim());
+        }
       }
     }
     this.serviceCodes = serviceCodesBuilder.build();
