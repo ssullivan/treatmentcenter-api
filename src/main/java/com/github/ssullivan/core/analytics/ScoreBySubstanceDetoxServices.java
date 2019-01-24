@@ -45,7 +45,7 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
         return 1.0;
       }
 
-      if (serviceCodes.contains(COCAINE) && facility.hasService(OPIOIDS_DETOX)) {
+      if (serviceCodes.contains(COCAINE) && facility.hasService(COCAINE_DETOX)) {
         return 1.0;
       }
 
@@ -63,4 +63,6 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
     }
     return 0;
   }
+
+
 }

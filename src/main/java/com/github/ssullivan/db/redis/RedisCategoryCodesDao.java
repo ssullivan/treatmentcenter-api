@@ -7,6 +7,7 @@ import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.model.Category;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.IOException;
@@ -50,8 +51,15 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   @Override
   public Category get(String id) throws IOException {
     try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return deserialize(connection.sync().hget(KEY, id));
+      final String json = connection.sync().hget(KEY, id);
+      if (json == null || json.isEmpty()) {
+        return null;
+      }
+      return deserialize(json);
     } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
@@ -64,7 +72,12 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
         return this.categoryCache.get(id);
       else
         return this.get(id);
-    } catch (ExecutionException e) {
+    }
+    catch (InvalidCacheLoadException e) {
+      LOGGER.error("failed to load category '{}'", id, e);
+      throw new IOException("Failed to load category", e);
+    }
+    catch (ExecutionException e) {
       LOGGER.error("Failed to get Category '{}' from in-memory cache", id, e);
       throw new IOException(e);
     }

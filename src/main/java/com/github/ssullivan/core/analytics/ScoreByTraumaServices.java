@@ -2,6 +2,7 @@ package com.github.ssullivan.core.analytics;
 
 import com.github.ssullivan.model.Facility;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import java.util.Set;
 
 public class ScoreByTraumaServices implements IScoreFacility {
@@ -13,6 +14,13 @@ public class ScoreByTraumaServices implements IScoreFacility {
       Set<TraumaTypes> traumaTypes, Set<String> serviceCodes) {
     this.needsSupport = needsSupport;
     this.traumaTypes = traumaTypes;
+    this.serviceCodes = serviceCodes;
+  }
+
+  public ScoreByTraumaServices(boolean needsSupport,
+      List<TraumaTypes> traumaTypes, Set<String> serviceCodes) {
+    this.needsSupport = needsSupport;
+    this.traumaTypes = ImmutableSet.copyOf(traumaTypes);
     this.serviceCodes = serviceCodes;
   }
 

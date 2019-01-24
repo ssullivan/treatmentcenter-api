@@ -8,6 +8,7 @@ import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.IOException;
@@ -65,6 +66,9 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
         return this.cache.get(id);
       else
         return this.get(id);
+    } catch (InvalidCacheLoadException e) {
+      LOGGER.error("Failed to get service code '{}' from db", id, e);
+      throw new IOException("Failed to load service code", e);
     } catch (ExecutionException e) {
       LOGGER.error("Failed to get Category '{}' from in-memory cache", id, e);
       throw new IOException(e);
