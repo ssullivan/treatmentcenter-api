@@ -5,6 +5,7 @@ import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
+import com.github.ssullivan.core.analytics.CompositeFacilityScore.Builder;
 import com.github.ssullivan.core.analytics.Importance;
 import com.github.ssullivan.core.analytics.TraumaTypes;
 import com.github.ssullivan.db.IFacilityDao;
@@ -248,19 +249,11 @@ public class FacilitySearchResource {
         return;
       }
 
-      final CompositeFacilityScore.Builder scoreBuilder = new CompositeFacilityScore.Builder()
-          .withDateOfBirth(LocalDate.parse(dateOfBirth))
-          .withGender(gender)
-          .withDetoxStarted(detoxStarted)
-          .withHearingSupport(hearingSupport, hearingSupportImportance)
-          .withLangSupport(englishFirst, langSupportImp)
-          .withMedSupport(useMeds)
-          .withMentalHealthSupprt(mentalHealthRelated)
-          .withMilitarySupport(militaryStatus, militaryImp)
-          .withSmokingCessationSupport(smokingCessation, Importance.SOMEHWAT)
-          .withSmokingPolicy(isSmoker)
-          .withTraumaSupport(traumaSupport, traumaTypes);
-
+      final Builder scoreBuilder = buildFromRequestParams(dateOfBirth, gender, hearingSupport,
+          hearingSupportImportance, englishFirst,
+          langSupportImp, useMeds, mentalHealthRelated, militaryStatus, militaryImp,
+          smokingCessation,
+          isSmoker, detoxStarted, traumaSupport, traumaTypes);
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
         asyncResponse.resume(
@@ -301,6 +294,42 @@ public class FacilitySearchResource {
         Thread.currentThread().interrupt();
       }
     }
+  }
+
+  private Builder buildFromRequestParams(
+      @QueryParam("dob") @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Invalid date of birth") @ApiParam(value = "The users date of birth in YYYY-MM-DD format [used for scoring]", example = "1980-01-16", allowEmptyValue = true) String dateOfBirth,
+      @QueryParam("gender") @Pattern(regexp = "MALE|FEMALE|male|female|Male|Female", message = "Invalid gender") @ApiParam(value = "The users gender [used for scoring]", allowableValues = "MALE,FEMALE", allowEmptyValue = true) String gender,
+      @QueryParam("hearingSupport") @DefaultValue("false") @ApiParam(value = "true means hearing support is needed", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean hearingSupport,
+      @QueryParam("hearingSupportImp") @DefaultValue("NOT") @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true) Importance hearingSupportImportance,
+      @QueryParam("englishFirst") @DefaultValue("true") @ApiParam(value = "Indicates if english is your first language", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean englishFirst,
+      @QueryParam("langSupportImp") @DefaultValue("NOT") @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true) Importance langSupportImp,
+      @QueryParam("medassist") @DefaultValue("false") @ApiParam(value = "Indicates if medication assisted treatment is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean useMeds,
+      @QueryParam("mentalHealthRelated") @DefaultValue("false") @ApiParam(value = "Indicates if mental health plays a role in the addiction", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean mentalHealthRelated,
+      @QueryParam("militaryStatus") @DefaultValue("false") @ApiParam(value = "Indicates if a facility with support for military is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean militaryStatus,
+      @QueryParam("militaryImp") @DefaultValue("NOT") @ApiParam(value = "Indicates how important military support is", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true) Importance militaryImp,
+      @QueryParam("smokingCessation") @DefaultValue("false") @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean smokingCessation,
+      @QueryParam("smoker") @DefaultValue("false") @ApiParam(value = "Indicates if user is a smoker", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean isSmoker,
+      @QueryParam("detoxStarted") @DefaultValue("false") @ApiParam(value = "Indicates if user has started detox", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean detoxStarted,
+      @QueryParam("traumaSupport") @DefaultValue("false") @ApiParam(value = "Indicates if trauma support is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean traumaSupport,
+      @QueryParam("trauma") @DefaultValue("NONE") @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = "TRAUMA,DOMETIX,SEXUAL", allowEmptyValue = true, allowMultiple = true) Set<TraumaTypes> traumaTypes) {
+    try {
+      return new Builder()
+          .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
+          .withGender(gender)
+          .withDetoxStarted(detoxStarted)
+          .withHearingSupport(hearingSupport, hearingSupportImportance)
+          .withLangSupport(englishFirst, langSupportImp)
+          .withMedSupport(useMeds)
+          .withMentalHealthSupprt(mentalHealthRelated)
+          .withMilitarySupport(militaryStatus, militaryImp)
+          .withSmokingCessationSupport(smokingCessation, Importance.SOMEHWAT)
+          .withSmokingPolicy(isSmoker)
+          .withTraumaSupport(traumaSupport, traumaTypes);
+    }
+    catch (NullPointerException e) {
+      LOGGER.error("Unexpected error occurred", e);
+    }
+    return new CompositeFacilityScore.Builder();
   }
 
 
@@ -483,19 +512,10 @@ public class FacilitySearchResource {
         return;
       }
 
-      final CompositeFacilityScore.Builder scoreBuilder = new CompositeFacilityScore.Builder()
-          .withDateOfBirth(LocalDate.parse(dateOfBirth))
-          .withGender(gender)
-          .withDetoxStarted(detoxStarted)
-          .withHearingSupport(hearingSupport, hearingSupportImportance)
-          .withLangSupport(englishFirst, langSupportImp)
-          .withMedSupport(useMeds)
-          .withMentalHealthSupprt(mentalHealthRelated)
-          .withMilitarySupport(militaryStatus, militaryImp)
-          .withSmokingCessationSupport(smokingCessation, Importance.SOMEHWAT)
-          .withSmokingPolicy(isSmoker)
-          .withTraumaSupport(traumaSupport, traumaTypes);
-
+      final Builder scoreBuilder = buildFromRequestParams(dateOfBirth, gender, hearingSupport,
+          hearingSupportImportance, englishFirst, langSupportImp, useMeds, mentalHealthRelated,
+          militaryStatus, militaryImp, smokingCessation, isSmoker, detoxStarted, traumaSupport,
+          traumaTypes);
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
         asyncResponse.resume(

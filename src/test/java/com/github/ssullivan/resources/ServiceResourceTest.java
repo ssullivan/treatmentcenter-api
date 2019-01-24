@@ -1,4 +1,4 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.resources;
 
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.model.Service;
@@ -22,7 +22,7 @@ import org.mockito.Mockito;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
-public class ServiceResourceTest {
+public class commiServiceResourceTest {
 
   private static final GenericType<List<Service>> LIST_SERVICES
       = new GenericType<List<Service>>() {

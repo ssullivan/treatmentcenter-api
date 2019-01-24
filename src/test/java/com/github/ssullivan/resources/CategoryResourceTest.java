@@ -1,4 +1,4 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.resources;
 
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.model.Category;
