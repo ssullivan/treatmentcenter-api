@@ -19,10 +19,16 @@ public class ScoreByGender implements IScoreFacility {
       return 0;
     }
     switch (gender) {
+      case "Female":
+      case "female":
+      case "FEMALE":
       case FEMALE:
         if (facility.hasAllOf(FEMALE)) {
           return 1.0;
         }
+        break;
+      case "male":
+      case "Male":
       case MALE:
         if (facility.hasAllOf(MALE)) {
           return 1.0;

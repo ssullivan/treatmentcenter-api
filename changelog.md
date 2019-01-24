@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+v1.10.4:
+* BUG: Fixed a bug in scoring by gender (also added some support for variability in the input)
+
 v1.10.3:
 * BUG: Fixed a bug in the documentation for the militaryImp (importance) field
 * MISC: Added some checks to make sure that the service codes sets are of reasonable length (<200)
