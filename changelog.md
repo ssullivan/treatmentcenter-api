@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+v1.10.0:
+* Added new API inputs to control how the facility scoring works
+
 v1.9.0:
 * Initial version of composite score. API still needs to be updated to provide the module inputs
 
