@@ -177,7 +177,7 @@ public class FacilitySearchResource {
       @QueryParam("militaryStatus")
       final boolean militaryStatus,
 
-      @ApiParam(value = "Indicates how important military support is", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true)
+      @ApiParam(value = "Indicates how important military support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("militaryImp")
       final Importance militaryImp,
@@ -260,7 +260,6 @@ public class FacilitySearchResource {
         return;
       }
 
-
       final Builder scoreBuilder = buildFromRequestParams(dateOfBirth, gender, hearingSupport,
           hearingSupportImportance, englishFirst,
           langSupportImp, useMeds, mentalHealthRelated, militaryStatus, militaryImp,
@@ -303,6 +302,7 @@ public class FacilitySearchResource {
       asyncResponse.resume(Response.serverError().build());
 
       if (e instanceof InterruptedException) {
+        LOGGER.error("Interrupted while handling request", e);
         Thread.currentThread().interrupt();
       }
     }

@@ -1,8 +1,13 @@
 ---
 Changelog
 --
+v1.10.3:
+* BUG: Fixed a bug in the documentation for the militaryImp (importance) field
+* MISC: Added some checks to make sure that the service codes sets are of reasonable length (<200)
+* BUG: Fix regression for handling multiple service code sets
+ 
 v1.10.2:
-* BUG: We weren't validating the size of the conditions. to prevent too many coming in we are going to set a limit of 200
+* BUG: We were not validating the size of the conditions. to prevent too many coming in we are going to set a limit of 200
 
 v1.10.1:
 * BUG: Fixed a bug in the swagger docs for trauma types
