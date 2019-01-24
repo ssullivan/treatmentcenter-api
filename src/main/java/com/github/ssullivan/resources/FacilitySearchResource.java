@@ -249,6 +249,18 @@ public class FacilitySearchResource {
         return;
       }
 
+      final Optional<ServicesCondition> invalidCondition = searchRequest.getConditions().stream()
+          .filter(it -> it.size() > 200)
+          .findAny();
+
+      if (invalidCondition.isPresent()) {
+        asyncResponse.resume(Response.status(400)
+            .entity(ImmutableMap.of("message", "too many search conditions."))
+            .build());
+        return;
+      }
+
+
       final Builder scoreBuilder = buildFromRequestParams(dateOfBirth, gender, hearingSupport,
           hearingSupportImportance, englishFirst,
           langSupportImp, useMeds, mentalHealthRelated, militaryStatus, militaryImp,
