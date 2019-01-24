@@ -123,7 +123,6 @@ distZip {
     }
 }
 nebulaDocker {
-    maintainerEmail = 'sjsullivan7@gmail.com'
     dockerBase = 'openjdk:8-alpine'
 
     // There is a problem with the docker java library that this
