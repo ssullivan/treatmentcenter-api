@@ -1,4 +1,4 @@
-package com.github.ssullivan.model;
+package com.github.ssullivan.model.collections;
 
 public class Pair<L,R> {
   private L lhs;

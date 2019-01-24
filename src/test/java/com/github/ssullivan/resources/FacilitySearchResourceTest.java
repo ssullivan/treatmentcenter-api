@@ -1,6 +1,7 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.resources;
 
 import com.github.ssullivan.api.IPostalcodeService;
+import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;

@@ -25,7 +25,7 @@ apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
 
-version = '1.9.0'
+version = '1.10.0'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
@@ -123,7 +123,6 @@ distZip {
     }
 }
 nebulaDocker {
-    maintainerEmail = 'sjsullivan7@gmail.com'
     dockerBase = 'openjdk:8-alpine'
 
     // There is a problem with the docker java library that this

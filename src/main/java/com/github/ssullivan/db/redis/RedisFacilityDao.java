@@ -918,8 +918,9 @@ public class RedisFacilityDao implements IFacilityDao {
           availableServicesByCategory.getOrDefault(categoryCode, new Category(categoryCode, "",  new HashSet<String>()));
       availableServicesByCategory.putIfAbsent(categoryCode, availableCategory);
 
-      try {
-        final Category category = this.categoryCodesDao.getFromCache(categoryCode);
+
+      final Category category = this.categoryCodesDao.getFromCache(categoryCode);
+      if (category != null) {
         availableCategory.setName(category.getName());
         availableCategory.setCode(category.getCode());
 
@@ -929,8 +930,7 @@ public class RedisFacilityDao implements IFacilityDao {
             .map(service -> {
               try {
                 return serviceCodesDao.getFromCache(service);
-              }
-              catch (IOException e) {
+              } catch (IOException e) {
                 LOGGER.error("Failed to get service information for '{}'", service, e);
               }
               return null;
@@ -938,9 +938,7 @@ public class RedisFacilityDao implements IFacilityDao {
             .filter(Objects::nonNull)
             .forEach(availableCategory::addServiceCode);
       }
-      catch (IOException e) {
-        LOGGER.error("Failed to get category information for '{}'", categoryCode, e);
-      }
+
     }
 
     return new AvailableServices(availableServicesByCategory.values());

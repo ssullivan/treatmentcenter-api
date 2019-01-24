@@ -6,10 +6,15 @@ import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.List;
 import org.eclipse.jetty.util.IO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ImplementedBy(RedisCategoryCodesDao.class)
 public interface ICategoryCodesDao {
 
+  class Holder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ICategoryCodesDao.class);
+  }
   /**
    * Fetches the service code record from the database with the provided id.
    *
@@ -21,8 +26,14 @@ public interface ICategoryCodesDao {
 
   Category get(final String id, final boolean fromCache) throws IOException;
 
-  default Category getFromCache(final String id) throws IOException {
-    return get(id, true);
+  default Category getFromCache(final String id) {
+    try {
+      return get(id, true);
+    }
+    catch (IOException e) {
+      Holder.LOGGER.error("Failed to get category", e);
+    }
+    return null;
   }
 
   boolean delete(final String id) throws IOException;
