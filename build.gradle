@@ -25,7 +25,7 @@ apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
 
-version = '1.10.0'
+version = '1.10.1'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
@@ -135,7 +135,7 @@ nebulaDocker {
     else {
         dockerUrl = 'unix:///var/run/docker.sock'
     }
-    dockerRepo = [test: '', prod: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api", dev: '']
+    dockerRepo = [test: '', prod: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api", dev: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/dev/treatmentcenter-api"]
     dockerImage = {
         arg('UID=7999')
         arg('GID=7999')

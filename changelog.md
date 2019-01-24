@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+v1.10.1:
+* BUG: Fixed a bug in the swagger docs for trauma types
+
 v1.10.0:
 * Added new API inputs to control how the facility scoring works
 

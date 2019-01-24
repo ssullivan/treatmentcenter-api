@@ -209,7 +209,7 @@ public class FacilitySearchResource {
       @QueryParam("traumaSupport")
       final boolean traumaSupport,
 
-      @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = "TRAUMA,DOMETIX,SEXUAL", allowEmptyValue = true, allowMultiple = true)
+      @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
       @QueryParam("trauma")
       final Set<TraumaTypes> traumaTypes) {
