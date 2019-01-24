@@ -22,7 +22,7 @@ import org.mockito.Mockito;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
-public class commiServiceResourceTest {
+public class ServiceResourceTest {
 
   private static final GenericType<List<Service>> LIST_SERVICES
       = new GenericType<List<Service>>() {
