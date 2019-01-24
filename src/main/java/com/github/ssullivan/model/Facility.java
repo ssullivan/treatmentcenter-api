@@ -2,6 +2,7 @@ package com.github.ssullivan.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
@@ -232,8 +233,8 @@ public class Facility {
   @JsonIgnore
   public boolean hasAllOf(final String... services) {
     if (null == services || services.length <= 0) return false;
-    return Stream.of(services)
-        .allMatch(it -> this.getServiceCodes().contains(it));
+    final Set<String> uniq = ImmutableSet.copyOf(services);
+    return uniq.size() == Sets.intersection(uniq, this.serviceCodes).size();
   }
 
   @JsonIgnore

@@ -27,18 +27,49 @@ public class ScoreByAgeTest {
   public void testAgeAdultNoCode() {
     ScoreByAge scoreByAge = new ScoreByAge(AdultDateOfBirth);
     Facility facility = new Facility();
-    facility.setServiceCodes(ImmutableSet.of("ADLT"));
+    facility.setServiceCodes(ImmutableSet.of(Constants.CHILD));
+
+    double score = scoreByAge.score(facility);
+    MatcherAssert.assertThat(score, Matchers.lessThanOrEqualTo(0.0));
+  }
+
+  @Test
+  public void testAgeYouth() {
+    ScoreByAge scoreByAge = new ScoreByAge(YouthDateOfBirth);
+    Facility facility = new Facility();
+    facility.setServiceCodes(ImmutableSet.of(Constants.YOUNG_ADULTS));
 
     double score = scoreByAge.score(facility);
     MatcherAssert.assertThat(score, Matchers.greaterThanOrEqualTo(1.0));
   }
 
   @Test
-  public void testAgeYouth() {
+  public void testAgeYouthNoCode() {
+    ScoreByAge scoreByAge = new ScoreByAge(ChildDateOfBirth);
+    Facility facility = new Facility();
+    facility.setServiceCodes(ImmutableSet.of(Constants.ADULT));
 
+    double score = scoreByAge.score(facility);
+    MatcherAssert.assertThat(score, Matchers.lessThanOrEqualTo(0.0));
   }
 
+  @Test
   public void testAgeChild() {
+    ScoreByAge scoreByAge = new ScoreByAge(ChildDateOfBirth);
+    Facility facility = new Facility();
+    facility.setServiceCodes(ImmutableSet.of(Constants.CHILD));
 
+    double score = scoreByAge.score(facility);
+    MatcherAssert.assertThat(score, Matchers.greaterThanOrEqualTo(1.0));
+  }
+
+  @Test
+  public void testAgeChildNoCode() {
+    ScoreByAge scoreByAge = new ScoreByAge(ChildDateOfBirth);
+    Facility facility = new Facility();
+    facility.setServiceCodes(ImmutableSet.of(Constants.ADULT));
+
+    double score = scoreByAge.score(facility);
+    MatcherAssert.assertThat(score, Matchers.lessThanOrEqualTo(0.0));
   }
 }
