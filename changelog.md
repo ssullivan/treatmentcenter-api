@@ -1,6 +1,10 @@
 ---
 Changelog
 --
+v1.10.5:
+* FEATURE: New api endpoint for SAFE search form
+* MISC: Revert changes to /v2/ and /v1/
+
 v1.10.4:
 * BUG: Fixed a bug in scoring by gender (also added some support for variability in the input)
 
