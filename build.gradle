@@ -12,7 +12,7 @@ buildscript {
 }
 
 plugins {
-    id "net.ltgt.apt" version "0.17"
+    id "net.ltgt.apt" version "0.19"
 
 }
 
