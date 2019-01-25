@@ -3,6 +3,7 @@ package com.github.ssullivan.resources;
 import com.fasterxml.jackson.jaxrs.json.annotation.JSONP.Def;
 import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
+import com.github.ssullivan.core.FacilityComparator;
 import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore.Builder;
@@ -624,11 +625,11 @@ public class FacilitySearchResource {
   private static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
     final CompositeFacilityScore score = builder.withServiceCodes(serviceCodes).build();
-    searchResults.hits().forEach(facility -> {
-      facility.setScore(score.score(facility));
-    });
 
-    return searchResults;
+    searchResults.hits().forEach(facility -> facility.setScore(score.score(facility)));
+
+    return SearchResults.searchResults(searchResults.totalHits(),
+        ImmutableList.sortedCopyOf(new FacilityComparator<>(), searchResults.hits()));
   }
 
 }

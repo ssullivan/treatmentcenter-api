@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+v1.10.6:
+* Sort scored results
+
 v1.10.5:
 * FEATURE: New api endpoint for SAFE search form
 * MISC: Revert changes to /v2/ and /v1/
