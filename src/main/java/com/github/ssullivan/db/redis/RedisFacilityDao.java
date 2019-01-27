@@ -157,7 +157,7 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      connection.setAutoFlushCommands(false);
+
 
       addFacility(connection.sync(), feed, facility);
 
@@ -165,6 +165,7 @@ public class RedisFacilityDao implements IFacilityDao {
       connection.flushCommands();
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
+        LOGGER.error("Interrupted while add facility", e);
         Thread.currentThread().interrupt();
       }
       throw new IOException("Failed to get connection to REDIS", e);

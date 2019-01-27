@@ -16,7 +16,7 @@ public class SamshaLocatorEtl implements IEtlJob {
 
   @Override
   public void extract() throws IOException {
-    fetchSamshaDataFeed.run();
+
   }
 
   @Override

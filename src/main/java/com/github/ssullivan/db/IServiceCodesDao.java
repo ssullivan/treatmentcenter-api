@@ -43,4 +43,6 @@ public interface IServiceCodesDao {
   List<String> listServiceCodesInCategory(final String category) throws IOException;
 
   boolean addService(final Service service) throws IOException;
+
+  boolean addService(final String feedId, final Service service) throws IOException;
 }

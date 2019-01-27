@@ -9,14 +9,18 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.guice.BucketName;
 import com.github.ssullivan.guice.SamshaUrl;
+import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.Feed;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
@@ -34,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * {bucket}/feeds/samsha/locations-{timestamp}.xlsx
  * {bucket}/feeds/samsha.feed.json
  */
-public class FetchSamshaDataFeed implements Runnable {
+public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, String>>>, Function<Void, Optional<Tuple2<String, String>>> {
   private static final Logger LOGGER = LoggerFactory.getLogger(FetchSamshaDataFeed.class);
   private static final ObjectReader FEED_READER = new ObjectMapper().readerFor(Feed.class);
   private static final ObjectWriter FEED_WRITER = new ObjectMapper().writerFor(Feed.class);
@@ -52,7 +56,7 @@ public class FetchSamshaDataFeed implements Runnable {
   }
 
   @Override
-  public void run() {
+  public Optional<Tuple2<String, String>> get() {
     final Client client = JerseyClientBuilder.createClient();
     final ObjectMetadata objectMetadata = new ObjectMetadata();
 
@@ -68,7 +72,7 @@ public class FetchSamshaDataFeed implements Runnable {
 
       if (response.getStatus() == 200) {
         try (final InputStream inputStream = response.readEntity(InputStream.class);
-             final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
+            final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
 
           LOGGER.info("Successfully, fetched SAMSHA treatment facilities excel");
 
@@ -82,18 +86,25 @@ public class FetchSamshaDataFeed implements Runnable {
 
 
           amazonS3.putObject(this.bucket, objectKey, bufferedInputStream, new ObjectMetadata());
-         // amazonS3.putObject(this.bucket, "feeds/samsha.feed.json", new ObjectMetadata());
 
+
+          try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(FEED_WRITER.writeValueAsBytes(feed))) {
+            amazonS3.putObject(this.bucket, "feeds/samsha.feed.json", byteArrayInputStream, new ObjectMetadata());
+          }
+
+          return Optional.of(new Tuple2<>(bucket, objectKey));
         } catch (IOException e) {
           LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
         }
       }
-
     }
     finally {
       client.close();
     }
+
+    return Optional.empty();
   }
+
 
   private String createObjectKey() {
     return "samsha/locations-" + ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT) + ".xlsx";
@@ -110,5 +121,10 @@ public class FetchSamshaDataFeed implements Runnable {
     }
 
     return Optional.empty();
+  }
+
+  @Override
+  public Optional<Tuple2<String, String>> apply(Void aVoid) {
+    return get();
   }
 }

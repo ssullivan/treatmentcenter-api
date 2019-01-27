@@ -10,4 +10,6 @@ public interface IFeedDao {
   Optional<String> nextFeedId() throws IOException;
 
   Optional<String> currentFeedId() throws IOException;
+
+  Optional<String> searchFeedId() throws IOException;
 }

@@ -1,21 +1,31 @@
 package com.github.ssullivan.tasks.feeds;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.guice.BucketName;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
-import com.github.ssullivan.model.Pair;
 import com.github.ssullivan.model.Service;
+import com.github.ssullivan.model.collections.Tuple2;
+import com.github.ssullivan.model.datafeeds.Feed;
+import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,8 +33,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -33,39 +46,45 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransformLocatorSpreadsheet {
+/**
+ *
+ */
+public class TransformLocatorSpreadsheet implements Function<InputStream, Optional<SamshaLocatorData>> {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransformLocatorSpreadsheet.class);
+  private static final ObjectReader FEED_READER = new ObjectMapper().readerFor(Feed.class);
+  private static final ObjectWriter FEED_WRITER = new ObjectMapper().writerFor(Feed.class);
+  private static final String SAMSHA = "samsha";
 
   private static final int FACILITIES_WITH_SERVICE_CODE_DETAIL = 0;
   private static final int SERVICE_CODER_REFERENCE = 1;
 
+
+  @Override
+  public Optional<SamshaLocatorData> apply(final InputStream inputStream) {
+    try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+
+      final Sheet facilitySheet = workbook.getSheetAt(FACILITIES_WITH_SERVICE_CODE_DETAIL);
+      final Sheet serviceCodeSheet = workbook.getSheetAt(SERVICE_CODER_REFERENCE);
+
+      final ImmutableList<ImmutableMap<String, String>> locations = collectMaps(facilitySheet);
+      final ImmutableList<ImmutableMap<String, String>> serviceCodes = collectMaps(serviceCodeSheet);
+
+      final Tuple2<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(serviceCodes);
+      final Collection<Facility> facilities = transformToFacilities(locations, serviceCodes);
+
+
+      return Optional.of(new SamshaLocatorData(services.get_1(), services.get_2(), facilities));
+    } catch (IOException e) {
+      LOGGER.error("Failed to process Workbook", e);
+    }
+    return Optional.empty();
+  }
+
   public static void main(String[] args) throws IOException {
-    final Workbook workbook =
-        WorkbookFactory.create(new File(args[0]));
-    final Sheet facilitySheet = workbook.getSheetAt(FACILITIES_WITH_SERVICE_CODE_DETAIL);
-    final Sheet serviceCodeSheet = workbook.getSheetAt(SERVICE_CODER_REFERENCE);
-
-    final ImmutableList<ImmutableMap<String, String>> locations = collectMaps(facilitySheet);
-    final ImmutableList<ImmutableMap<String, String>> serviceCodes = collectMaps(serviceCodeSheet);
-
-    final Pair<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(serviceCodes);
-    final Collection<Facility> facilities = transformToFacilities(locations, serviceCodes);
-
-    workbook.close();
-
-
     final Injector injector = Guice.createInjector(new RedisClientModule(new RedisConfig()));
-    IFacilityDao facilityDao = injector.getInstance(IFacilityDao.class);
-    IFeedDao feedDao = injector.getInstance(IFeedDao.class);
+    final TransformLocatorSpreadsheet transformLocatorSpreadsheet = injector.getInstance(TransformLocatorSpreadsheet.class);
 
-    final String feedId = feedDao.nextFeedId().orElse("");
-    final List<Boolean> results = facilityDao.addFacilitiesAsync(feedId, facilities)
-        .join();
-
-
-
-
-
+    transformLocatorSpreadsheet.apply(new FileInputStream(new File(args[0])));
     int j = 0;
   }
 
@@ -75,7 +94,7 @@ public class TransformLocatorSpreadsheet {
         .collect(Collectors.toList());
   }
 
-  private static Pair<Collection<Category>, Collection<Service>> transformToCategoriesAndServices(final ImmutableList<ImmutableMap<String, String>> catsAndServices) {
+  private static Tuple2<Collection<Category>, Collection<Service>> transformToCategoriesAndServices(final ImmutableList<ImmutableMap<String, String>> catsAndServices) {
     final Map<String, Category> cats = new HashMap<>(catsAndServices.size());
     final List<Service> services = new ArrayList<Service>();
 
@@ -87,14 +106,14 @@ public class TransformLocatorSpreadsheet {
           category.addServiceCode(service);
         });
 
-    return new Pair<>(cats.values(), services);
+    return new Tuple2<>(cats.values(), services);
   }
 
 
   private static Service asService(final ImmutableMap<String, String> categoryAndService) {
     final Service service = new Service();
     service.setCategoryCode(categoryAndService.getOrDefault("category_code", ""));
-    service.setCode(categoryAndService.getOrDefault("service_code", ""));
+    service.setCode(categoryAndService.getOrDefault("service_code", "").intern());
     service.setName(categoryAndService.getOrDefault("service_name", ""));
     service.setDescription(categoryAndService.getOrDefault("service_description", ""));
     return service;
@@ -102,7 +121,7 @@ public class TransformLocatorSpreadsheet {
 
   private static Category asCategory(final ImmutableMap<String, String> categoryAndService) {
     final Category category = new Category();
-    category.setCode(categoryAndService.getOrDefault("category_code", ""));
+    category.setCode(categoryAndService.getOrDefault("category_code", "").intern());
     category.setName(categoryAndService.getOrDefault("category_name", ""));
     return category;
   }
@@ -112,8 +131,8 @@ public class TransformLocatorSpreadsheet {
     facility.setName1(location.get("name1"));
     facility.setName2(location.get("name2"));
     facility.setStreet(getStreet(location));
-    facility.setCity(location.get("city"));
-    facility.setState(location.get("state"));
+    facility.setCity(location.get("city").intern());
+    facility.setState(location.get("state").intern());
     facility.setZip(getZip(location));
     facility.setCounty(location.get("county"));
     facility.setPhoneNumbers(getPhoneNumbers(location));
