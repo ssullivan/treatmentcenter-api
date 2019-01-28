@@ -22,21 +22,16 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
   private static final String VIV = "VIV";
 
   private static final String[] MED_CODES = new String[] {
-      BMW, BU, BUP, BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL, NALT, IMETH, VIV
+      BMW, BU, BUP, BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL, NALT, IMETH, VIV, NMOA
   };
 
 
   private final Set<String> serviceCodes;
   private final boolean useMeds;
 
-  public ScoreByMedAssistedTreatment(final Set<String> serviceCodes, final boolean useMeds) {
-    this.serviceCodes = serviceCodes;
-    this.useMeds = useMeds;
-  }
-
   public ScoreByMedAssistedTreatment(final Set<String> serviceCodes) {
-    this(serviceCodes, Sets.anyMatch(serviceCodes,
-        MED_CODES));
+    this.serviceCodes = serviceCodes;
+    this.useMeds = Sets.anyMatch(serviceCodes, MED_CODES);
   }
 
   @Override
