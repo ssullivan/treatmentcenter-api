@@ -134,48 +134,20 @@ public class FacilitySearchResource {
       @QueryParam("dob")
       final String dateOfBirth,
 
-
-      // Params for heading support
-
-
       @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("hearingSupportImp")
       final Importance hearingSupportImportance,
-
-      // Params for Lang support
-
 
       @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("langSupportImp")
       final Importance langSupportImp,
 
-      // Params for Med Assisted Treatment
-
-      // Params for Mental Health
-
-
-      // Params for Military Status,
-
-
       @ApiParam(value = "Indicates how important military support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("militaryImp")
       final Importance militaryImp,
-
-      // Params for Service Setting
-
-      // Params for Smoking Cessation
-
-
-      // Params for Smoking Policy
-
-
-      // Params for Substance Detox Services
-
-
-      // Params for Trauma Services
 
       @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
@@ -228,7 +200,8 @@ public class FacilitySearchResource {
         return;
       }
 
-      final Builder scoreBuilder =  new Builder()
+
+      Builder scoreBuilder = new Builder()
           .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
           .withHearingSupport(hearingSupportImportance)
           .withLangSupport(langSupportImp)

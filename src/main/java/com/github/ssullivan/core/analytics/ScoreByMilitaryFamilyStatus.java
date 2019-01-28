@@ -9,6 +9,12 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
   private boolean isMilitary;
 
 
+  public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes) {
+    this.serviceCodes = serviceCodes;
+    this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);
+    this.importance = isMilitary ? Importance.VERY : Importance.NOT;
+  }
+
   public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes, final Importance importance) {
     this.serviceCodes = serviceCodes;
     this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);

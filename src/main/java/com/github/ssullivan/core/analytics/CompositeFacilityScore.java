@@ -118,10 +118,6 @@ public class CompositeFacilityScore implements IScoreFacility {
       return this;
     }
 
-    public Builder withMedSupport(final Importance importance) {
-      this.medSupport = importance;
-      return this;
-    }
 
     public Builder withMilitarySupport(final Importance importance) {
       this.milSupport = importance;
