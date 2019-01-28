@@ -17,7 +17,7 @@ public class ScoreBySmokingPolicy implements IScoreFacility {
   }
 
   public ScoreBySmokingPolicy(Set<String> serviceCodes) {
-    this(serviceCodes, false);
+    this(serviceCodes, Sets.anyMatch(serviceCodes, SMON, SMPD, SMOP));
   }
 
   @Override

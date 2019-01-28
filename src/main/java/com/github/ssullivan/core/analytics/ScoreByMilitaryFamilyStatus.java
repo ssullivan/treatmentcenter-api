@@ -8,15 +8,11 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
   private Importance importance;
   private boolean isMilitary;
 
-  public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes,
-      Importance importance, boolean isMilitary) {
-    this.serviceCodes = serviceCodes;
-    this.importance = importance;
-    this.isMilitary = isMilitary;
-  }
 
-  public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes) {
-    this(serviceCodes, Importance.NOT, false);
+  public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes, final Importance importance) {
+    this.serviceCodes = serviceCodes;
+    this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);
+    this.importance = importance;
   }
 
   @Override

@@ -90,24 +90,15 @@ public class CompositeFacilityScore implements IScoreFacility {
   public static class Builder {
     private Set<String> serviceCodes = new HashSet<>();
     private LocalDate dateOfBirth = null;
-    private Tuple2<Boolean, Importance> heardingSupport = null;
-    private Tuple2<Boolean, Importance> langSupport = null;
-    private Tuple2<Boolean, Importance> medSupport = null;
-    private Boolean mentalHealthSupport = false;
-    private Tuple2<Boolean, Importance> milSupport = null;
-    private Boolean smokingCessatonSupport = null;
-    private Boolean isSmoker = false;
-    private Boolean detoxStarted = false;
+    private Importance hearingSupport = null;
+    private Importance langSupport = null;
+    private Importance milSupport = null;
+
+    private Importance medSupport = null;
     private Tuple2<Boolean, Set<TraumaTypes>> traumaSupport;
-    private String gender = null;
 
     public Builder withServiceCodes(final Set<String> serviceCodes) {
       this.serviceCodes = serviceCodes;
-      return this;
-    }
-
-    public Builder withGender(final String gender) {
-      this.gender = gender;
       return this;
     }
 
@@ -117,69 +108,45 @@ public class CompositeFacilityScore implements IScoreFacility {
       return this;
     }
 
-    public Builder withHearingSupport(final boolean enabled, final Importance importance) {
-      this.heardingSupport = new Tuple2<>(enabled, importance);
+    public Builder withHearingSupport(final Importance importance) {
+      this.hearingSupport = importance;
       return this;
     }
 
-    public Builder withLangSupport(final boolean enabled, final Importance importance) {
-      this.langSupport = new Tuple2<>(enabled, importance);
+    public Builder withLangSupport(final Importance importance) {
+      this.langSupport =  importance;
       return this;
     }
 
-    public Builder withMedSupport(final boolean enabled, final Importance importance) {
-      this.medSupport = new Tuple2<>(enabled, importance);
+    public Builder withMedSupport(final Importance importance) {
+      this.medSupport = importance;
       return this;
     }
 
-    public Builder withMedSupport(final boolean enabled) {
-      this.medSupport = new Tuple2<>(enabled, Importance.NOT);
+    public Builder withMilitarySupport(final Importance importance) {
+      this.milSupport = importance;
       return this;
+
     }
 
-    public Builder withMentalHealthSupprt(final boolean enabled) {
-      this.mentalHealthSupport = enabled;
-      return this;
-    }
-
-    public Builder withMilitarySupport(final boolean enabled, final Importance importance) {
-      this.milSupport = new Tuple2<>(enabled, importance);
-      return this;
-    }
-
-    public Builder withSmokingCessationSupport(final boolean enabled, final Importance importance) {
-      this.smokingCessatonSupport = enabled;
-      return this;
-    }
-
-    public Builder withSmokingPolicy(final boolean enabled) {
-      this.smokingCessatonSupport = enabled;
-      return this;
-    }
-
-    public Builder withDetoxStarted(final boolean enabled) {
-      this.detoxStarted = enabled;
-      return this;
-    }
-
-    public Builder withTraumaSupport(final boolean enabled, final Set<TraumaTypes> traumas) {
-      this.traumaSupport = new Tuple2<>(enabled, traumas);
+    public Builder withTraumaSupport(final Set<TraumaTypes> traumas) {
+      this.traumaSupport = new Tuple2<>(traumas != null && !traumas.isEmpty(), traumas);
       return this;
     }
 
     public CompositeFacilityScore build() {
       return new CompositeFacilityScore(
           dateOfBirth != null ? Optional.of(new ScoreByAge(dateOfBirth)) : Optional.empty(),
-          gender != null ? Optional.of(new ScoreByGender(gender)) : Optional.empty(),
-          heardingSupport != null ? Optional.of(new ScoreByHearingSupport(serviceCodes, heardingSupport.get_1(), heardingSupport.get_2())) : Optional.of(new ScoreByHearingSupport(serviceCodes)),
-          langSupport != null ? Optional.of(new ScoreByLang(serviceCodes, langSupport.get_1(), langSupport.get_2())) : Optional.of(new ScoreByLang(serviceCodes)),
-          medSupport != null ? Optional.of(new ScoreByMedAssistedTreatment(serviceCodes, medSupport.get_1())) : Optional.of(new ScoreByMedAssistedTreatment(serviceCodes)),
-          mentalHealthSupport != null ? Optional.of(new ScoreByMentalHealth(serviceCodes, mentalHealthSupport)) : Optional.of(new ScoreByMentalHealth(serviceCodes)),
-          milSupport != null ? Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes, milSupport.get_2(), milSupport.get_1())) : Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes)),
+          Optional.of(new ScoreByGender(serviceCodes)),
+          Optional.of(new ScoreByHearingSupport(serviceCodes, hearingSupport)),
+          Optional.of(new ScoreByLang(serviceCodes, langSupport)),
+          Optional.of(new ScoreByMedAssistedTreatment(serviceCodes)),
+          Optional.of(new ScoreByMentalHealth(serviceCodes)),
+          Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes, milSupport)),
           Optional.of(new ScoreByServiceSetting(serviceCodes)),
-          smokingCessatonSupport != null ? Optional.of(new ScoreBySmokingCessation(serviceCodes, smokingCessatonSupport)) : Optional.of(new ScoreBySmokingCessation(serviceCodes)),
-          isSmoker != null ? Optional.of(new ScoreBySmokingPolicy(serviceCodes, isSmoker)) : Optional.of(new ScoreBySmokingPolicy(serviceCodes, isSmoker)),
-          detoxStarted != null ? Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes, detoxStarted)) : Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes)),
+          Optional.of(new ScoreBySmokingCessation(serviceCodes)),
+          Optional.of(new ScoreBySmokingPolicy(serviceCodes)),
+          Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes)),
           traumaSupport != null ? Optional.of(new ScoreByTraumaServices(traumaSupport.get_1(), traumaSupport.get_2(), serviceCodes)) : Optional.of(new ScoreByTraumaServices(serviceCodes))
           );
     }
