@@ -163,18 +163,6 @@ public class FacilitySearchResource {
         );
       }
 
-      // Validate that the service codes are valid
-      final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-          .findFirst();
-
-      // If any of the service codes are invalid return a 400
-      if (firstInvalidServiceCode.isPresent()) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap
-                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
-        return;
-      }
 
       final SearchRequest searchRequest = new SearchRequest();
       final ServicesConditionFactory factory = new ServicesConditionFactory();
@@ -311,18 +299,6 @@ public class FacilitySearchResource {
         );
       }
 
-      // Validate that the service codes are valid
-      final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-          .findFirst();
-
-      // If any of the service codes are invalid return a 400
-      if (firstInvalidServiceCode.isPresent()) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap
-                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
-        return;
-      }
 
       final SearchRequest searchRequest = new SearchRequest();
       final ServicesConditionFactory factory = new ServicesConditionFactory();
@@ -374,7 +350,7 @@ public class FacilitySearchResource {
                 asyncResponse.resume(Response.serverError().build());
               }
               else {
-                asyncResponse.resume(Response.ok(result).build());
+                asyncResponse.resume(Response.ok(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result)));
               }
           });
 
@@ -447,18 +423,6 @@ public class FacilitySearchResource {
         );
       }
 
-      // Validate that the service codes are valid
-      final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-          .findFirst();
-
-      // If any of the service codes are invalid return a 400
-      if (firstInvalidServiceCode.isPresent()) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap
-                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
-        return;
-      }
 
       final List<String> mustNotServiceCodes =
           serviceCodes
@@ -472,6 +436,7 @@ public class FacilitySearchResource {
               .stream()
               .filter(it -> !it.startsWith("!"))
               .collect(Collectors.toList());
+
 
       if (mustNotServiceCodes.size() > 200 || mustServiceCodes.size() > 200) {
         asyncResponse.resume(Response.status(400)
@@ -531,7 +496,11 @@ public class FacilitySearchResource {
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
     final CompositeFacilityScore score = builder.withServiceCodes(serviceCodes).build();
 
-    searchResults.hits().forEach(facility -> facility.setScore(score.score(facility)));
+    searchResults.hits().forEach(facility -> {
+      final double theScore = score.score(facility);
+
+      facility.setScore(theScore);
+    });
 
     return SearchResults.searchResults(searchResults.totalHits(),
         ImmutableList.sortedCopyOf(new FacilityComparator<>(), searchResults.hits()));
