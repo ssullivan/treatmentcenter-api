@@ -16,6 +16,7 @@ import io.dropwizard.testing.junit5.ResourceExtension;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import org.assertj.core.util.Lists;
@@ -81,7 +82,7 @@ public class FacilitySearchResourceTest {
       ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("FIZZ", "BUZZ", "BAR"));
 
   @BeforeAll
-  public void setup() throws IOException {
+  public void setup() throws Exception {
 
     Mockito.when(dao.findByServiceCodes(Mockito.eq(Lists.newArrayList("BAR")),
         Mockito.eq(Page.page())))
@@ -129,6 +130,9 @@ public class FacilitySearchResourceTest {
         Mockito.eq("mi"),
         Mockito.any()))
         .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
+
+    Mockito.when(dao.find(Mockito.any(), Mockito.any()))
+        .thenReturn(CompletableFuture.completedFuture(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0))));
 
     Mockito.when(postalCodeService.fetchGeos(Mockito.anyString()))
         .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33,33)));
@@ -195,7 +199,48 @@ public class FacilitySearchResourceTest {
   }
 
   @Test
-  public void testSearchingByPostalCodeMustBot() {
+  public void testSearchingByPostalCodeWithScore() {
+    final FacilitySearchResults searchResults =
+        resources.target("facilities").path("searchWithScore")
+            .queryParam("serviceCode", "BAR")
+            .queryParam("postalCode", "123456")
+            .queryParam("militaryImp", "SOMEWHAT")
+            .request().get(FacilitySearchResults.class);
+
+    MatcherAssert.assertThat(searchResults, Matchers.notNullValue());
+    MatcherAssert.assertThat(searchResults.getHits(), Matchers.notNullValue());
+    MatcherAssert.assertThat(searchResults.getHits().size(), Matchers.equalTo(1));
+
+    final Facility firstResult = searchResults.getHits().get(0);
+    MatcherAssert.assertThat(firstResult.getCity(), Matchers.equalTo(facility.getCity()));
+    MatcherAssert.assertThat(firstResult.getName1(), Matchers.equalTo(facility.getName1()));
+    MatcherAssert.assertThat(firstResult.getName2(), Matchers.equalTo(facility.getName2()));
+    MatcherAssert.assertThat(firstResult.getCategoryCodes(), Matchers.containsInAnyOrder("FOO"));
+    MatcherAssert.assertThat(firstResult.getServiceCodes(), Matchers.containsInAnyOrder("BAR"));
+    MatcherAssert.assertThat(firstResult.getLocation().lat(),
+        Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
+            Matchers.lessThanOrEqualTo(30.1)));
+
+    MatcherAssert.assertThat(firstResult.getLocation().lon(),
+        Matchers.allOf(Matchers.greaterThanOrEqualTo(30.0),
+            Matchers.lessThanOrEqualTo(30.1)));
+  }
+
+  @Test
+  public void testSearchingByPostalCodeWithScore_InvalidImportance() {
+    final Response response =
+        resources.target("facilities").path("searchWithScore")
+            .queryParam("serviceCode", "BAR")
+            .queryParam("postalCode", "123456")
+            .queryParam("militaryImp", "SOMEWAHT")
+            .request().get();
+
+    MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(400));
+  }
+
+
+  @Test
+  public void testSearchingByPostalCodeMustNot() {
     final FacilitySearchResults searchResults =
         resources.target("facilities").path("search")
             .queryParam("serviceCode", "BAR", "!FIZZ")
