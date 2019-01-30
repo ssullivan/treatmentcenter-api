@@ -145,7 +145,7 @@ public class FacilitySearchResource {
       @QueryParam("militaryImp")
       final Importance militaryImp,
 
-      @ApiParam(value = "Indicates how import military family support is", allowableValues = VERY_SOMEWHAT_NOT)
+      @ApiParam(value = "Indicates how import military family support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("militaryFamilyImp")
       final Importance militaryFamilyImp,
