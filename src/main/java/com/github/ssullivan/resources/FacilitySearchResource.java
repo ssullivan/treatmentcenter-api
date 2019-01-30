@@ -1,7 +1,5 @@
 package com.github.ssullivan.resources;
 
-import com.fasterxml.jackson.jaxrs.json.annotation.JSONP.Def;
-import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilityComparator;
 import com.github.ssullivan.core.FacilitySearchService;
@@ -14,16 +12,15 @@ import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
-import com.github.ssullivan.model.MatchOperator;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
 import com.github.ssullivan.model.ServicesConditionFactory;
 import com.github.ssullivan.model.SetOperation;
+import com.github.ssullivan.model.SortDirection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -31,7 +28,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +46,6 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apiguardian.api.API;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +147,17 @@ public class FacilitySearchResource {
       @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
       @QueryParam("trauma")
-      final Set<TraumaTypes> traumaTypes) {
+      final Set<TraumaTypes> traumaTypes,
+
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned")
+      @DefaultValue("score")
+      @QueryParam("sort")
+      final String sortFields,
+
+      @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
+      @DefaultValue("DESC")
+      @QueryParam("sortDir")
+      final SortDirection sortDirection) {
 
     try {
 
@@ -165,6 +170,9 @@ public class FacilitySearchResource {
 
 
       final SearchRequest searchRequest = new SearchRequest();
+      searchRequest.setSortDirection(sortDirection);
+      searchRequest.setSortField(sortFields);
+
       final ServicesConditionFactory factory = new ServicesConditionFactory();
       searchRequest.setFinalSetOperation(SetOperation.fromBooleanOp(op));
       searchRequest.setServiceConditions(factory.fromRequestParams(serviceCodes, matchAnyServiceCodes));
@@ -288,7 +296,17 @@ public class FacilitySearchResource {
       @Pattern(regexp = "AND|OR", message = "Invalid boolean operator")
       @DefaultValue("AND")
       @QueryParam("operation")
-      final String op) {
+      final String op,
+
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned")
+      @DefaultValue("score")
+      @QueryParam("sort")
+      final String sortField,
+
+      @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
+      @DefaultValue("DESC")
+      @QueryParam("sortDir")
+      final SortDirection sortDirection) {
 
     try {
 
@@ -301,6 +319,9 @@ public class FacilitySearchResource {
 
 
       final SearchRequest searchRequest = new SearchRequest();
+      searchRequest.setSortField(sortField);
+      searchRequest.setSortDirection(sortDirection);
+
       final ServicesConditionFactory factory = new ServicesConditionFactory();
       searchRequest.setFinalSetOperation(SetOperation.fromBooleanOp(op));
       searchRequest.setServiceConditions(factory.fromRequestParams(serviceCodes, matchAnyServiceCodes));
@@ -414,7 +435,17 @@ public class FacilitySearchResource {
       @Pattern(regexp = "AND|OR")
       @DefaultValue("AND")
       @QueryParam("operation")
-      final String op) {
+      final String op,
+
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned", allowEmptyValue = true, allowableValues = "score,radius,name1,name2,city,zip")
+      @DefaultValue("score")
+      @QueryParam("sort")
+      final String sortFields,
+
+      @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
+      @DefaultValue("DESC")
+      @QueryParam("sortDir")
+      final SortDirection sortDirection) {
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
@@ -424,18 +455,18 @@ public class FacilitySearchResource {
       }
 
 
-      final List<String> mustNotServiceCodes =
+      final Set<String> mustNotServiceCodes =
           serviceCodes
               .stream()
               .filter(it -> it.startsWith("!"))
               .map(it -> it.substring(1))
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
 
-      final List<String> mustServiceCodes =
+      final Set<String> mustServiceCodes =
           serviceCodes
               .stream()
               .filter(it -> !it.startsWith("!"))
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
 
 
       if (mustNotServiceCodes.size() > 200 || mustServiceCodes.size() > 200) {
@@ -472,13 +503,13 @@ public class FacilitySearchResource {
                 distanceUnit,
                 Page.page(offset, size));
 
-        asyncResponse.resume(results);
+        asyncResponse.resume(applyScores(mustServiceCodes, sortFields, sortDirection, new CompositeFacilityScore.Builder(), results));
       }
       else {
         final SearchResults<Facility> results = this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
             matchAny, Page.page(offset, size));
         asyncResponse
-            .resume(results);
+            .resume(applyScores(mustServiceCodes, sortFields, sortDirection, new CompositeFacilityScore.Builder(), results));
       }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes`", e);
@@ -488,22 +519,33 @@ public class FacilitySearchResource {
 
   private static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
-    applyScores(searchRequest.allServiceCodes(), builder, searchResults);
+    applyScores(searchRequest.allServiceCodes(),
+        searchRequest.getSortField(),
+        searchRequest.getSortDirection(),
+        builder, searchResults);
     return searchResults;
   }
 
   private static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
+      final String sortField,
+      final SortDirection sortDirection,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
     final CompositeFacilityScore score = builder.withServiceCodes(serviceCodes).build();
 
-    searchResults.hits().forEach(facility -> {
-      final double theScore = score.score(facility);
+    if (searchResults == null) {
+      return SearchResults.empty();
+    }
+    else {
+      searchResults.hits().forEach(facility -> {
+        final double theScore = score.score(facility);
 
-      facility.setScore(theScore);
-    });
+        facility.setScore(theScore);
+      });
 
-    return SearchResults.searchResults(searchResults.totalHits(),
-        ImmutableList.sortedCopyOf(new FacilityComparator<>(), searchResults.hits()));
+      return SearchResults.searchResults(searchResults.totalHits(),
+          ImmutableList.sortedCopyOf(new FacilityComparator<>(sortField, sortDirection),
+              searchResults.hits()));
+    }
   }
 
 }

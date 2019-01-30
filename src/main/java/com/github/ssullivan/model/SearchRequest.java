@@ -12,9 +12,29 @@ public class SearchRequest {
   private GeoRadiusCondition geoRadiusCondition;
   private List<ServicesCondition> conditions;
   private SetOperation finalSetOperation;
+  private String sortField;
+  private SortDirection sortDirection;
 
   public SearchRequest() {
     this.finalSetOperation = SetOperation.INTERSECTION;
+    this.sortField = "score";
+    this.sortDirection = SortDirection.ASC;
+  }
+
+  public String getSortField() {
+    return sortField;
+  }
+
+  public void setSortField(String sortField) {
+    this.sortField = sortField;
+  }
+
+  public SortDirection getSortDirection() {
+    return sortDirection;
+  }
+
+  public void setSortDirection(SortDirection sortDirection) {
+    this.sortDirection = sortDirection;
   }
 
   public GeoRadiusCondition getGeoRadiusCondition() {

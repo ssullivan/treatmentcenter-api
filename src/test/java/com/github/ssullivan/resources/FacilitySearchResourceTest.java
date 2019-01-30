@@ -10,9 +10,11 @@ import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.resources.FacilitySearchResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -107,8 +109,8 @@ public class FacilitySearchResourceTest {
         .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
 
     Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.eq(Lists.newArrayList("BAR")),
-        Mockito.eq(Lists.newArrayList("FIZZ")),
+        Mockito.eq(Sets.newHashSet("BAR")),
+        Mockito.eq(Sets.newHashSet("FIZZ")),
         Mockito.eq(false),
         Mockito.anyDouble(),
         Mockito.anyDouble(),
@@ -118,8 +120,8 @@ public class FacilitySearchResourceTest {
         .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
 
     Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.eq(Lists.newArrayList("BAR")),
-        Mockito.eq(Lists.newArrayList()),
+        Mockito.eq(Sets.newHashSet("BAR")),
+        Mockito.eq(Sets.newHashSet()),
         Mockito.eq(false),
         Mockito.anyDouble(),
         Mockito.anyDouble(),

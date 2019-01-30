@@ -3,7 +3,9 @@ package com.github.ssullivan.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import io.swagger.annotations.ApiModel;
 
+@ApiModel
 @AutoValue
 public abstract class Page {
 
