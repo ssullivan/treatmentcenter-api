@@ -28,7 +28,7 @@ public class CompositeFacilityScore implements IScoreFacility {
   public CompositeFacilityScore(final Set<String> serviceCodes) {
 
     //
-    // scoreByGender = Optional.of(new ScoreByGender())
+    scoreByGender = Optional.of(new ScoreByGender(serviceCodes));
     scoreByHearingSupport = Optional.of(new ScoreByHearingSupport(serviceCodes));
     scoreByLang = Optional.of(new ScoreByLang(serviceCodes));
     scoreByMedAssistedTreatment = Optional.of(new ScoreByMedAssistedTreatment(serviceCodes));
@@ -93,6 +93,7 @@ public class CompositeFacilityScore implements IScoreFacility {
     private Importance hearingSupport = null;
     private Importance langSupport = null;
     private Importance milSupport = null;
+    private Importance smokingCessationImp = null;
 
     private Importance medSupport = null;
     private Tuple2<Boolean, Set<TraumaTypes>> traumaSupport;
@@ -130,6 +131,11 @@ public class CompositeFacilityScore implements IScoreFacility {
       return this;
     }
 
+    public Builder withSmokingCessationImportance(final Importance importance) {
+      this.smokingCessationImp = importance;
+      return this;
+    }
+
     public CompositeFacilityScore build() {
       return new CompositeFacilityScore(
           dateOfBirth != null ? Optional.of(new ScoreByAge(dateOfBirth)) : Optional.empty(),
@@ -140,7 +146,7 @@ public class CompositeFacilityScore implements IScoreFacility {
           Optional.of(new ScoreByMentalHealth(serviceCodes)),
           Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes, milSupport)),
           Optional.of(new ScoreByServiceSetting(serviceCodes)),
-          Optional.of(new ScoreBySmokingCessation(serviceCodes)),
+          Optional.of(new ScoreBySmokingCessation(serviceCodes, smokingCessationImp == null ? Importance.NOT : smokingCessationImp)),
           Optional.of(new ScoreBySmokingPolicy(serviceCodes)),
           Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes)),
           traumaSupport != null ? Optional.of(new ScoreByTraumaServices(traumaSupport.get_1(), traumaSupport.get_2(), serviceCodes)) : Optional.of(new ScoreByTraumaServices(serviceCodes))

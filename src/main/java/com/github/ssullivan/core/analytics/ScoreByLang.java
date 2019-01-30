@@ -1,8 +1,6 @@
 package com.github.ssullivan.core.analytics;
 
 import com.github.ssullivan.model.Facility;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -79,7 +77,7 @@ public class ScoreByLang implements IScoreFacility {
         .noneMatch(ScoreByLang::isLang);
 
     if (!isEnglishFirst) {
-      this.importance = Importance.SOMEHWAT;
+      this.importance = Importance.SOMEWHAT;
     }
     this.selectedLangs = langCodes(serviceCodes);
   }
@@ -106,7 +104,7 @@ public class ScoreByLang implements IScoreFacility {
     }
 
     if (!this.isEnglishFirst
-        && importance == Importance.SOMEHWAT
+        && importance == Importance.SOMEWHAT
         && !selectedLangs.isEmpty()
         && !facility.hasAnyOf(selectedLangs)) {
       return .8;

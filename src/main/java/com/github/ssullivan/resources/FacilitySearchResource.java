@@ -21,6 +21,7 @@ import com.github.ssullivan.model.SetOperation;
 import com.github.ssullivan.model.SortDirection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -144,6 +145,12 @@ public class FacilitySearchResource {
       @QueryParam("militaryImp")
       final Importance militaryImp,
 
+
+      @ApiParam(value = "Indicates how important smoking cessation support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @DefaultValue("NOT")
+      @QueryParam("smokingCessationImp")
+      final Importance smokingCessationImp,
+
       @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
       @QueryParam("trauma")
@@ -202,6 +209,7 @@ public class FacilitySearchResource {
           .withHearingSupport(hearingSupportImportance)
           .withLangSupport(langSupportImp)
           .withMilitarySupport(militaryImp)
+          .withSmokingCessationImportance(smokingCessationImp)
           .withTraumaSupport(traumaTypes);
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {

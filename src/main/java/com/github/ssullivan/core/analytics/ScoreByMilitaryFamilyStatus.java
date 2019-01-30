@@ -30,7 +30,7 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
     if (facility.hasAnyOf("MF")) {
       return 1.0;
     }
-    if (importance == Importance.SOMEHWAT && !facility.hasAnyOf("MF")) {
+    if (importance == Importance.SOMEWHAT && !facility.hasAnyOf("MF")) {
       return .8;
     }
     return 0;

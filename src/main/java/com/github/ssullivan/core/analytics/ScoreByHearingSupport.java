@@ -20,7 +20,7 @@ public class ScoreByHearingSupport implements IScoreFacility {
     this.serviceCodes = serviceCodes;
     this.isDeafOrHardOfHearing = serviceCodes.stream()
         .anyMatch(AH::equalsIgnoreCase);
-    this.importance = isDeafOrHardOfHearing ? Importance.SOMEHWAT : Importance.NOT;
+    this.importance = isDeafOrHardOfHearing ? Importance.SOMEWHAT : Importance.NOT;
   }
 
 
@@ -38,7 +38,7 @@ public class ScoreByHearingSupport implements IScoreFacility {
     if (!isDeafOrHardOfHearing || importance == Importance.NOT || facility.hasAnyOf(AH)) {
       return 1.0;
     }
-    if (importance == Importance.SOMEHWAT) {
+    if (importance == Importance.SOMEWHAT) {
       return .8;
     }
     return 0;

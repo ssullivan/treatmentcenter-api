@@ -13,14 +13,30 @@ public class ScoreBySmokingCessation implements IScoreFacility {
 
   private final Set<String> serviceCodes;
   private final boolean smokingCessation;
+  private Importance importance;
 
   public ScoreBySmokingCessation(final Set<String> serviceCodes, final boolean smokingCessation) {
     this.serviceCodes = serviceCodes;
     this.smokingCessation = smokingCessation;
+    if (this.smokingCessation)
+      this.importance = Importance.SOMEWHAT;
+    else
+      this.importance = Importance.NOT;
+  }
+
+
+  public ScoreBySmokingCessation(final Set<String> serviceCodes, final boolean smokingCessation, final Importance importance) {
+    this.serviceCodes = serviceCodes;
+    this.smokingCessation = smokingCessation;
+    this.importance = importance;
   }
 
   public ScoreBySmokingCessation(Set<String> serviceCodes) {
     this(serviceCodes, Sets.anyMatch(serviceCodes, NRT, NSC, STCC, VTCC));
+  }
+
+  public ScoreBySmokingCessation(Set<String> serviceCodes, Importance importance) {
+    this(serviceCodes, Sets.anyMatch(serviceCodes, NRT, NSC, STCC, VTCC), importance);
   }
 
   @Override
@@ -30,7 +46,7 @@ public class ScoreBySmokingCessation implements IScoreFacility {
       if (facility.hasAnyOf(NRT, NSC, STU, TCC)) {
         return 1.0;
       }
-      if (Sets.anyMatch(serviceCodes, STCC) && !facility.hasAnyOf(NRT, NSC, STU, TCC)) {
+      if (importance == Importance.SOMEWHAT && !facility.hasAnyOf(NRT, NSC, STU, TCC)) {
         return .8;
       }
       // ???
