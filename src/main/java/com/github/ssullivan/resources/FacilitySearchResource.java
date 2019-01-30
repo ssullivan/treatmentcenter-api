@@ -21,8 +21,8 @@ import com.github.ssullivan.model.SetOperation;
 import com.github.ssullivan.model.SortDirection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -145,6 +145,11 @@ public class FacilitySearchResource {
       @QueryParam("militaryImp")
       final Importance militaryImp,
 
+      @ApiParam(value = "Indicates how import military family support is", allowableValues = VERY_SOMEWHAT_NOT)
+      @DefaultValue("NOT")
+      @QueryParam("militaryFamilyImp")
+      final Importance militaryFamilyImp,
+
 
       @ApiParam(value = "Indicates how important smoking cessation support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
@@ -208,7 +213,8 @@ public class FacilitySearchResource {
           .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
           .withHearingSupport(hearingSupportImportance)
           .withLangSupport(langSupportImp)
-          .withMilitarySupport(militaryImp)
+          .withMilitaryStatusSupport(militaryImp)
+          .withMilitaryFamilySupport(militaryFamilyImp)
           .withSmokingCessationImportance(smokingCessationImp)
           .withTraumaSupport(traumaTypes);
 

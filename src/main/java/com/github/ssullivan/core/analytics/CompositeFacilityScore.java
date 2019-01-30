@@ -2,14 +2,11 @@ package com.github.ssullivan.core.analytics;
 
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.collections.Tuple2;
-import com.google.common.collect.ImmutableSet;
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import reactor.util.function.Tuple3;
 
 public class CompositeFacilityScore implements IScoreFacility {
   private Optional<ScoreByAge> scoreByAge = Optional.empty();
@@ -24,6 +21,7 @@ public class CompositeFacilityScore implements IScoreFacility {
   private Optional<ScoreBySmokingPolicy> scoreBySmokingPolicy = Optional.empty();
   private Optional<ScoreBySubstanceDetoxServices> scoreBySubstanceDetoxServices = Optional.empty();
   private Optional<ScoreByTraumaServices> scoreByTraumaServices = Optional.empty();
+  private Optional<ScoreByMilitaryStatus> scoreByMilitaryStatus;
 
   public CompositeFacilityScore(final Set<String> serviceCodes) {
 
@@ -39,6 +37,7 @@ public class CompositeFacilityScore implements IScoreFacility {
     scoreBySmokingPolicy = Optional.of(new ScoreBySmokingPolicy(serviceCodes));
     scoreBySubstanceDetoxServices = Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes));
     scoreByTraumaServices = Optional.of(new ScoreByTraumaServices(serviceCodes));
+    scoreByMilitaryStatus = Optional.of(new ScoreByMilitaryStatus(serviceCodes, Importance.NOT));
   }
 
   private CompositeFacilityScore(
@@ -53,7 +52,8 @@ public class CompositeFacilityScore implements IScoreFacility {
       Optional<ScoreBySmokingCessation> scoreBySmokingCessation,
       Optional<ScoreBySmokingPolicy> scoreBySmokingPolicy,
       Optional<ScoreBySubstanceDetoxServices> scoreBySubstanceDetoxServices,
-      Optional<ScoreByTraumaServices> scoreByTraumaServices) {
+      Optional<ScoreByTraumaServices> scoreByTraumaServices,
+      Optional<ScoreByMilitaryStatus> scoreByMilitaryStatus) {
     this.scoreByAge = scoreByAge;
     this.scoreByGender = scoreByGender;
     this.scoreByHearingSupport = scoreByHearingSupport;
@@ -66,6 +66,7 @@ public class CompositeFacilityScore implements IScoreFacility {
     this.scoreBySmokingPolicy = scoreBySmokingPolicy;
     this.scoreBySubstanceDetoxServices = scoreBySubstanceDetoxServices;
     this.scoreByTraumaServices = scoreByTraumaServices;
+    this.scoreByMilitaryStatus = scoreByMilitaryStatus;
   }
 
   @Override
@@ -76,7 +77,9 @@ public class CompositeFacilityScore implements IScoreFacility {
         scoreByHearingSupport,
         scoreByLang,
         scoreByMedAssistedTreatment,
-        scoreByMentalHealth, scoreByMilitaryFamilyStatus,
+        scoreByMentalHealth,
+        scoreByMilitaryFamilyStatus,
+        scoreByMilitaryStatus,
         scoreByServiceSetting,
         scoreBySmokingCessation,
         scoreBySmokingPolicy,
@@ -90,10 +93,11 @@ public class CompositeFacilityScore implements IScoreFacility {
   public static class Builder {
     private Set<String> serviceCodes = new HashSet<>();
     private LocalDate dateOfBirth = null;
-    private Importance hearingSupport = null;
-    private Importance langSupport = null;
-    private Importance milSupport = null;
-    private Importance smokingCessationImp = null;
+    private Importance hearingSupport = Importance.NOT;
+    private Importance langSupport = Importance.NOT;
+    private Importance milFamilySupport = Importance.NOT;
+    private Importance milStatusSupport = Importance.NOT;
+    private Importance smokingCessationImp = Importance.NOT;
 
     private Importance medSupport = null;
     private Tuple2<Boolean, Set<TraumaTypes>> traumaSupport;
@@ -119,9 +123,14 @@ public class CompositeFacilityScore implements IScoreFacility {
       return this;
     }
 
+    public Builder withMilitaryStatusSupport(final Importance importance) {
+      this.milStatusSupport = importance;
+      return this;
+    }
 
-    public Builder withMilitarySupport(final Importance importance) {
-      this.milSupport = importance;
+
+    public Builder withMilitaryFamilySupport(final Importance importance) {
+      this.milFamilySupport = importance;
       return this;
 
     }
@@ -144,12 +153,13 @@ public class CompositeFacilityScore implements IScoreFacility {
           Optional.of(new ScoreByLang(serviceCodes, langSupport)),
           Optional.of(new ScoreByMedAssistedTreatment(serviceCodes)),
           Optional.of(new ScoreByMentalHealth(serviceCodes)),
-          Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes, milSupport)),
+          Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes, milFamilySupport)),
           Optional.of(new ScoreByServiceSetting(serviceCodes)),
           Optional.of(new ScoreBySmokingCessation(serviceCodes, smokingCessationImp == null ? Importance.NOT : smokingCessationImp)),
           Optional.of(new ScoreBySmokingPolicy(serviceCodes)),
           Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes)),
-          traumaSupport != null ? Optional.of(new ScoreByTraumaServices(traumaSupport.get_1(), traumaSupport.get_2(), serviceCodes)) : Optional.of(new ScoreByTraumaServices(serviceCodes))
+          traumaSupport != null ? Optional.of(new ScoreByTraumaServices(traumaSupport.get_1(), traumaSupport.get_2(), serviceCodes)) : Optional.of(new ScoreByTraumaServices(serviceCodes)),
+          Optional.of(new ScoreByMilitaryStatus(serviceCodes, milStatusSupport))
           );
     }
   }
