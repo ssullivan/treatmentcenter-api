@@ -244,8 +244,7 @@ public class FacilitySearchResource {
               asyncResponse.resume(Response.serverError().build());
             }
             else {
-              applyScores(searchRequest, scoreBuilder, result);
-              asyncResponse.resume(Response.ok(result).build());
+              asyncResponse.resume(Response.ok(sort(applyScores(searchRequest, scoreBuilder, result), sortFields, sortDirection)).build());
             }
           });
 
@@ -385,7 +384,7 @@ public class FacilitySearchResource {
                 asyncResponse.resume(Response.serverError().build());
               }
               else {
-                asyncResponse.resume(Response.ok(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result)));
+                asyncResponse.resume(Response.ok(sort(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result), sortField, sortDirection)));
               }
           });
 
@@ -517,13 +516,13 @@ public class FacilitySearchResource {
                 distanceUnit,
                 Page.page(offset, size));
 
-        asyncResponse.resume(applyScores(mustServiceCodes, sortFields, sortDirection, new CompositeFacilityScore.Builder(), results));
+        asyncResponse.resume(sort(applyScores(mustServiceCodes, new CompositeFacilityScore.Builder(), results), sortFields, sortDirection));
       }
       else {
         final SearchResults<Facility> results = this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
             matchAny, Page.page(offset, size));
         asyncResponse
-            .resume(applyScores(mustServiceCodes, sortFields, sortDirection, new CompositeFacilityScore.Builder(), results));
+            .resume(sort(applyScores(mustServiceCodes, new CompositeFacilityScore.Builder(), results), sortFields, sortDirection));
       }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes`", e);
@@ -531,18 +530,21 @@ public class FacilitySearchResource {
     }
   }
 
-  private static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
+  public static <F extends Facility> SearchResults<F> sort(final SearchResults<F> searchResults, final String sortField, final SortDirection sortDirection) {
+
+    return SearchResults.searchResults(searchResults.totalHits(),
+        ImmutableList.sortedCopyOf(new FacilityComparator<>(sortField, sortDirection),
+            searchResults.hits()));
+  }
+
+  public static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
     applyScores(searchRequest.allServiceCodes(),
-        searchRequest.getSortField(),
-        searchRequest.getSortDirection(),
         builder, searchResults);
     return searchResults;
   }
 
-  private static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
-      final String sortField,
-      final SortDirection sortDirection,
+  public static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
     final CompositeFacilityScore score = builder.withServiceCodes(serviceCodes).build();
 
@@ -555,11 +557,9 @@ public class FacilitySearchResource {
 
         facility.setScore(theScore);
       });
-
-      return SearchResults.searchResults(searchResults.totalHits(),
-          ImmutableList.sortedCopyOf(new FacilityComparator<>(sortField, sortDirection),
-              searchResults.hits()));
     }
+
+    return searchResults;
   }
 
 }

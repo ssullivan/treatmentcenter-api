@@ -1,12 +1,14 @@
 package com.github.ssullivan.resources;
 
 import com.github.ssullivan.api.IPostalcodeService;
+import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
+import com.github.ssullivan.model.SortDirection;
 import com.github.ssullivan.resources.FacilitySearchResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -15,7 +17,9 @@ import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -275,5 +279,115 @@ public class FacilitySearchResourceTest {
             .request()
         .get();
     MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(400));
+  }
+
+  @Test
+  public void testApplyingSortAsc() {
+    FacilityWithRadius facility1 = new FacilityWithRadius();
+    facility1.setScore(1);
+    facility1.setRadius(10);
+
+    FacilityWithRadius facility2 = new FacilityWithRadius();
+    facility2.setScore(2);
+    facility2.setRadius(20);
+
+    Set<String> codes = ImmutableSet.of("A", "B", "C");
+
+    SearchResults<FacilityWithRadius> sortedByRadius =
+        FacilitySearchResource.sort(
+            SearchResults.searchResults(2, ImmutableList.of(facility1, facility2)),
+            "radius",
+            SortDirection.ASC
+        );
+
+    FacilityWithRadius first = sortedByRadius.hits().get(0);
+    FacilityWithRadius second = sortedByRadius.hits().get(1);
+
+    MatcherAssert.assertThat(first.getRadius(), Matchers.lessThanOrEqualTo(10.0));
+    MatcherAssert.assertThat(second.getRadius(), Matchers.greaterThanOrEqualTo(20.0));
+
+
+  }
+
+  @Test
+  public void testApplyingSortScoreAsc() {
+    FacilityWithRadius facility1 = new FacilityWithRadius();
+    facility1.setScore(1);
+    facility1.setRadius(10);
+
+    FacilityWithRadius facility2 = new FacilityWithRadius();
+    facility2.setScore(2);
+    facility2.setRadius(20);
+
+    Set<String> codes = ImmutableSet.of("A", "B", "C");
+
+    SearchResults<FacilityWithRadius> sortedByScore =
+        FacilitySearchResource.sort(
+            SearchResults.searchResults(2, ImmutableList.of(facility1, facility2)),
+            "score",
+            SortDirection.ASC
+        );
+
+
+    FacilityWithRadius first = sortedByScore.hits().get(0);
+    FacilityWithRadius second = sortedByScore.hits().get(1);
+
+    MatcherAssert.assertThat(first.getScore(), Matchers.lessThanOrEqualTo(1.0));
+    MatcherAssert.assertThat(second.getScore(), Matchers.greaterThanOrEqualTo(2.0));
+  }
+
+  @Test
+  public void testApplyingSortDesc() {
+    FacilityWithRadius facility1 = new FacilityWithRadius();
+    facility1.setScore(1);
+    facility1.setRadius(10);
+
+    FacilityWithRadius facility2 = new FacilityWithRadius();
+    facility2.setScore(2);
+    facility2.setRadius(20);
+
+    Set<String> codes = ImmutableSet.of("A", "B", "C");
+
+    SearchResults<FacilityWithRadius> sortedByRadius =
+        FacilitySearchResource.sort(
+            SearchResults.searchResults(2, ImmutableList.of(facility1, facility2)),
+            "radius",
+            SortDirection.DESC
+        );
+
+    FacilityWithRadius first = sortedByRadius.hits().get(0);
+    FacilityWithRadius second = sortedByRadius.hits().get(1);
+
+    MatcherAssert.assertThat(first.getRadius(), Matchers.greaterThanOrEqualTo(20.0));
+    MatcherAssert.assertThat(second.getRadius(), Matchers.lessThanOrEqualTo(10.0));
+
+
+  }
+
+  @Test
+  public void testApplyingSortScoreDesc() {
+    FacilityWithRadius facility1 = new FacilityWithRadius();
+    facility1.setScore(1);
+    facility1.setRadius(10);
+
+    FacilityWithRadius facility2 = new FacilityWithRadius();
+    facility2.setScore(2);
+    facility2.setRadius(20);
+
+    Set<String> codes = ImmutableSet.of("A", "B", "C");
+
+    SearchResults<FacilityWithRadius> sortedByScore =
+        FacilitySearchResource.sort(
+            SearchResults.searchResults(2, ImmutableList.of(facility1, facility2)),
+            "score",
+            SortDirection.DESC
+        );
+
+
+    FacilityWithRadius first = sortedByScore.hits().get(0);
+    FacilityWithRadius second = sortedByScore.hits().get(1);
+
+    MatcherAssert.assertThat(first.getScore(), Matchers.greaterThanOrEqualTo(2.0));
+    MatcherAssert.assertThat(second.getScore(), Matchers.lessThanOrEqualTo(1.0));
   }
 }
