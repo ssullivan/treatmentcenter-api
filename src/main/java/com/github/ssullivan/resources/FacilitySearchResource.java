@@ -377,6 +377,7 @@ public class FacilitySearchResource {
           searchRequest.setGeoRadiusCondition(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
         }
       }
+
       this.facilityDao.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
               if (error != null) {

@@ -40,7 +40,6 @@
 | ENVIRONMENT | - | Controls what domain is used in the swagger docs |
 | POSTALCODES_US_PATH | /treatmentcenter-api-latest/data/US.txt | A list of lat/lon for postcal codes | 
 
-
 ## Redis Key Structure
 
 | PREFIX | Type | Description |
