@@ -25,13 +25,13 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
   private final Set<String> serviceCodes;
   private final boolean initialDetox;
 
-  public ScoreBySubstanceDetoxServices(final Set<String> serviceCodes, boolean initialDetox) {
+  public ScoreBySubstanceDetoxServices(final Set<String> serviceCodes, final boolean initialDetox) {
     this.serviceCodes = serviceCodes;
     this.initialDetox = initialDetox;
   }
 
-  public ScoreBySubstanceDetoxServices(Set<String> serviceCodes) {
-    this(serviceCodes, false);
+  public ScoreBySubstanceDetoxServices(final Set<String> serviceCodes) {
+    this(serviceCodes, Sets.anyMatch(serviceCodes, BUPRENORPHINE_DETOX, COCAINE_DETOX, METH_DETOX, OPIOIDS_DETOX));
   }
 
   @Override

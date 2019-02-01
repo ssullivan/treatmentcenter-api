@@ -1,7 +1,5 @@
 package com.github.ssullivan.resources;
 
-import com.fasterxml.jackson.jaxrs.json.annotation.JSONP.Def;
-import com.github.ssullivan.RequestUtils;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilityComparator;
 import com.github.ssullivan.core.FacilitySearchService;
@@ -14,24 +12,23 @@ import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
-import com.github.ssullivan.model.MatchOperator;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
 import com.github.ssullivan.model.ServicesConditionFactory;
 import com.github.ssullivan.model.SetOperation;
+import com.github.ssullivan.model.SortDirection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +47,6 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apiguardian.api.API;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,87 +130,46 @@ public class FacilitySearchResource {
       @QueryParam("dob")
       final String dateOfBirth,
 
-      @ApiParam(value = "The users gender [used for scoring]", allowableValues = "MALE,FEMALE", allowEmptyValue = true)
-      @Pattern(regexp = "MALE|FEMALE|male|female|Male|Female", message = "Invalid gender")
-      @QueryParam("gender")
-      final String gender,
-
-      // Params for heading support
-      @ApiParam(value = "true means hearing support is needed", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("hearingSupport")
-      final boolean hearingSupport,
-
       @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("hearingSupportImp")
       final Importance hearingSupportImportance,
-
-      // Params for Lang support
-      @ApiParam(value = "Indicates if english is your first language", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("true")
-      @QueryParam("englishFirst")
-      final boolean englishFirst,
 
       @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("langSupportImp")
       final Importance langSupportImp,
 
-      // Params for Med Assisted Treatment
-      @ApiParam(value = "Indicates if medication assisted treatment is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("medassist")
-      final boolean useMeds,
-
-      // Params for Mental Health
-      @ApiParam(value = "Indicates if mental health plays a role in the addiction", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("mentalHealthRelated")
-      final boolean mentalHealthRelated,
-
-      // Params for Military Status,
-      @ApiParam(value = "Indicates if a facility with support for military is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("militaryStatus")
-      final boolean militaryStatus,
-
       @ApiParam(value = "Indicates how important military support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("militaryImp")
       final Importance militaryImp,
 
-      // Params for Service Setting
+      @ApiParam(value = "Indicates how import military family support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @DefaultValue("NOT")
+      @QueryParam("militaryFamilyImp")
+      final Importance militaryFamilyImp,
 
-      // Params for Smoking Cessation
 
-      @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("smokingCessation")
-      final boolean smokingCessation,
-
-      // Params for Smoking Policy
-      @ApiParam(value = "Indicates if user is a smoker", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("smoker")
-      final boolean isSmoker,
-
-      // Params for Substance Detox Services
-      @ApiParam(value = "Indicates if user has started detox", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("detoxStarted")
-      final boolean detoxStarted,
-
-      // Params for Trauma Services
-      @ApiParam(value = "Indicates if trauma support is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true)
-      @DefaultValue("false")
-      @QueryParam("traumaSupport")
-      final boolean traumaSupport,
+      @ApiParam(value = "Indicates how important smoking cessation support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @DefaultValue("NOT")
+      @QueryParam("smokingCessationImp")
+      final Importance smokingCessationImp,
 
       @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
       @QueryParam("trauma")
-      final Set<TraumaTypes> traumaTypes) {
+      final Set<TraumaTypes> traumaTypes,
+
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned")
+      @DefaultValue("score")
+      @QueryParam("sort")
+      final String sortFields,
+
+      @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
+      @DefaultValue("DESC")
+      @QueryParam("sortDir")
+      final SortDirection sortDirection) {
 
     try {
 
@@ -225,20 +180,11 @@ public class FacilitySearchResource {
         );
       }
 
-      // Validate that the service codes are valid
-      final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-          .findFirst();
-
-      // If any of the service codes are invalid return a 400
-      if (firstInvalidServiceCode.isPresent()) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap
-                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
-        return;
-      }
 
       final SearchRequest searchRequest = new SearchRequest();
+      searchRequest.setSortDirection(sortDirection);
+      searchRequest.setSortField(sortFields);
+
       final ServicesConditionFactory factory = new ServicesConditionFactory();
       searchRequest.setFinalSetOperation(SetOperation.fromBooleanOp(op));
       searchRequest.setServiceConditions(factory.fromRequestParams(serviceCodes, matchAnyServiceCodes));
@@ -262,11 +208,15 @@ public class FacilitySearchResource {
         return;
       }
 
-      final Builder scoreBuilder = buildFromRequestParams(dateOfBirth, gender, hearingSupport,
-          hearingSupportImportance, englishFirst,
-          langSupportImp, useMeds, mentalHealthRelated, militaryStatus, militaryImp,
-          smokingCessation,
-          isSmoker, detoxStarted, traumaSupport, traumaTypes);
+
+      Builder scoreBuilder = new Builder()
+          .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
+          .withHearingSupport(hearingSupportImportance)
+          .withLangSupport(langSupportImp)
+          .withMilitaryStatusSupport(militaryImp)
+          .withMilitaryFamilySupport(militaryFamilyImp)
+          .withSmokingCessationImportance(smokingCessationImp)
+          .withTraumaSupport(traumaTypes);
 
       if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
         asyncResponse.resume(
@@ -294,8 +244,7 @@ public class FacilitySearchResource {
               asyncResponse.resume(Response.serverError().build());
             }
             else {
-              applyScores(searchRequest, scoreBuilder, result);
-              asyncResponse.resume(Response.ok(result).build());
+              asyncResponse.resume(Response.ok(sort(applyScores(searchRequest, scoreBuilder, result), sortFields, sortDirection)).build());
             }
           });
 
@@ -360,7 +309,17 @@ public class FacilitySearchResource {
       @Pattern(regexp = "AND|OR", message = "Invalid boolean operator")
       @DefaultValue("AND")
       @QueryParam("operation")
-      final String op) {
+      final String op,
+
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned")
+      @DefaultValue("score")
+      @QueryParam("sort")
+      final String sortField,
+
+      @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
+      @DefaultValue("DESC")
+      @QueryParam("sortDir")
+      final SortDirection sortDirection) {
 
     try {
 
@@ -371,20 +330,11 @@ public class FacilitySearchResource {
         );
       }
 
-      // Validate that the service codes are valid
-      final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-          .findFirst();
-
-      // If any of the service codes are invalid return a 400
-      if (firstInvalidServiceCode.isPresent()) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap
-                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
-        return;
-      }
 
       final SearchRequest searchRequest = new SearchRequest();
+      searchRequest.setSortField(sortField);
+      searchRequest.setSortDirection(sortDirection);
+
       final ServicesConditionFactory factory = new ServicesConditionFactory();
       searchRequest.setFinalSetOperation(SetOperation.fromBooleanOp(op));
       searchRequest.setServiceConditions(factory.fromRequestParams(serviceCodes, matchAnyServiceCodes));
@@ -427,6 +377,7 @@ public class FacilitySearchResource {
           searchRequest.setGeoRadiusCondition(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
         }
       }
+
       this.facilityDao.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
               if (error != null) {
@@ -434,7 +385,7 @@ public class FacilitySearchResource {
                 asyncResponse.resume(Response.serverError().build());
               }
               else {
-                asyncResponse.resume(Response.ok(result).build());
+                asyncResponse.resume(Response.ok(sort(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result), sortField, sortDirection)));
               }
           });
 
@@ -449,41 +400,6 @@ public class FacilitySearchResource {
     }
   }
 
-  private Builder buildFromRequestParams(
-      @QueryParam("dob") @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Invalid date of birth") @ApiParam(value = "The users date of birth in YYYY-MM-DD format [used for scoring]", example = "1980-01-16", allowEmptyValue = true) String dateOfBirth,
-      @QueryParam("gender") @Pattern(regexp = "MALE|FEMALE|male|female|Male|Female", message = "Invalid gender") @ApiParam(value = "The users gender [used for scoring]", allowableValues = "MALE,FEMALE", allowEmptyValue = true) String gender,
-      @QueryParam("hearingSupport") @DefaultValue("false") @ApiParam(value = "true means hearing support is needed", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean hearingSupport,
-      @QueryParam("hearingSupportImp") @DefaultValue("NOT") @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true) Importance hearingSupportImportance,
-      @QueryParam("englishFirst") @DefaultValue("true") @ApiParam(value = "Indicates if english is your first language", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean englishFirst,
-      @QueryParam("langSupportImp") @DefaultValue("NOT") @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true) Importance langSupportImp,
-      @QueryParam("medassist") @DefaultValue("false") @ApiParam(value = "Indicates if medication assisted treatment is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean useMeds,
-      @QueryParam("mentalHealthRelated") @DefaultValue("false") @ApiParam(value = "Indicates if mental health plays a role in the addiction", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean mentalHealthRelated,
-      @QueryParam("militaryStatus") @DefaultValue("false") @ApiParam(value = "Indicates if a facility with support for military is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean militaryStatus,
-      @QueryParam("militaryImp") @DefaultValue("NOT") @ApiParam(value = "Indicates how important military support is", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true) Importance militaryImp,
-      @QueryParam("smokingCessation") @DefaultValue("false") @ApiParam(value = "Indicates if smoking cessation support is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean smokingCessation,
-      @QueryParam("smoker") @DefaultValue("false") @ApiParam(value = "Indicates if user is a smoker", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean isSmoker,
-      @QueryParam("detoxStarted") @DefaultValue("false") @ApiParam(value = "Indicates if user has started detox", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean detoxStarted,
-      @QueryParam("traumaSupport") @DefaultValue("false") @ApiParam(value = "Indicates if trauma support is needed/wanted", allowableValues = TRUE_FALSE, allowEmptyValue = true) boolean traumaSupport,
-      @QueryParam("trauma") @DefaultValue("NONE") @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = "TRAUMA,DOMETIX,SEXUAL", allowEmptyValue = true, allowMultiple = true) Set<TraumaTypes> traumaTypes) {
-    try {
-      return new Builder()
-          .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
-          .withGender(gender)
-          .withDetoxStarted(detoxStarted)
-          .withHearingSupport(hearingSupport, hearingSupportImportance)
-          .withLangSupport(englishFirst, langSupportImp)
-          .withMedSupport(useMeds)
-          .withMentalHealthSupprt(mentalHealthRelated)
-          .withMilitarySupport(militaryStatus, militaryImp)
-          .withSmokingCessationSupport(smokingCessation, Importance.SOMEHWAT)
-          .withSmokingPolicy(isSmoker)
-          .withTraumaSupport(traumaSupport, traumaTypes);
-    }
-    catch (NullPointerException e) {
-      LOGGER.error("Unexpected error occurred", e);
-    }
-    return new CompositeFacilityScore.Builder();
-  }
 
 
   @ApiOperation(value = "Find treatment facilities by their services and location",
@@ -533,7 +449,17 @@ public class FacilitySearchResource {
       @Pattern(regexp = "AND|OR")
       @DefaultValue("AND")
       @QueryParam("operation")
-      final String op) {
+      final String op,
+
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned", allowEmptyValue = true, allowableValues = "score,radius,name1,name2,city,zip")
+      @DefaultValue("score")
+      @QueryParam("sort")
+      final String sortFields,
+
+      @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
+      @DefaultValue("DESC")
+      @QueryParam("sortDir")
+      final SortDirection sortDirection) {
     try {
       if (postalCode != null && postalCode.length() > 10) {
         asyncResponse.resume(Response.status(400)
@@ -542,31 +468,20 @@ public class FacilitySearchResource {
         );
       }
 
-      // Validate that the service codes are valid
-      final Optional<String> firstInvalidServiceCode = serviceCodes.stream()
-          .filter(code -> !RE_VALID_SAMSHA_SERVICE_CODE.matcher(code).matches())
-          .findFirst();
 
-      // If any of the service codes are invalid return a 400
-      if (firstInvalidServiceCode.isPresent()) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap
-                .of("message", "Invalid service code: " + firstInvalidServiceCode.get())).build());
-        return;
-      }
-
-      final List<String> mustNotServiceCodes =
+      final Set<String> mustNotServiceCodes =
           serviceCodes
               .stream()
               .filter(it -> it.startsWith("!"))
               .map(it -> it.substring(1))
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
 
-      final List<String> mustServiceCodes =
+      final Set<String> mustServiceCodes =
           serviceCodes
               .stream()
               .filter(it -> !it.startsWith("!"))
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
+
 
       if (mustNotServiceCodes.size() > 200 || mustServiceCodes.size() > 200) {
         asyncResponse.resume(Response.status(400)
@@ -602,13 +517,13 @@ public class FacilitySearchResource {
                 distanceUnit,
                 Page.page(offset, size));
 
-        asyncResponse.resume(results);
+        asyncResponse.resume(sort(applyScores(mustServiceCodes, new CompositeFacilityScore.Builder(), results), sortFields, sortDirection));
       }
       else {
         final SearchResults<Facility> results = this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
             matchAny, Page.page(offset, size));
         asyncResponse
-            .resume(results);
+            .resume(sort(applyScores(mustServiceCodes, new CompositeFacilityScore.Builder(), results), sortFields, sortDirection));
       }
     } catch (IOException e) {
       LOGGER.error("Failed to find facilities with service codes`", e);
@@ -616,20 +531,36 @@ public class FacilitySearchResource {
     }
   }
 
-  private static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
+  public static <F extends Facility> SearchResults<F> sort(final SearchResults<F> searchResults, final String sortField, final SortDirection sortDirection) {
+
+    return SearchResults.searchResults(searchResults.totalHits(),
+        ImmutableList.sortedCopyOf(new FacilityComparator<>(sortField, sortDirection),
+            searchResults.hits()));
+  }
+
+  public static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
-    applyScores(searchRequest.allServiceCodes(), builder, searchResults);
+    applyScores(searchRequest.allServiceCodes(),
+        builder, searchResults);
     return searchResults;
   }
 
-  private static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
+  public static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
     final CompositeFacilityScore score = builder.withServiceCodes(serviceCodes).build();
 
-    searchResults.hits().forEach(facility -> facility.setScore(score.score(facility)));
+    if (searchResults == null) {
+      return SearchResults.empty();
+    }
+    else {
+      searchResults.hits().forEach(facility -> {
+        final double theScore = score.score(facility);
 
-    return SearchResults.searchResults(searchResults.totalHits(),
-        ImmutableList.sortedCopyOf(new FacilityComparator<>(), searchResults.hits()));
+        facility.setScore(theScore);
+      });
+    }
+
+    return searchResults;
   }
 
 }

@@ -139,6 +139,11 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
     }
   }
 
+  @Override
+  public boolean addService(String feedId, Service service) throws IOException {
+    return false;
+  }
+
   private String serialize(@Nonnull final Service service) throws IOException {
     return serviceWriter.writeValueAsString(service);
   }

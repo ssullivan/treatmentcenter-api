@@ -1,6 +1,6 @@
 package com.github.ssullivan.db;
 
-import com.github.ssullivan.RequestUtils;
+import com.github.ssullivan.utils.RequestUtils;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.hamcrest.Matchers;

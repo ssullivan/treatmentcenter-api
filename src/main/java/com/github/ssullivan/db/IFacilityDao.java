@@ -44,10 +44,10 @@ public interface IFacilityDao {
    * @param serviceCodes the SAMSHA service codes
    * @param page control how many results to return
    */
-  SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final Page page)
+  SearchResults<Facility> findByServiceCodes(final Collection<String> serviceCodes, final Page page)
       throws IOException;
 
-  SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final List<String> mustNotServiceCodes,
+  SearchResults<Facility> findByServiceCodes(final Collection<String> serviceCodes, final Collection<String> mustNotServiceCodes,
       final boolean matchAny, final Page page)
       throws IOException;
 
@@ -79,8 +79,8 @@ public interface IFacilityDao {
    * @param distance radius distance
    * @param geoUnit distance unit (m, km, ft, mi)
    */
-  SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
-      final List<String> mustNotServiceCodes,
+  SearchResults<FacilityWithRadius> findByServiceCodesWithin(final Collection<String> mustServiceCodes,
+      final Collection<String> mustNotServiceCodes,
       final boolean matchAny,
       final double longitude,
       final double latitude,
@@ -88,8 +88,8 @@ public interface IFacilityDao {
       final String geoUnit,
       final Page page) throws IOException;
 
-  default SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
-      final List<String> mustNotServiceCodes,
+  default SearchResults<FacilityWithRadius> findByServiceCodesWithin(final Collection<String> mustServiceCodes,
+      final Collection<String> mustNotServiceCodes,
       final double longitude,
       final double latitude,
       final double distance,

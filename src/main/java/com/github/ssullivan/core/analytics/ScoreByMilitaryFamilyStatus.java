@@ -8,15 +8,17 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
   private Importance importance;
   private boolean isMilitary;
 
-  public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes,
-      Importance importance, boolean isMilitary) {
-    this.serviceCodes = serviceCodes;
-    this.importance = importance;
-    this.isMilitary = isMilitary;
-  }
 
   public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes) {
-    this(serviceCodes, Importance.NOT, false);
+    this.serviceCodes = serviceCodes;
+    this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);
+    this.importance = isMilitary ? Importance.VERY : Importance.NOT;
+  }
+
+  public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes, final Importance importance) {
+    this.serviceCodes = serviceCodes;
+    this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);
+    this.importance = importance;
   }
 
   @Override
@@ -28,7 +30,7 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
     if (facility.hasAnyOf("MF")) {
       return 1.0;
     }
-    if (importance == Importance.SOMEHWAT && !facility.hasAnyOf("MF")) {
+    if (importance == Importance.SOMEWHAT && !facility.hasAnyOf("MF")) {
       return .8;
     }
     return 0;

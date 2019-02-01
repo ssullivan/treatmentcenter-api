@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
@@ -510,7 +511,7 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   @Override
-  public SearchResults<Facility> findByServiceCodes(List<String> serviceCodes, Page page)
+  public SearchResults<Facility> findByServiceCodes(Collection<String> serviceCodes, Page page)
       throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
 
@@ -536,7 +537,7 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   private Set<String> createSearchKey(final StatefulRedisConnection<String, String> connection,
-    final String searchKey, final List<String> serviceCodes, final List<String> mustNotServiceCodes,
+    final String searchKey, final Collection<String> serviceCodes, final Collection<String> mustNotServiceCodes,
       final boolean matchAny) {
 
 
@@ -592,13 +593,13 @@ public class RedisFacilityDao implements IFacilityDao {
     return retval;
   }
 
-  private static boolean isEmpty(final List<String> list) {
+  private static boolean isEmpty(final Collection<String> list) {
     return list == null || list.isEmpty();
   }
 
   @Override
   @Deprecated
-  public SearchResults<Facility> findByServiceCodes(final List<String> serviceCodes, final List<String> mustNotServiceCodes,
+  public SearchResults<Facility> findByServiceCodes(final Collection<String> serviceCodes, final Collection<String> mustNotServiceCodes,
       final boolean matchAny,  final Page page)
       throws IOException {
 
@@ -688,8 +689,8 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   @Override
-  public SearchResults<FacilityWithRadius> findByServiceCodesWithin(final List<String> mustServiceCodes,
-      final List<String> mustNotServiceCodes,
+  public SearchResults<FacilityWithRadius> findByServiceCodesWithin(final Collection<String> mustServiceCodes,
+      final Collection<String> mustNotServiceCodes,
       final boolean matchAny,
       final double longitude,
       final double latitude,

@@ -258,7 +258,7 @@ public class Facility {
   public boolean hasAnyOf(final String... services) {
     if (null == services || services.length <= 0) return false;
     return Stream.of(services)
-        .anyMatch(it -> this.getServiceCodes().contains(it));
+        .anyMatch(it -> this.getServiceCodes() != null && this.getServiceCodes().contains(it));
   }
 
   @Override

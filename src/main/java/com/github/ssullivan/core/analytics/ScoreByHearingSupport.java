@@ -16,9 +16,21 @@ public class ScoreByHearingSupport implements IScoreFacility {
     this.importance = importance;
   }
 
-  public ScoreByHearingSupport(Set<String> serviceCodes) {
-    this(serviceCodes, false, Importance.NOT);
+  public ScoreByHearingSupport(final Set<String> serviceCodes) {
+    this.serviceCodes = serviceCodes;
+    this.isDeafOrHardOfHearing = serviceCodes.stream()
+        .anyMatch(AH::equalsIgnoreCase);
+    this.importance = isDeafOrHardOfHearing ? Importance.SOMEWHAT : Importance.NOT;
   }
+
+
+  public ScoreByHearingSupport(final Set<String> serviceCodes, final Importance importance) {
+    this.serviceCodes = serviceCodes;
+    this.isDeafOrHardOfHearing = serviceCodes.stream()
+        .anyMatch(AH::equalsIgnoreCase);
+    this.importance = importance;
+  }
+
 
   @Override
   public double score(Facility facility) {
@@ -26,7 +38,7 @@ public class ScoreByHearingSupport implements IScoreFacility {
     if (!isDeafOrHardOfHearing || importance == Importance.NOT || facility.hasAnyOf(AH)) {
       return 1.0;
     }
-    if (importance == Importance.SOMEHWAT) {
+    if (importance == Importance.SOMEWHAT) {
       return .8;
     }
     return 0;

@@ -1,6 +1,9 @@
 ---
 Changelog
 --
+1.11.0
+* BREAKING: Removed some API query params in favor of inferring their values from the service codes 
+
 v1.10.6:
 * Sort scored results
 

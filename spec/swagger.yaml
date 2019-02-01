@@ -6,7 +6,7 @@
 
     "description" : "An OpenAPI to find treatment centers for substance abuse",
 
-    "version" : "1.8.0",
+    "version" : "1.12.1",
 
     "title" : "Treatmentcenter API"
 
@@ -244,6 +244,58 @@
 
                            "format" : "int32"
 
+                         }, {
+
+                           "name" : "operation",
+
+                           "in" : "query",
+
+                           "description" : "When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "AND",
+
+                           "pattern" : "AND|OR",
+
+                           "enum" : [ "AND", "OR" ]
+
+                         }, {
+
+                           "name" : "sort",
+
+                           "in" : "query",
+
+                           "description" : "Indicates the field to sort by. This only sorts the current results being returned",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "score",
+
+                           "allowEmptyValue" : true,
+
+                           "enum" : [ "score", "radius", "name1", "name2", "city", "zip" ]
+
+                         }, {
+
+                           "name" : "sortDir",
+
+                           "in" : "query",
+
+                           "description" : "Indicates the direction of the sort",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "DESC",
+
+                           "enum" : [ "ASC", "DESC" ]
+
                          } ],
 
         "responses" : {
@@ -284,7 +336,7 @@
 
         "tags" : [ "search" ],
 
-        "summary" : "Find treatment facilities by their services and location",
+        "summary" : "Find treatment facilities by their services and location. When multiple serviceCode, and matchAny sets are specified those results will be unified together",
 
         "description" : "",
 
@@ -312,7 +364,7 @@
 
                            "in" : "query",
 
-                           "description" : "The SAMSHA service code. service code prefixed with a single bang '!' will be negated",
+                           "description" : "A comma separated list of service codes. service code prefixed with a single bang '!' will be negated",
 
                            "required" : false,
 
@@ -331,6 +383,8 @@
                            "name" : "matchAny",
 
                            "in" : "query",
+
+                           "description" : "A comma separated list of service codes.",
 
                            "required" : false,
 
@@ -453,6 +507,430 @@
                            "minimum" : 0,
 
                            "format" : "int32"
+
+                         }, {
+
+                           "name" : "operation",
+
+                           "in" : "query",
+
+                           "description" : "When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "AND",
+
+                           "pattern" : "AND|OR",
+
+                           "enum" : [ "AND", "OR" ]
+
+                         }, {
+
+                           "name" : "sort",
+
+                           "in" : "query",
+
+                           "description" : "Indicates the field to sort by. This only sorts the current results being returned",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "score"
+
+                         }, {
+
+                           "name" : "sortDir",
+
+                           "in" : "query",
+
+                           "description" : "Indicates the direction of the sort",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "DESC",
+
+                           "enum" : [ "ASC", "DESC" ]
+
+                         } ],
+
+        "responses" : {
+
+          "200" : {
+
+            "description" : "Search was completed successfully",
+
+            "schema" : {
+
+              "$ref" : "#/definitions/SearchResults"
+
+            }
+
+          },
+
+          "400" : {
+
+            "description" : "Invalid query parameters"
+
+          },
+
+          "500" : {
+
+            "description" : "An error occurred in the service while executing the search"
+
+          }
+
+        }
+
+      }
+
+    },
+
+    "/facilities/searchWithScore" : {
+
+      "get" : {
+
+        "tags" : [ "search" ],
+
+        "summary" : "Find treatment facilities by their services and location. When multiple serviceCode, and matchAny sets are specified those results will be unified together",
+
+        "description" : "",
+
+        "operationId" : "findFacilitiesByServiceCodesV2WithScore",
+
+        "consumes" : [ "application/json" ],
+
+        "produces" : [ "application/json", "application/xml" ],
+
+        "parameters" : [ {
+
+                           "name" : "postalCode",
+
+                           "in" : "query",
+
+                           "description" : "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+
+                           "required" : false,
+
+                           "type" : "string"
+
+                         }, {
+
+                           "name" : "serviceCode",
+
+                           "in" : "query",
+
+                           "description" : "A comma separated list of service codes. service code prefixed with a single bang '!' will be negated",
+
+                           "required" : false,
+
+                           "type" : "array",
+
+                           "items" : {
+
+                             "type" : "string"
+
+                           },
+
+                           "collectionFormat" : "multi"
+
+                         }, {
+
+                           "name" : "matchAny",
+
+                           "in" : "query",
+
+                           "description" : "A comma separated list of service codes.",
+
+                           "required" : false,
+
+                           "type" : "array",
+
+                           "items" : {
+
+                             "type" : "string"
+
+                           },
+
+                           "collectionFormat" : "multi"
+
+                         }, {
+
+                           "name" : "lat",
+
+                           "in" : "query",
+
+                           "description" : "the latitude coordinate according to WGS84",
+
+                           "required" : false,
+
+                           "type" : "number",
+
+                           "maximum" : 90,
+
+                           "minimum" : -90,
+
+                           "format" : "double"
+
+                         }, {
+
+                           "name" : "lon",
+
+                           "in" : "query",
+
+                           "description" : "the longitude coordinate according to WGS84",
+
+                           "required" : false,
+
+                           "type" : "number",
+
+                           "maximum" : 180,
+
+                           "minimum" : -180,
+
+                           "format" : "double"
+
+                         }, {
+
+                           "name" : "distance",
+
+                           "in" : "query",
+
+                           "description" : "the radius distance",
+
+                           "required" : false,
+
+                           "type" : "number",
+
+                           "default" : 15.0,
+
+                           "format" : "double"
+
+                         }, {
+
+                           "name" : "distanceUnit",
+
+                           "in" : "query",
+
+                           "description" : "the unit of the radius distance. (meters, kilometers, feet, miles)",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "mi",
+
+                           "pattern" : "m|km|ft|mi",
+
+                           "enum" : [ "m", "km", "ft", "mi" ]
+
+                         }, {
+
+                           "name" : "offset",
+
+                           "in" : "query",
+
+                           "description" : "the number of results to skip",
+
+                           "required" : false,
+
+                           "type" : "integer",
+
+                           "default" : 0,
+
+                           "maximum" : 9999,
+
+                           "minimum" : 0,
+
+                           "format" : "int32"
+
+                         }, {
+
+                           "name" : "size",
+
+                           "in" : "query",
+
+                           "description" : "the number of results to return",
+
+                           "required" : false,
+
+                           "type" : "integer",
+
+                           "default" : 10,
+
+                           "maximum" : 9999,
+
+                           "minimum" : 0,
+
+                           "format" : "int32"
+
+                         }, {
+
+                           "name" : "operation",
+
+                           "in" : "query",
+
+                           "description" : "When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "AND",
+
+                           "pattern" : "AND|OR",
+
+                           "enum" : [ "AND", "OR" ]
+
+                         }, {
+
+                           "name" : "dob",
+
+                           "in" : "query",
+
+                           "description" : "The users date of birth in YYYY-MM-DD format [used for scoring]",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "pattern" : "\\d{4}-\\d{2}-\\d{2}",
+
+                           "allowEmptyValue" : true,
+
+                           "x-example" : "1980-01-16"
+
+                         }, {
+
+                           "name" : "hearingSupportImp",
+
+                           "in" : "query",
+
+                           "description" : "How important it is that a facility provides hearing support services",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "NOT",
+
+                           "allowEmptyValue" : true,
+
+                           "enum" : [ "VERY", "SOMEWHAT", "NOT" ]
+
+                         }, {
+
+                           "name" : "langSupportImp",
+
+                           "in" : "query",
+
+                           "description" : "How important it is that a facility provides language support services",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "NOT",
+
+                           "allowEmptyValue" : true,
+
+                           "enum" : [ "VERY", "SOMEWHAT", "NOT" ]
+
+                         }, {
+
+                           "name" : "militaryImp",
+
+                           "in" : "query",
+
+                           "description" : "Indicates how important military support is",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "NOT",
+
+                           "allowEmptyValue" : true,
+
+                           "enum" : [ "VERY", "SOMEWHAT", "NOT" ]
+
+                         }, {
+
+                           "name" : "smokingCessationImp",
+
+                           "in" : "query",
+
+                           "description" : "Indicates how important smoking cessation support is",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "NOT",
+
+                           "allowEmptyValue" : true,
+
+                           "enum" : [ "VERY", "SOMEWHAT", "NOT" ]
+
+                         }, {
+
+                           "name" : "trauma",
+
+                           "in" : "query",
+
+                           "description" : "Indicates type of trauma support needed/wanted",
+
+                           "required" : false,
+
+                           "type" : "array",
+
+                           "items" : {
+
+                             "type" : "string",
+
+                             "default" : "NONE",
+
+                             "enum" : [ "TRAUMA", "DOMESTIC", "SEXUAL", "NONE" ]
+
+                           },
+
+                           "collectionFormat" : "multi",
+
+                           "allowEmptyValue" : true
+
+                         }, {
+
+                           "name" : "sort",
+
+                           "in" : "query",
+
+                           "description" : "Indicates the field to sort by. This only sorts the current results being returned",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "score"
+
+                         }, {
+
+                           "name" : "sortDir",
+
+                           "in" : "query",
+
+                           "description" : "Indicates the direction of the sort",
+
+                           "required" : false,
+
+                           "type" : "string",
+
+                           "default" : "DESC",
+
+                           "enum" : [ "ASC", "DESC" ]
 
                          } ],
 
