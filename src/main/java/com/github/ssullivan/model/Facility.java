@@ -7,12 +7,12 @@ import com.google.common.collect.Sets;
 import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @ApiModel
 public class Facility {
-  private long id;
+  private String id;
+  private String shortId;
   private String name1;
   private String name2;
   private String zip;
@@ -77,7 +77,7 @@ public class Facility {
    * @param categoryCodes categories of services offered by the facility
    * @param serviceCodes services offered by the facility
    */
-  public Facility(long id, String name1, String name2, String zip, String street,
+  public Facility(String id, String name1, String name2, String zip, String street,
       String city, String state, String county, String googlePlaceId, GeoPoint location,
       String formattedAddress, String website, Set<String> phoneNumbers,
       Set<String> categoryCodes, Set<String> serviceCodes) {
@@ -96,6 +96,14 @@ public class Facility {
     this.phoneNumbers = phoneNumbers;
     this.categoryCodes = categoryCodes;
     this.serviceCodes = serviceCodes;
+  }
+
+  public String getShortId() {
+    return shortId;
+  }
+
+  public void setShortId(String shortId) {
+    this.shortId = shortId;
   }
 
   public String getCounty() {
@@ -138,11 +146,11 @@ public class Facility {
     this.state = state;
   }
 
-  public long getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(long id) {
+  public void setId(String id) {
     this.id = id;
   }
 

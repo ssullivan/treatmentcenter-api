@@ -10,6 +10,7 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.SortDirection;
 import com.github.ssullivan.resources.FacilitySearchResource;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -20,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -38,6 +40,9 @@ import org.mockito.Mockito;
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class FacilitySearchResourceTest {
+  private static final String FirstId = ShortUuid.encode(UUID.randomUUID());
+  private static final String SecondId = ShortUuid.encode(UUID.randomUUID());
+
   private static final GenericType<SearchResults<Facility>> SEARCH_RESULTS_GENERIC_TYPE =
       new GenericType<SearchResults<Facility>>(){
 
@@ -72,14 +77,16 @@ public class FacilitySearchResourceTest {
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
       .build();
 
-  private static final Facility facility = new Facility(1L,
+    private static final Facility facility = new Facility(FirstId, "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",
       ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("BAR"));
 
 
-  private static final Facility facilit2y = new Facility(2L,
+
+  private static final Facility facilit2y = new Facility(SecondId,
+      "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",

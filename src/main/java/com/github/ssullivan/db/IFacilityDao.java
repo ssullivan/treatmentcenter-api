@@ -32,10 +32,6 @@ public interface IFacilityDao {
 
   Facility getFacility(final String pk) throws IOException;
 
-  default Facility getFacility(final Long pk) throws IOException {
-    return getFacility(Objects.requireNonNull("" + pk, "Facility primary key must not be null"));
-  }
-
   CompletionStage<SearchResults<Facility>> find(final SearchRequest searchRequest,
       final Page page) throws Exception;
   /**

@@ -39,7 +39,7 @@ public class RedisFeedDao implements IFeedDao {
 
   private Optional<String> fetchUuid(final String key) throws IOException {
     try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
-      return Optional.of(redis.sync().get(SEARCH_FEED_KEY));
+      return Optional.ofNullable(redis.sync().get(SEARCH_FEED_KEY));
     } catch (Exception e) {
       handleException(e);
     }

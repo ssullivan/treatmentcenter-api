@@ -11,6 +11,9 @@ public class ShortUuid {
   private static final char[] BASE_58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
   private static final BigInteger TargetBase = BigInteger.valueOf(BASE_58_ALPHABET.length);
 
+  public static String randomShortUuid() {
+    return encode(UUID.randomUUID());
+  }
 
   public static String encode(final UUID uuid) {
     return encode(new BigInteger(asBytes(uuid)));

@@ -18,6 +18,7 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.ServicesCondition;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
@@ -107,44 +108,15 @@ public class RedisFacilityDao implements IFacilityDao {
     return KEY;
   }
 
-  private long generatePrimaryKey() throws IOException {
-    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      return generatePrimaryKey(connection.sync());
-    } catch (Exception e) {
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
-      throw new IOException("Failed to get connection to REDIS", e);
-    }
+  private String generatePrimaryKey() throws IOException {
+    return ShortUuid.encode(UUID.randomUUID());
   }
 
-  private long generatePrimaryKey(RedisCommands<String, String> redis) throws IOException {
-    try {
-      return redis.incr(PK_KEY);
-    } catch (Exception e) {
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
-      throw new IOException("Failed to get connection to REDIS", e);
-    }
+
+  private boolean isValidIdentifier(final String id) {
+    return id != null && !id.isEmpty() && !id.matches("^\\s{1,}$");
   }
 
-  private List<Long> generatePrimaryKeys(RedisCommands<String, String> redis, final int numKeys) throws IOException {
-    final ImmutableList.Builder<Long> builder = new Builder<>();
-    for (int i = 1; i <= numKeys; ++i) {
-      builder.add(redis.incr(PK_KEY));
-    }
-    return builder.build();
-  }
-
-  private CompletionStage<List<Long>> generatePrimaryKeysAysnc(RedisAsyncCommands<String, String> redis, final int numKeys) {
-    final ImmutableList.Builder<CompletionStage<Long>> builder = new Builder<>();
-    for (int i = 1; i <= numKeys; ++i) {
-      builder.add(redis.incr(PK_KEY));
-    }
-    redis.getStatefulConnection().flushCommands();
-    return CompletableFutures.allAsList(builder.build());
-  }
 
   public List<Facility> list(final Page page) {
     return new ArrayList<>();
@@ -152,9 +124,8 @@ public class RedisFacilityDao implements IFacilityDao {
 
   @Override
   public void addFacility(String feed, Facility facility) throws IOException {
-    if (facility.getId() <= 0) {
-      final long pk = generatePrimaryKey();
-      facility.setId(pk);
+    if (!isValidIdentifier(facility.getId())) {
+      facility.setId(generatePrimaryKey());
     }
 
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
@@ -174,9 +145,8 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   private void addFacility(final RedisCommands<String, String> redis, String feed, Facility facility) throws IOException {
-    if (facility.getId() <= 0) {
-      final long pk = generatePrimaryKey();
-      facility.setId(pk);
+    if (!isValidIdentifier(facility.getId())) {
+      facility.setId(generatePrimaryKey());
     }
 
       final Map<String, String> stringStringMap = toStringMap(facility);
@@ -195,32 +165,11 @@ public class RedisFacilityDao implements IFacilityDao {
 
       final RedisCommands<String, String> sync = connection.sync();
 
-      List<Long> primaryKeys = null;
-
-      try {
-        connection.setAutoFlushCommands(false);
-        primaryKeys =
-            generatePrimaryKeysAysnc(connection.async(), batch.size())
-            .toCompletableFuture()
-            .get(30, TimeUnit.SECONDS);
-        connection.flushCommands();
-      }
-      finally {
-        connection.setAutoFlushCommands(true);
-      }
-
-      if (null == primaryKeys || primaryKeys.size() != batch.size()) {
-        connection.close();
-        throw new IOException("Failed to generate primary keys for batch!");
-      }
-
-
-      int i = 0;
       List<CompletableFuture<Boolean>> promises = new ArrayList<>();
       try {
         connection.setAutoFlushCommands(false);
         for (final Facility facility : batch) {
-          facility.setId(primaryKeys.get(i));
+          facility.setId(generatePrimaryKey());
           final Map<String, String> stringStringMap = toStringMap(facility);
           final CompletableFuture<String> storeFacilityPromise = connection.async().hmset(KEY + ":" + facility.getId(), stringStringMap).toCompletableFuture();
 
@@ -231,7 +180,6 @@ public class RedisFacilityDao implements IFacilityDao {
           promises.add(combined.toCompletableFuture());
 
           connection.flushCommands();
-          i = i + 1;
         }
       }
       finally {
@@ -903,8 +851,8 @@ public class RedisFacilityDao implements IFacilityDao {
       throw new NullPointerException("Facility must not be null");
     }
 
-    if (facility.getId() == 0) {
-      throw new IllegalArgumentException("id must be non zero");
+    if (facility.getId() == null || facility.getId().isEmpty()) {
+      throw new IllegalArgumentException("id must not be empty");
     }
 
     if (facility.getLocation() == null) {
@@ -913,7 +861,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     return async
         .geoadd(indexByGeoKey(feed), facility.getLocation().lon(), facility.getLocation().lat(),
-            Long.toString(facility.getId(), 10))
+            facility.getId())
         .toCompletableFuture();
   }
 
@@ -922,7 +870,7 @@ public class RedisFacilityDao implements IFacilityDao {
       return;
     }
 
-    if (facility.getId() == 0) {
+    if (!isValidIdentifier(facility.getId())) {
       throw new IllegalArgumentException("id must be non zero");
     }
 
@@ -934,7 +882,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     final Long geoAddCount = sync
         .geoadd(indexByGeoKey(feed), facility.getLocation().lon(), facility.getLocation().lat(),
-            Long.toString(facility.getId(), 10));
+            facility.getId());
 
     LOGGER.debug("{} items added to set {}", geoAddCount, indexByGeoKey(feed));
   }
@@ -953,7 +901,7 @@ public class RedisFacilityDao implements IFacilityDao {
       throw new NullPointerException("facility must not be null");
     }
 
-    if (facility.getId() == 0) {
+    if (!isValidIdentifier(facility.getId())) {
       throw new IllegalArgumentException("id must be non zero");
     }
 
@@ -966,7 +914,7 @@ public class RedisFacilityDao implements IFacilityDao {
           if (feed != null && !feed.isEmpty()) {
             key = INDEX_BY_CATEGORIES + ":" + feed + ":" + code;
           }
-          return async.sadd(key, Long.toString(facility.getId(), 10))
+          return async.sadd(key, facility.getId())
               .toCompletableFuture();
         })
         .collect(Collectors.toList());
@@ -984,7 +932,7 @@ public class RedisFacilityDao implements IFacilityDao {
       return;
     }
 
-    if (facility.getId() == 0) {
+    if (!isValidIdentifier(facility.getId())) {
       throw new IllegalArgumentException("id must be non zero");
     }
 
@@ -997,7 +945,7 @@ public class RedisFacilityDao implements IFacilityDao {
           if (feed != null && !feed.isEmpty()) {
             key = INDEX_BY_CATEGORIES + ":" + feed + ":" + code;
           }
-          sync.sadd(key, Long.toString(facility.getId(), 10));
+          sync.sadd(key, facility.getId());
         });
   }
 
@@ -1009,7 +957,7 @@ public class RedisFacilityDao implements IFacilityDao {
       throw new NullPointerException("Facility must not be null");
     }
 
-    if (facility.getId() == 0) {
+    if (!isValidIdentifier(facility.getId())) {
       throw new IllegalArgumentException("id must be non zero");
     }
 
@@ -1022,7 +970,7 @@ public class RedisFacilityDao implements IFacilityDao {
           if (feed != null && !feed.isEmpty()) {
             key = INDEX_BY_SERVICES + ":" + feed + ":" + code;
           }
-          return async.sadd(key, Long.toString(facility.getId(), 10)).toCompletableFuture();
+          return async.sadd(key, facility.getId()).toCompletableFuture();
         })
         .collect(Collectors.toList());
 
@@ -1042,7 +990,7 @@ public class RedisFacilityDao implements IFacilityDao {
       return;
     }
 
-    if (facility.getId() == 0) {
+    if (!isValidIdentifier(facility.getId())) {
       throw new IllegalArgumentException("id must be non zero");
     }
 
@@ -1055,7 +1003,7 @@ public class RedisFacilityDao implements IFacilityDao {
           if (feed != null && !feed.isEmpty()) {
             key = INDEX_BY_SERVICES + ":" + feed + ":" + code;
           }
-          sync.sadd(key, Long.toString(facility.getId(), 10));
+          sync.sadd(key, facility.getId());
         });
   }
 

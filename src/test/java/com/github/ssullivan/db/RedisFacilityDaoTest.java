@@ -4,6 +4,7 @@ import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
+import com.github.ssullivan.db.redis.RedisFeedDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Category;
@@ -16,6 +17,7 @@ import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.ServicesCondition;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -36,6 +38,9 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityDaoTest {
+  private static final String FirstId = ShortUuid.randomShortUuid();
+  private static final String SecondId = ShortUuid.randomShortUuid();
+  private static final String ThirdId = ShortUuid.randomShortUuid();
 
   private RedisFacilityDao _dao;
   private RedisCategoryCodesDao _categoryCodesDao;
@@ -50,6 +55,7 @@ public class RedisFacilityDaoTest {
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
+
   }
 
 
@@ -67,7 +73,7 @@ public class RedisFacilityDaoTest {
   @Test
   public void testAddingFacility() throws IOException {
     final Facility original = new Facility();
-    original.setId(1);
+    original.setId(FirstId);
     original.setCategoryCodes(Sets.newHashSet("TEST"));
     original.setServiceCodes(Sets.newHashSet("BAR"));
     original.setCity("New York");
@@ -95,7 +101,7 @@ public class RedisFacilityDaoTest {
   @Test
   public void testSearchingForFacilityByServiceCode() throws IOException {
     final Facility original = new Facility();
-    original.setId(99);
+    original.setId(SecondId);
     original.setCategoryCodes(Sets.newHashSet("TEST"));
     original.setServiceCodes(Sets.newHashSet("BIZZBIZZ"));
     original.setCity("New York");
@@ -125,7 +131,7 @@ public class RedisFacilityDaoTest {
   @Test
   public void testSearchingForFacilityByGeo() throws IOException {
     final Facility original = new Facility();
-    original.setId(1);
+    original.setId(FirstId);
     original.setCategoryCodes(Sets.newHashSet("TEST"));
     original.setServiceCodes(Sets.newHashSet("BAR"));
     original.setCity("New York");
@@ -160,7 +166,7 @@ public class RedisFacilityDaoTest {
   @Test
   public void testSearchingForFacilityByGeoNegate() throws IOException {
     final Facility original1 = new Facility();
-    original1.setId(1);
+    original1.setId(FirstId);
     original1.setCategoryCodes(Sets.newHashSet("TEST"));
     original1.setServiceCodes(Sets.newHashSet("BAR"));
     original1.setCity("New York");
@@ -171,7 +177,7 @@ public class RedisFacilityDaoTest {
     original1.setLocation(GeoPoint.geoPoint(40.715076, -73.991180));
 
     final Facility original2 = new Facility();
-    original2.setId(2);
+    original2.setId(SecondId);
     original2.setCategoryCodes(Sets.newHashSet("TEST"));
     original2.setServiceCodes(Sets.newHashSet("BAR", "BUZZ"));
     original2.setCity("New York");
@@ -182,7 +188,7 @@ public class RedisFacilityDaoTest {
     original2.setLocation(GeoPoint.geoPoint(40.715076, -73.991180));
 
     final Facility original3 = new Facility();
-    original3.setId(3);
+    original3.setId(ThirdId);
     original3.setCategoryCodes(Sets.newHashSet("TEST"));
     original3.setServiceCodes(Sets.newHashSet("BAR", "FIZZ"));
     original3.setCity("New York");

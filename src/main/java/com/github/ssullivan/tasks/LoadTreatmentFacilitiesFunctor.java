@@ -7,6 +7,7 @@ import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.SamshaFacility;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.Sets;
 import io.dropwizard.jackson.Jackson;
 import java.io.File;
@@ -51,11 +52,10 @@ public class LoadTreatmentFacilitiesFunctor {
 
   private void processRows(final MappingIterator<SamshaFacility> iterator) throws IOException {
 
-    long counter = 0;
     while (iterator.hasNextValue()) {
       final SamshaFacility value = iterator.nextValue();
       final Facility facility = new Facility();
-      facility.setId(++counter);
+      facility.setId(ShortUuid.randomShortUuid());
       facility.setCategoryCodes(value.getCategoryCodes());
       facility.setServiceCodes(value.getServiceCodes());
       facility.setName1(value.getName1());
