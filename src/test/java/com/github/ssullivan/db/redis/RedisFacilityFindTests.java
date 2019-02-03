@@ -5,13 +5,7 @@ import static org.hamcrest.Matchers.hasSize;
 
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.IFeedDao;
-import com.github.ssullivan.db.redis.IRedisConnectionPool;
-import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
-import com.github.ssullivan.db.redis.RedisFacilityDao;
-import com.github.ssullivan.db.redis.RedisServiceCodeDao;
-import com.github.ssullivan.db.redis.RollingIdGenerator;
 import com.github.ssullivan.db.redis.search.FindBySearchRequest;
-import com.github.ssullivan.db.redis.search.FindBySearchRequestSync;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -50,7 +44,7 @@ public class RedisFacilityFindTests {
   private IRedisConnectionPool _redisConnectionPool;
   private LoadCategoriesAndServicesFunctor loadCategoriesAndServicesFunctor;
   private LoadTreatmentFacilitiesFunctor loadTreatmentFacilitiesFunctor;
-  private FindBySearchRequestSync findBySearchRequest;
+  private FindBySearchRequest findBySearchRequest;
 
   @BeforeAll
   private void setup() throws Exception {
@@ -60,7 +54,7 @@ public class RedisFacilityFindTests {
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
-    this.findBySearchRequest = injector.getInstance(FindBySearchRequestSync.class);
+    this.findBySearchRequest = injector.getInstance(FindBySearchRequest.class);
     this.loadCategoriesAndServicesFunctor = injector.getInstance(LoadCategoriesAndServicesFunctor.class);
     this.loadTreatmentFacilitiesFunctor = injector.getInstance(LoadTreatmentFacilitiesFunctor.class);
 
@@ -154,8 +148,6 @@ public class RedisFacilityFindTests {
     MatcherAssert.assertThat(searchResults.totalHits(),equalTo(8L));
     MatcherAssert.assertThat(searchResults.hits(), hasSize(8));
 
-    final Facility firstFacility = searchResults.hits().get(0);
-    MatcherAssert.assertThat(firstFacility.getName1(), equalTo("Location 1"));
   }
 
   @Test

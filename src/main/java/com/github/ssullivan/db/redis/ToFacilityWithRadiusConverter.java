@@ -16,6 +16,21 @@ public class ToFacilityWithRadiusConverter implements Function<Facility, Facilit
     this.geoUnit = geoUnit;
   }
 
+  public ToFacilityWithRadiusConverter(final GeoPoint geoPoint, final String geoUnit) {
+    if (geoPoint != null) {
+      this.latitude = geoPoint.lat();
+      this.longitude = geoPoint.lon();
+    }
+    else {
+      this.latitude = 0.0;
+      this.longitude = 0.0;
+    }
+    this.geoUnit = geoUnit;
+  }
+
+
+
+
   @Override
   public FacilityWithRadius apply(final Facility facility) {
     if (facility.getLocation() != null) {
