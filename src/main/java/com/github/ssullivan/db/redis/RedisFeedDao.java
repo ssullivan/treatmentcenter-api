@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.redis;
 
 import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.utils.ShortUuid;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.IOException;
 import java.util.Optional;
@@ -24,7 +25,17 @@ public class RedisFeedDao implements IFeedDao {
 
   @Override
   public Optional<String> nextFeedId() {
-    return Optional.of(UUID.randomUUID().toString());
+    return Optional.of(ShortUuid.randomShortUuid());
+  }
+
+  @Override
+  public Optional<String> setCurrentFeedId(String id) throws IOException {
+    try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
+      return Optional.ofNullable(redis.sync().set(CURRENT_FEED_KEY, id));
+    } catch (Exception e) {
+      handleException(e);
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -39,7 +50,7 @@ public class RedisFeedDao implements IFeedDao {
 
   private Optional<String> fetchUuid(final String key) throws IOException {
     try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
-      return Optional.ofNullable(redis.sync().get(SEARCH_FEED_KEY));
+      return Optional.ofNullable(redis.sync().get(key));
     } catch (Exception e) {
       handleException(e);
     }

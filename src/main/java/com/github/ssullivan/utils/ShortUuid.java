@@ -6,10 +6,14 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class ShortUuid {
-  private static final Pattern StripPadding = Pattern.compile("=*$");
+  private static final Pattern ShortUuidValidator = Pattern.compile("^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{1,128}$");
   private static final BigInteger MIN_128_INV = BigInteger.ONE.shiftLeft(127);
   private static final char[] BASE_58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
   private static final BigInteger TargetBase = BigInteger.valueOf(BASE_58_ALPHABET.length);
+
+  public static boolean isValid(final String encoded) {
+    return ShortUuidValidator.matcher(encoded).matches();
+  }
 
   public static String randomShortUuid() {
     return encode(UUID.randomUUID());

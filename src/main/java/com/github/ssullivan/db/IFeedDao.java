@@ -4,7 +4,6 @@ import com.github.ssullivan.db.redis.RedisFeedDao;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
 @ImplementedBy(RedisFeedDao.class)
 public interface IFeedDao {
@@ -17,6 +16,10 @@ public interface IFeedDao {
    * @throws IOException
    */
   Optional<String> nextFeedId() throws IOException;
+
+  Optional<String> setCurrentFeedId(final String id) throws IOException;
+
+
 
   /**
    * THis is the identifier of the most recent feed that was loaded.

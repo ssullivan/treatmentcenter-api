@@ -2,14 +2,12 @@ package com.github.ssullivan.resources;
 
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.FacilityComparator;
-import com.github.ssullivan.core.FacilitySearchService;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore.Builder;
 import com.github.ssullivan.core.analytics.Importance;
 import com.github.ssullivan.core.analytics.TraumaTypes;
-import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.redis.search.FindBySearchRequest;
 import com.github.ssullivan.model.Facility;
-import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
 import com.github.ssullivan.model.Page;
@@ -22,17 +20,14 @@ import com.github.ssullivan.model.SortDirection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -57,18 +52,18 @@ import org.slf4j.LoggerFactory;
 @Path("facilities")
 public class FacilitySearchResource {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FacilitySearchService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FacilitySearchResource.class);
   private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern
       .compile("^!{0,1}[a-zA-Z0-9]{1,31}");
   public static final String TRAUMA_DOMESTIC_SEXUAL_NONE = "TRAUMA,DOMESTIC,SEXUAL,NONE";
   public static final String TRUE_FALSE = "true,false";
   public static final String VERY_SOMEWHAT_NOT = "VERY,SOMEWHAT,NOT";
-  private final IFacilityDao facilityDao;
+  private final FindBySearchRequest facilitySearch;
   private final IPostalcodeService postalcodeService;
 
   @Inject
-  public FacilitySearchResource(final IFacilityDao facilityDao, final IPostalcodeService postalcodeService) {
-    this.facilityDao = facilityDao;
+  public FacilitySearchResource(final FindBySearchRequest facilitySearch, final IPostalcodeService postalcodeService) {
+    this.facilitySearch = facilitySearch;
     this.postalcodeService = postalcodeService;
   }
 
@@ -237,7 +232,7 @@ public class FacilitySearchResource {
           searchRequest.setGeoRadiusCondition(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
         }
       }
-      this.facilityDao.find(searchRequest, Page.page(offset, size))
+      this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
             if (error != null) {
               LOGGER.error("Failed to find facilities with service codes`", error);
@@ -378,14 +373,14 @@ public class FacilitySearchResource {
         }
       }
 
-      this.facilityDao.find(searchRequest, Page.page(offset, size))
+      this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
               if (error != null) {
                 LOGGER.error("Failed to find facilities with service codes`", error);
                 asyncResponse.resume(Response.serverError().build());
               }
               else {
-                asyncResponse.resume(Response.ok(sort(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result), sortField, sortDirection)));
+                asyncResponse.resume(Response.ok(sort(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result), sortField, sortDirection)).build());
               }
           });
 
@@ -460,75 +455,19 @@ public class FacilitySearchResource {
       @DefaultValue("DESC")
       @QueryParam("sortDir")
       final SortDirection sortDirection) {
-    try {
-      if (postalCode != null && postalCode.length() > 10) {
-        asyncResponse.resume(Response.status(400)
-          .entity(ImmutableMap.of("message", "Invalid postal code: Too Long"))
-            .build()
-        );
-      }
-
-
-      final Set<String> mustNotServiceCodes =
-          serviceCodes
-              .stream()
-              .filter(it -> it.startsWith("!"))
-              .map(it -> it.substring(1))
-              .collect(Collectors.toSet());
-
-      final Set<String> mustServiceCodes =
-          serviceCodes
-              .stream()
-              .filter(it -> !it.startsWith("!"))
-              .collect(Collectors.toSet());
-
-
-      if (mustNotServiceCodes.size() > 200 || mustServiceCodes.size() > 200) {
-        asyncResponse.resume(Response.status(400)
-            .entity(ImmutableMap.of("message", "too many service codes."))
-            .build());
-        return;
-      }
-
-      if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
-        asyncResponse.resume(
-            Response.status(400)
-                .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
-      } else if (lat != null && lon != null) {
-        asyncResponse.resume(this.facilityDao
-            .findByServiceCodesWithin(serviceCodes, lon, lat, distance, distanceUnit,
-                Page.page(offset, size)));
-      } else if (postalCode != null) {
-        ImmutableList<GeoPoint> geoPoints = postalcodeService.fetchGeos(postalCode);
-        if (geoPoints == null || geoPoints.size() <= 0) {
-          LOGGER.error("Failed to find GeoPoints for PostCode", postalCode);
-          asyncResponse.resume(Response.status(400)
-              .entity(ImmutableMap.of("message", "Failed to Geo locate postal code"))
-              .build()
-          );
-        }
-
-        SearchResults<FacilityWithRadius> results = this.facilityDao
-            .findByServiceCodesWithin(mustServiceCodes, mustNotServiceCodes,
-                matchAny,
-                geoPoints.get(0).lon(),
-                geoPoints.get(0).lat(),
-                distance,
-                distanceUnit,
-                Page.page(offset, size));
-
-        asyncResponse.resume(sort(applyScores(mustServiceCodes, new CompositeFacilityScore.Builder(), results), sortFields, sortDirection));
-      }
-      else {
-        final SearchResults<Facility> results = this.facilityDao.findByServiceCodes(mustServiceCodes, mustNotServiceCodes,
-            matchAny, Page.page(offset, size));
-        asyncResponse
-            .resume(sort(applyScores(mustServiceCodes, new CompositeFacilityScore.Builder(), results), sortFields, sortDirection));
-      }
-    } catch (IOException e) {
-      LOGGER.error("Failed to find facilities with service codes`", e);
-      asyncResponse.resume(Response.serverError().build());
-    }
+      findFacilitiesByServiceCodesV2(asyncResponse, postalCode,
+       serviceCodes,
+       ImmutableList.of(),
+       lat,
+       lon,
+       distance,
+       distanceUnit,
+       offset,
+       size,
+       op,
+       sortFields,
+       sortDirection
+       );
   }
 
   public static <F extends Facility> SearchResults<F> sort(final SearchResults<F> searchResults, final String sortField, final SortDirection sortDirection) {

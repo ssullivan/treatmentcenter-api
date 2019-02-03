@@ -5,7 +5,6 @@ import com.github.ssullivan.model.Category;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.List;
-import org.eclipse.jetty.util.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.db.redis;
 
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;

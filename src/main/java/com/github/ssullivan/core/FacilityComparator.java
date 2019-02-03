@@ -4,7 +4,6 @@ import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.SortDirection;
 import java.util.Comparator;
-import java.util.Objects;
 
 public class FacilityComparator<F extends Facility> implements Comparator<Facility> {
 

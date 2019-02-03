@@ -1,14 +1,16 @@
-package com.github.ssullivan.db;
+package com.github.ssullivan.db.redis;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.db.redis.RollingIdGenerator;
+import com.github.ssullivan.db.redis.search.FindBySearchRequest;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -36,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-//@TestInstance(Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityFindTests {
 
   private RedisFacilityDao dao;
@@ -45,8 +47,9 @@ public class RedisFacilityFindTests {
   private IRedisConnectionPool _redisConnectionPool;
   private LoadCategoriesAndServicesFunctor loadCategoriesAndServicesFunctor;
   private LoadTreatmentFacilitiesFunctor loadTreatmentFacilitiesFunctor;
+  private FindBySearchRequest findBySearchRequest;
 
-  //@BeforeAll
+  @BeforeAll
   private void setup() throws IOException {
     final Injector injector = Guice
         .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379, 2)));
@@ -54,18 +57,12 @@ public class RedisFacilityFindTests {
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
+    this.findBySearchRequest = injector.getInstance(FindBySearchRequest.class);
     this.loadCategoriesAndServicesFunctor = injector.getInstance(LoadCategoriesAndServicesFunctor.class);
     this.loadTreatmentFacilitiesFunctor = injector.getInstance(LoadTreatmentFacilitiesFunctor.class);
 
-    try {
-      final Long value = injector.getInstance(RollingIdGenerator.class)
-          .generateId("foobarbaz", Long.MAX_VALUE);
-      final Long value1 = injector.getInstance(RollingIdGenerator.class)
-          .generateId("foobarbaz", Long.MAX_VALUE);
-      int j = 0;
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    IFeedDao feedDao = injector.getInstance(IFeedDao.class);
+    feedDao.setCurrentFeedId(feedDao.nextFeedId().get());
 
     loadFixtures();
   }
@@ -78,23 +75,23 @@ public class RedisFacilityFindTests {
   }
 
 
-  //@AfterAll
+  @AfterAll
   private void teardown() throws Exception {
     _redisConnectionPool.borrowConnection().sync().flushdb();
     _redisConnectionPool.close();
   }
 
-  //@Test
+  @Test
   public void testSearchingForMultipleServiceCodes_DifferentSets() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setServiceConditions(ImmutableList.of( new ServicesCondition(ImmutableList.of("BIA"), MatchOperator.MUST),
         new ServicesCondition(ImmutableList.of("SI"), MatchOperator.MUST)));
 
-    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
-        .atMost(1, TimeUnit.SECONDS)
+        .atMost(1, TimeUnit.DAYS)
         .pollInterval(10, TimeUnit.MILLISECONDS)
         .until(promise::isDone);
 
@@ -105,12 +102,12 @@ public class RedisFacilityFindTests {
     MatcherAssert.assertThat(searchResults.hits().get(2).getId(), equalTo(7L));
   }
 
-  //@Test
+  @Test
   public void testSearchingForMultipleServiceCodes_SameSets() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setServiceConditions(ImmutableList.of( new ServicesCondition(ImmutableList.of("BIA", "SI"), MatchOperator.MUST)));
 
-    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
@@ -125,13 +122,13 @@ public class RedisFacilityFindTests {
     MatcherAssert.assertThat(searchResults.hits().get(2).getId(), equalTo(7L));
   }
 
-  //@Test
+  @Test
   public void testSearchingForASingleCondition() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     ServicesCondition servicesCondition = new ServicesCondition(ImmutableList.of("MALE"), MatchOperator.MUST);
     searchRequest.setServiceConditions(ImmutableList.of(servicesCondition));
 
-    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
@@ -148,13 +145,13 @@ public class RedisFacilityFindTests {
     MatcherAssert.assertThat(firstFacility.getName1(), equalTo("Location 1"));
   }
 
-  //@Test
+  @Test
   public void testSearchingByGeoCondition() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     GeoRadiusCondition geoRadiusCondition = new GeoRadiusCondition(GeoPoint.geoPoint(38.80, -76.80), 15, GeoUnit.MILE);
     searchRequest.setGeoRadiusCondition(geoRadiusCondition);
 
-    final CompletableFuture<SearchResults<Facility>> promise  = dao.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()

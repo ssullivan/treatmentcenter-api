@@ -8,7 +8,7 @@ jdk:
 
 services:
   - docker # required, but travis uses older version of docker
-  - redis-server
+  - syncPool-server
 
 
 matrix:

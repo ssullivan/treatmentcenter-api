@@ -1,12 +1,11 @@
 package com.github.ssullivan.model;
 
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 public class SearchRequest {
   private GeoRadiusCondition geoRadiusCondition;
@@ -14,11 +13,21 @@ public class SearchRequest {
   private SetOperation finalSetOperation;
   private String sortField;
   private SortDirection sortDirection;
+  private String id;
 
   public SearchRequest() {
+    this.id = ShortUuid.randomShortUuid();
     this.finalSetOperation = SetOperation.INTERSECTION;
     this.sortField = "score";
     this.sortDirection = SortDirection.ASC;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public String getSortField() {

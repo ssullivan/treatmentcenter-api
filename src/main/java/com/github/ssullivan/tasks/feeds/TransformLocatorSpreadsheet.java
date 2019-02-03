@@ -1,15 +1,10 @@
 package com.github.ssullivan.tasks.feeds;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.RedisConfig;
-import com.github.ssullivan.db.IFacilityDao;
-import com.github.ssullivan.db.IFeedDao;
-import com.github.ssullivan.guice.BucketName;
 import com.github.ssullivan.guice.RedisClientModule;
-import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -37,7 +32,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;

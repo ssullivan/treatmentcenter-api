@@ -1,8 +1,11 @@
 package com.github.ssullivan.core.analytics;
 
+import static com.github.ssullivan.core.analytics.Constants.ADULT;
+import static com.github.ssullivan.core.analytics.Constants.CHILD;
+import static com.github.ssullivan.core.analytics.Constants.YOUNG_ADULTS;
+
 import com.github.ssullivan.model.Facility;
 import java.time.LocalDate;
-import static com.github.ssullivan.core.analytics.Constants.*;
 
 public class ScoreByAge implements IScoreFacility{
   // 25 years - 2 months

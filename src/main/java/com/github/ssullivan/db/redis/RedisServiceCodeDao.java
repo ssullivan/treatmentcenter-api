@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.IServiceCodesDao;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

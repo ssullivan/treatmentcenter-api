@@ -34,7 +34,7 @@ services:
         mode: host
 
   redis:
-    image: redis:latest
+    image: syncPool:latest
     deploy:
       replicas: 1
 
