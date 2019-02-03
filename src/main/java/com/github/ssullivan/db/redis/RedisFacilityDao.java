@@ -3,6 +3,7 @@ package com.github.ssullivan.db.redis;
 import static com.github.ssullivan.db.redis.RedisConstants.DEFAULT_TIMEOUT;
 import static com.github.ssullivan.db.redis.RedisConstants.DEFAULT_TIMEOUT_UNIT;
 import static com.github.ssullivan.db.redis.RedisConstants.TREATMENT_FACILITIES;
+import static com.github.ssullivan.db.redis.RedisConstants.TREATMENT_FACILITIES_IDS;
 import static com.github.ssullivan.db.redis.RedisConstants.isValidIdentifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,7 +55,6 @@ public class RedisFacilityDao implements IFacilityDao {
   private ICategoryCodesDao categoryCodesDao;
   private IServiceCodesDao serviceCodesDao;
   private IFeedDao feedDao;
-  private RollingIdGenerator searchIdGenerator;
   private FacilityToMapConverter facilityToMapConverter;
   private ObjectReader reader;
   private ObjectWriter writer;
@@ -65,12 +65,10 @@ public class RedisFacilityDao implements IFacilityDao {
       IAsyncRedisConnectionPool asyncConnectionPool,
       ICategoryCodesDao categoryCodesDao,
       IServiceCodesDao serviceCodesDao,
-      RollingIdGenerator searchIdGenerator,
       IFeedDao feedDao,
       FacilityToMapConverter facilityToMapConverter,
       IndexFacility indexFacility,
       ObjectMapper objectMapper) {
-    this.searchIdGenerator = searchIdGenerator;
     this.asyncPool = asyncConnectionPool;
     this.categoryCodesDao = categoryCodesDao;
     this.serviceCodesDao = serviceCodesDao;
@@ -92,32 +90,37 @@ public class RedisFacilityDao implements IFacilityDao {
     return ShortUuid.randomShortUuid();
   }
 
-
-
   public List<Facility> list(final Page page) {
     return new ArrayList<>();
   }
-
 
   private void addFacility(final RedisCommands<String, String> redis,  Facility facility) throws IOException {
     if (!isValidIdentifier(facility.getId())) {
       facility.setId(generatePrimaryKey());
     }
 
-      final Map<String, String> stringStringMap = toStringMap(facility);
-      redis.hmset(facilityKey(facility.getId()), stringStringMap);
+    final Map<String, String> stringStringMap = toStringMap(facility);
+    redis.hmset(facilityKey(facility.getId()), stringStringMap);
+
+
+    // this is so we can quickly delete stuff in the future
+    redis.sadd(TREATMENT_FACILITIES_IDS + facility.getFeedId(), facility.getId());
+
   }
 
 
+
   @Override
-  public void addFacility(Facility facility) throws IOException {
+  public void addFacility(String feedId, Facility facility) throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
       addFacility(connection.sync(), facility);
     } catch (Exception e) {
       throw new IOException("Failed to get connection to REDIS", e);
     }
 
-    indexFacility.index(feedDao.currentFeedId().get(), facility);
+    facility.setFeedId(feedId);
+
+    indexFacility.index(feedId, facility);
   }
 
   public Facility getFacility(final String pk) throws IOException {
@@ -223,8 +226,8 @@ public class RedisFacilityDao implements IFacilityDao {
     return this.facilityToMapConverter.apply(facility);
   }
 
-  private String serialize(@Nonnull final Facility category) throws IOException {
-    return writer.writeValueAsString(category);
+  private String serialize(@Nonnull final Facility facility) throws IOException {
+    return writer.writeValueAsString(facility);
   }
 
   private Facility deserialize(@Nonnull final String json) throws IOException {

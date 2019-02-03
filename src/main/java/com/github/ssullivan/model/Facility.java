@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 @ApiModel
 public class Facility {
   private String id;
-  private String shortId;
+  private String feedId;
   private String name1;
   private String name2;
   private String zip;
@@ -36,6 +36,7 @@ public class Facility {
 
   public Facility(Facility facility) {
     this.id = facility.getId();
+    this.feedId = facility.getFeedId();
     this.name1 = facility.getName1();
     this.name2 = facility.getName2();
     this.zip = facility.getZip();
@@ -77,11 +78,12 @@ public class Facility {
    * @param categoryCodes categories of services offered by the facility
    * @param serviceCodes services offered by the facility
    */
-  public Facility(String id, String name1, String name2, String zip, String street,
+  public Facility(String id, String feedId, String name1, String name2, String zip, String street,
       String city, String state, String county, String googlePlaceId, GeoPoint location,
       String formattedAddress, String website, Set<String> phoneNumbers,
       Set<String> categoryCodes, Set<String> serviceCodes) {
     this.id = id;
+    this.feedId = feedId;
     this.name1 = name1;
     this.name2 = name2;
     this.county = county;
@@ -98,12 +100,12 @@ public class Facility {
     this.serviceCodes = serviceCodes;
   }
 
-  public String getShortId() {
-    return shortId;
+  public String getFeedId() {
+    return feedId;
   }
 
-  public void setShortId(String shortId) {
-    this.shortId = shortId;
+  public void setFeedId(String feedId) {
+    this.feedId = feedId;
   }
 
   public String getCounty() {

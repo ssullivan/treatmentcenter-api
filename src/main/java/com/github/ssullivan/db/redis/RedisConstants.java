@@ -16,6 +16,7 @@ public final class RedisConstants {
   public static final String SEARCH_BY_SERVICE_REQ = "search:services:counter";
 
   public static final String TREATMENT_FACILITIES = "treatment:facilities";
+  public static final String TREATMENT_FACILITIES_IDS = TREATMENT_FACILITIES + ":feed:ids:";
   public static final String INDEX_BY_SERVICES = "index:facility_by_service";
   public static final String INDEX_BY_CATEGORIES = "index:facility_by_category";
   public static final String INDEX_BY_GEO = "index:facility_by_geo";

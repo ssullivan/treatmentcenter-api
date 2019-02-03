@@ -15,7 +15,7 @@ public interface IFacilityDao {
   /**
    * Adds the Facility to the database.
    */
-  void addFacility(final Facility facility) throws IOException;
+  void addFacility(final String feedId, final Facility facility) throws IOException;
 
   Facility getFacility(final String id) throws IOException;
 

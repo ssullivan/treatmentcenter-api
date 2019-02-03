@@ -27,6 +27,7 @@ public class FacilityToMapConverter implements Function<Facility, Map<String, St
     try {
       final Map<String, String> toReturn = new HashMap<>();
       toReturn.put("id", "" + facility.getId());
+      toReturn.put("feedId", facility.getFeedId());
       toReturn.put("name1", facility.getName1());
       toReturn.put("name2", facility.getName2());
       toReturn.put("zip", facility.getZip());

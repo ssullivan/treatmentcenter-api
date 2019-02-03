@@ -41,8 +41,7 @@ matrix:
           provider: script
           script: ./graldew dockerTagImageDevLatest pushImageDevLatest
           on:
-            all_branches: true
-            condition: $TRAVIS_BRANCH =~ ^develop|feature/.*?$
+            branch: master
     - language: node_js
       node_js:
         - "node"
