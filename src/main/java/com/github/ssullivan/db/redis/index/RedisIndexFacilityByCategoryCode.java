@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.redis.index;
 
 import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_CATEGORIES;
+import static com.github.ssullivan.db.redis.RedisConstants.indexByGeoKey;
 import static com.github.ssullivan.db.redis.RedisConstants.isValidIdentifier;
 
 import com.github.ssullivan.db.IFeedDao;
@@ -42,7 +43,10 @@ public class RedisIndexFacilityByCategoryCode extends AbstractRedisIndexFacility
           if (feed != null && !feed.isEmpty()) {
             key = INDEX_BY_CATEGORIES + ":" + feed + ":" + code;
           }
-          sync.sadd(key, facility.getId());
+          Long totalResults = sync.sadd(key, facility.getId());
+
+
+          LOGGER.debug("Added {} keys to {}", totalResults, key);
         });
   }
 

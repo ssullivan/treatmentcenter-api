@@ -43,7 +43,11 @@ public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility 
           if (feed != null && !feed.isEmpty()) {
             key = INDEX_BY_SERVICES + ":" + feed + ":" + code;
           }
-          sync.sadd(key, facility.getId());
+
+          Long totalResults = sync.sadd(key, facility.getId());
+
+
+          LOGGER.debug("Added {} keys to {}", totalResults, key);
         });
   }
 

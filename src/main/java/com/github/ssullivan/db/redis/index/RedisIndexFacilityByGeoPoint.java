@@ -37,7 +37,7 @@ public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility imp
         .geoadd(indexByGeoKey(feed), facility.getLocation().lon(), facility.getLocation().lat(),
             facility.getId());
 
-    LOGGER.debug("Added {} keys to {}", indexByGeoKey(feed));
+    LOGGER.debug("Added {} keys to {}", geoAddCount, indexByGeoKey(feed));
   }
 
   @Override

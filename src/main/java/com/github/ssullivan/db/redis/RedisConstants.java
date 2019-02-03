@@ -19,7 +19,7 @@ public final class RedisConstants {
   public static final String INDEX_BY_SERVICES = "index:facility_by_service";
   public static final String INDEX_BY_CATEGORIES = "index:facility_by_category";
   public static final String INDEX_BY_GEO = "index:facility_by_geo";
-  public static final int DEFAULT_EXPIRE_SECONDS = 3600;
+  public static final int DEFAULT_EXPIRE_SECONDS = 360;
 
 
   public static String indexByGeoKey(final String feed) {

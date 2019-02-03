@@ -11,6 +11,7 @@ import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.db.redis.RollingIdGenerator;
 import com.github.ssullivan.db.redis.search.FindBySearchRequest;
+import com.github.ssullivan.db.redis.search.FindBySearchRequestSync;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -28,9 +29,12 @@ import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.awaitility.Awaitility;
+import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,28 +45,35 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityFindTests {
 
-  private RedisFacilityDao dao;
   private RedisCategoryCodesDao _categoryCodesDao;
   private RedisServiceCodeDao _serviceCodesDao;
   private IRedisConnectionPool _redisConnectionPool;
   private LoadCategoriesAndServicesFunctor loadCategoriesAndServicesFunctor;
   private LoadTreatmentFacilitiesFunctor loadTreatmentFacilitiesFunctor;
-  private FindBySearchRequest findBySearchRequest;
+  private FindBySearchRequestSync findBySearchRequest;
 
   @BeforeAll
-  private void setup() throws IOException {
+  private void setup() throws Exception {
     final Injector injector = Guice
         .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379, 2)));
-    dao = injector.getInstance(RedisFacilityDao.class);
+
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
-    this.findBySearchRequest = injector.getInstance(FindBySearchRequest.class);
+    this.findBySearchRequest = injector.getInstance(FindBySearchRequestSync.class);
     this.loadCategoriesAndServicesFunctor = injector.getInstance(LoadCategoriesAndServicesFunctor.class);
     this.loadTreatmentFacilitiesFunctor = injector.getInstance(LoadTreatmentFacilitiesFunctor.class);
 
+
+    _redisConnectionPool.borrowConnection().sync().flushdb();
+
+
     IFeedDao feedDao = injector.getInstance(IFeedDao.class);
-    feedDao.setCurrentFeedId(feedDao.nextFeedId().get());
+
+    final String nextFeedId = feedDao.nextFeedId().get();
+
+    feedDao.setCurrentFeedId(nextFeedId);
+    feedDao.setSearchFeedId(nextFeedId);
 
     loadFixtures();
   }
@@ -97,9 +108,10 @@ public class RedisFacilityFindTests {
 
     final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
     MatcherAssert.assertThat(searchResults.hits(), hasSize(3));
-    MatcherAssert.assertThat(searchResults.hits().get(0).getId(), equalTo(3L));
-    MatcherAssert.assertThat(searchResults.hits().get(1).getId(), equalTo(5L));
-    MatcherAssert.assertThat(searchResults.hits().get(2).getId(), equalTo(7L));
+
+    final Set<String> names = searchResults.hits().stream().map(Facility::getName1).map(
+        String::toLowerCase).collect(Collectors.toSet());
+    MatcherAssert.assertThat(names, Matchers.containsInAnyOrder("location 7", "location 5", "location 3"));
   }
 
   @Test
@@ -117,9 +129,11 @@ public class RedisFacilityFindTests {
 
     final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
     MatcherAssert.assertThat(searchResults.hits(), hasSize(3));
-    MatcherAssert.assertThat(searchResults.hits().get(0).getId(), equalTo(3L));
-    MatcherAssert.assertThat(searchResults.hits().get(1).getId(), equalTo(5L));
-    MatcherAssert.assertThat(searchResults.hits().get(2).getId(), equalTo(7L));
+
+
+    final Set<String> names = searchResults.hits().stream().map(Facility::getName1).map(
+        String::toLowerCase).collect(Collectors.toSet());
+    MatcherAssert.assertThat(names, Matchers.containsInAnyOrder("location 7", "location 5", "location 3"));
   }
 
   @Test
@@ -141,7 +155,6 @@ public class RedisFacilityFindTests {
     MatcherAssert.assertThat(searchResults.hits(), hasSize(8));
 
     final Facility firstFacility = searchResults.hits().get(0);
-    MatcherAssert.assertThat(firstFacility.getId(), equalTo(1L));
     MatcherAssert.assertThat(firstFacility.getName1(), equalTo("Location 1"));
   }
 
@@ -164,11 +177,10 @@ public class RedisFacilityFindTests {
     MatcherAssert.assertThat(searchResults.hits(), hasSize(2));
 
     final Facility firstFacility = searchResults.hits().get(0);
-    MatcherAssert.assertThat(firstFacility.getId(), equalTo(1L));
-    MatcherAssert.assertThat(firstFacility.getName1(), equalTo("Location 1"));
+    MatcherAssert.assertThat(firstFacility.getName1(), Matchers.anyOf(Matchers.equalTo("Location 1"), Matchers.equalTo("Location 2")));
 
     final Facility secondFacility = searchResults.hits().get(1);
-    MatcherAssert.assertThat(secondFacility.getId(), equalTo(2L));
-    MatcherAssert.assertThat(secondFacility.getName1(), equalTo("Location 2"));
+    MatcherAssert.assertThat(secondFacility.getName1(), Matchers.anyOf(Matchers.equalTo("Location 1"), Matchers.equalTo("Location 2")));
+
   }
 }

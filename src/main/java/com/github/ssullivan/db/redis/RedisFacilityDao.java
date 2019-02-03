@@ -117,7 +117,7 @@ public class RedisFacilityDao implements IFacilityDao {
       throw new IOException("Failed to get connection to REDIS", e);
     }
 
-    indexFacility.index("", facility);
+    indexFacility.index(feedDao.currentFeedId().get(), facility);
   }
 
   public Facility getFacility(final String pk) throws IOException {

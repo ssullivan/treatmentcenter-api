@@ -19,6 +19,7 @@ public interface IFeedDao {
 
   Optional<String> setCurrentFeedId(final String id) throws IOException;
 
+  Optional<String> setSearchFeedId(final String id) throws IOException;
 
 
   /**

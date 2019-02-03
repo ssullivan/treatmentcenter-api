@@ -39,6 +39,16 @@ public class RedisFeedDao implements IFeedDao {
   }
 
   @Override
+  public Optional<String> setSearchFeedId(String id) throws IOException {
+    try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
+      return Optional.ofNullable(redis.sync().set(SEARCH_FEED_KEY, id));
+    } catch (Exception e) {
+      handleException(e);
+    }
+    return Optional.empty();
+  }
+
+  @Override
   public Optional<String> currentFeedId() throws IOException {
     return fetchUuid(CURRENT_FEED_KEY);
   }
