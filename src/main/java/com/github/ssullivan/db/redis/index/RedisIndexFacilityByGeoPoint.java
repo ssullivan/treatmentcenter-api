@@ -33,6 +33,11 @@ public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility imp
       throw new IllegalArgumentException("id must be non zero");
     }
 
+    if (facility.getLocation() == null) {
+      LOGGER.warn("Facility {} does not have a location", facility.getId());
+      return;
+    }
+
     final Long geoAddCount = sync
         .geoadd(indexByGeoKey(feed), facility.getLocation().lon(), facility.getLocation().lat(),
             facility.getId());

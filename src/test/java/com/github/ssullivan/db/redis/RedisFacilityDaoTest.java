@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.redis;
 
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisFacilityDao;
@@ -48,7 +49,7 @@ public class RedisFacilityDaoTest {
   private IRedisConnectionPool _redisConnectionPool;
 
   @BeforeAll
-  private void setup() {
+  private void setup() throws IOException {
     final Injector injector = Guice
         .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379, 1)));
     _dao = injector.getInstance(RedisFacilityDao.class);
@@ -56,6 +57,13 @@ public class RedisFacilityDaoTest {
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
 
+
+    IFeedDao feedDao = injector.getInstance(IFeedDao.class);
+
+    final String nextFeedId = feedDao.nextFeedId().get();
+
+    feedDao.setCurrentFeedId(nextFeedId);
+    feedDao.setSearchFeedId(nextFeedId);
   }
 
 
