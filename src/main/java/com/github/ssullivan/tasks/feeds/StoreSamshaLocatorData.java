@@ -67,7 +67,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
 
     for (final Facility facility : samshaLocatorData.getFacilities()) {
       try {
-        facilityDao.addFacility(facility);
+        facilityDao.addFacility(feedId, facility);
       }
       catch (IOException e) {
         LOGGER.error("Failed to add facility: {}", facility);

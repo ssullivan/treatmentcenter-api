@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.SamshaFacility;
 import com.github.ssullivan.utils.ShortUuid;
@@ -24,15 +25,20 @@ public class LoadTreatmentFacilitiesFunctor {
   private final ObjectMapper objectMapper = Jackson.newMinimalObjectMapper();
 
   private final ObjectReader objectReader = objectMapper.readerFor(SamshaFacility.class);
+  private IFeedDao feedDao;
+  private String feedId;
 
   @Inject
   public LoadTreatmentFacilitiesFunctor(IFacilityDao facilityDao,
-      ICategoryCodesDao categoryCodesDao) {
+      ICategoryCodesDao categoryCodesDao,
+      IFeedDao feedDao) {
     this.facilityDao = facilityDao;
     this.categoryCodesDao = categoryCodesDao;
+    this.feedDao = feedDao;
   }
 
-  public void run(File file) throws IOException {
+  public void run(final File file, final String feedId) throws IOException {
+    this.feedId = feedId;
     boolean isGzipFile = file.getName().endsWith("gz");
     try (FileInputStream fileInputStream = new FileInputStream(file)) {
       if (isGzipFile) {
@@ -43,6 +49,7 @@ public class LoadTreatmentFacilitiesFunctor {
         loadStream(fileInputStream);
       }
     }
+
   }
 
   public void loadStream(final InputStream inputStream) throws IOException {
@@ -55,6 +62,7 @@ public class LoadTreatmentFacilitiesFunctor {
       final SamshaFacility value = iterator.nextValue();
       final Facility facility = new Facility();
       facility.setId(ShortUuid.randomShortUuid());
+      facility.setFeedId(feedId);
       facility.setCategoryCodes(value.getCategoryCodes());
       facility.setServiceCodes(value.getServiceCodes());
       facility.setName1(value.getName1());
@@ -68,7 +76,7 @@ public class LoadTreatmentFacilitiesFunctor {
       facility.setPhoneNumbers(Sets.newHashSet(value.getPhone()));
       facility.setWebsite(value.getWebsite());
 
-      facilityDao.addFacility(facility);
+      facilityDao.addFacility(this.feedId, facility);
     }
   }
 }

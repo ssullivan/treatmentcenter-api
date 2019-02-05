@@ -1,7 +1,9 @@
 package com.github.ssullivan.tasks;
 
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import io.dropwizard.cli.Command;
@@ -48,6 +50,11 @@ public class LoadTreatmentFacilitiesTask extends Command {
     final Injector injector = Guice.createInjector(new RedisClientModule(redisConfig));
 
     final File file = namespace.get("File");
+
+    String feedId = ShortUuid.randomShortUuid();
+    
+    injector.getInstance(IFeedDao.class).setCurrentFeedId();
+
 
     injector.getInstance(LoadTreatmentFacilitiesFunctor.class)
         .run(file);
