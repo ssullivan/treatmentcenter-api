@@ -28,8 +28,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.poi.ss.usermodel.Cell;
@@ -43,18 +45,20 @@ import org.slf4j.LoggerFactory;
 /**
  *
  */
-public class TransformLocatorSpreadsheet implements Function<InputStream, Optional<SamshaLocatorData>> {
+public class TransformLocatorSpreadsheet implements
+    BiFunction<String, InputStream, Optional<SamshaLocatorData>> {
   private static final Logger LOGGER = LoggerFactory.getLogger(TransformLocatorSpreadsheet.class);
-  private static final ObjectReader FEED_READER = new ObjectMapper().readerFor(Feed.class);
-  private static final ObjectWriter FEED_WRITER = new ObjectMapper().writerFor(Feed.class);
-  private static final String SAMSHA = "samsha";
+
 
   private static final int FACILITIES_WITH_SERVICE_CODE_DETAIL = 0;
   private static final int SERVICE_CODER_REFERENCE = 1;
 
-
   @Override
-  public Optional<SamshaLocatorData> apply(final InputStream inputStream) {
+  public Optional<SamshaLocatorData> apply(final String feedId, final InputStream inputStream) {
+    Objects.requireNonNull(feedId, "The feedId must not be empty");
+    Objects.requireNonNull(inputStream, "The spreadsheet stream must not be empty");
+
+    LOGGER.info("Parsing spreadsheet for feed {}", feedId);
     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
 
       final Sheet facilitySheet = workbook.getSheetAt(FACILITIES_WITH_SERVICE_CODE_DETAIL);
@@ -64,31 +68,31 @@ public class TransformLocatorSpreadsheet implements Function<InputStream, Option
       final ImmutableList<ImmutableMap<String, String>> serviceCodes = collectMaps(serviceCodeSheet);
 
       final Tuple2<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(serviceCodes);
-      final Collection<Facility> facilities = transformToFacilities(locations, serviceCodes);
+      final Collection<Facility> facilities = transformToFacilities(feedId, locations, serviceCodes);
 
 
-      return Optional.of(new SamshaLocatorData(services.get_1(), services.get_2(), facilities));
+      return Optional.of(new SamshaLocatorData(feedId, services.get_1(), services.get_2(), facilities));
     } catch (IOException e) {
       LOGGER.error("Failed to process Workbook", e);
+    }
+    finally {
+      LOGGER.info("Finished parsing data for feed {}", feedId);
     }
     return Optional.empty();
   }
 
-  public static void main(String[] args) throws IOException {
-    final Injector injector = Guice.createInjector(new RedisClientModule(new RedisConfig()));
-    final TransformLocatorSpreadsheet transformLocatorSpreadsheet = injector.getInstance(TransformLocatorSpreadsheet.class);
 
-    transformLocatorSpreadsheet.apply(new FileInputStream(new File(args[0])));
-    int j = 0;
-  }
-
-  private static Collection<Facility> transformToFacilities(final ImmutableList<ImmutableMap<String, String>> locations, final ImmutableList<ImmutableMap<String, String>> serviceCodes) {
+  private static Collection<Facility> transformToFacilities(final String feedId,
+      final ImmutableList<ImmutableMap<String, String>> locations,
+      final ImmutableList<ImmutableMap<String, String>> serviceCodes) {
     return locations.stream()
         .map(it -> asFacility(it, serviceCodes))
+        .peek(it -> it.setFeedId(feedId))
         .collect(Collectors.toList());
   }
 
-  private static Tuple2<Collection<Category>, Collection<Service>> transformToCategoriesAndServices(final ImmutableList<ImmutableMap<String, String>> catsAndServices) {
+  private static Tuple2<Collection<Category>, Collection<Service>> transformToCategoriesAndServices(
+      final ImmutableList<ImmutableMap<String, String>> catsAndServices) {
     final Map<String, Category> cats = new HashMap<>(catsAndServices.size());
     final List<Service> services = new ArrayList<Service>();
 
@@ -98,6 +102,7 @@ public class TransformLocatorSpreadsheet implements Function<InputStream, Option
           final Service service = asService(row);
 
           category.addServiceCode(service);
+          services.add(service);
         });
 
     return new Tuple2<>(cats.values(), services);

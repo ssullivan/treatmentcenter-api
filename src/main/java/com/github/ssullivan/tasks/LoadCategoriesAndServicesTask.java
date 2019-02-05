@@ -12,6 +12,7 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public class LoadCategoriesAndServicesTask extends Command {
   private static final Logger LOGGER = LoggerFactory.getLogger(LoadCategoriesAndServicesTask.class);
 

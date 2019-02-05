@@ -4,12 +4,14 @@ import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.bundles.InjectorRegistry;
 import com.github.ssullivan.core.PostalcodeService;
+import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.healthchecks.RedisHealthCheck;
 import com.github.ssullivan.tasks.LoadCategoriesAndServicesTask;
 import com.github.ssullivan.tasks.LoadTreatmentFacilitiesTask;
+import com.github.ssullivan.tasks.feeds.LoadSamshaCommand;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -38,7 +40,7 @@ public class ApiApplication extends Application<AppConfig> {
   @Override
   public void initialize(Bootstrap<AppConfig> bootstrap) {
 
-
+    bootstrap.addCommand(new LoadSamshaCommand());
     bootstrap.addCommand(new LoadCategoriesAndServicesTask());
     bootstrap.addCommand(new LoadTreatmentFacilitiesTask());
 
@@ -92,7 +94,8 @@ public class ApiApplication extends Application<AppConfig> {
       }
     };
 
-    bootstrap.addBundle(new DropwizardGuiceBundle<>(module, new AbstractModule() {
+    bootstrap.addBundle(new DropwizardGuiceBundle<>(module,
+        new AbstractModule() {
       @Override
       protected void configure() {
         bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);

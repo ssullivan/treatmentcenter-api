@@ -37,42 +37,43 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
   @Override
   public Boolean apply(final SamshaLocatorData samshaLocatorData) {
 
-    final String feedId;
-    try {
-      feedId = feedDao.nextFeedId().orElseThrow(() -> new IOException("Failed to generate feed id"));
-    } catch (IOException e) {
-      LOGGER.error("Failed to generate next feed id for this dataset!", e);
-      return false;
-    }
-
-
+    int totalCats = 0;
     for (final Category category : samshaLocatorData.getCategories()) {
       try {
-        this.categoryCodesDao.addCategory(feedId, category);
+        this.categoryCodesDao.addCategory(samshaLocatorData.getFeedId(), category);
+        totalCats++;
       }
       catch (IOException e) {
         LOGGER.error("Failed to add category: {}", category);
       }
     }
+    LOGGER.info("Loaded {} of {} categories", totalCats, samshaLocatorData.getCategories().size());
 
+
+    int totalServices = 0;
     for (final Service service : samshaLocatorData.getServices()) {
       try {
-        this.serviceCodesDao.addService(feedId, service);
+        this.serviceCodesDao.addService(samshaLocatorData.getFeedId(), service);
+        totalServices++;
       }
       catch (IOException e) {
         LOGGER.error("Failed to add service: {}", service);
       }
     }
+    LOGGER.info("Loaded {} of {} services", totalServices, samshaLocatorData.getServices().size());
 
 
+    int totalLocations = 0;
     for (final Facility facility : samshaLocatorData.getFacilities()) {
       try {
-        facilityDao.addFacility(feedId, facility);
+        facilityDao.addFacility(samshaLocatorData.getFeedId(), facility);
+        totalLocations++;
       }
       catch (IOException e) {
         LOGGER.error("Failed to add facility: {}", facility);
       }
     }
+    LOGGER.info("Loaded {} of {} locations", totalLocations, samshaLocatorData.getFacilities().size());
 
     return true;
   }

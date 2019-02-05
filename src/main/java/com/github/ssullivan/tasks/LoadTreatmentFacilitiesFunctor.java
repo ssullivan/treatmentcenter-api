@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
+@Deprecated
 public class LoadTreatmentFacilitiesFunctor {
   private IFacilityDao facilityDao;
   private ICategoryCodesDao categoryCodesDao;

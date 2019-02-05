@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -11,10 +12,15 @@ import com.github.ssullivan.guice.BucketName;
 import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.Feed;
+import com.github.ssullivan.utils.ShortUuid;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -57,57 +63,77 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
 
   @Override
   public Optional<Tuple2<String, String>> get() {
-    final Client client = JerseyClientBuilder.createClient();
-    final ObjectMetadata objectMetadata = new ObjectMetadata();
-
-    try {
-
-      final long collected_at = System.currentTimeMillis();
-      final Response response = client.target(url)
-          .path("locatorExcel")
-          .queryParam("sType", "SA")
-          .request()
-          .buildGet()
-          .invoke();
-
-      if (response.getStatus() == 200) {
-        try (final InputStream inputStream = response.readEntity(InputStream.class);
-            final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
-
-          LOGGER.info("Successfully, fetched SAMSHA treatment facilities excel");
-
-          final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-
-          final String objectKey = createObjectKey();
-          final long epochMillis = System.currentTimeMillis();
-          final Feed feed = new Feed(SAMSHA, objectKey, epochMillis);
-
-          objectMetadata.addUserMetadata("collected_at", "" + collected_at);
-
-
-          amazonS3.putObject(this.bucket, objectKey, bufferedInputStream, new ObjectMetadata());
-
-
-          try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(FEED_WRITER.writeValueAsBytes(feed))) {
-            amazonS3.putObject(this.bucket, "feeds/samsha.feed.json", byteArrayInputStream, new ObjectMetadata());
-          }
-
-          return Optional.of(new Tuple2<>(bucket, objectKey));
-        } catch (IOException e) {
-          LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
-        }
+    if (this.url.startsWith("file")) {
+      final File file  = new File(this.url.replaceFirst("file:/", ""));
+      try (FileInputStream fileInputStream = new FileInputStream(file);
+           BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, 8192)
+      ) {
+        return Optional.of(handleStream(file.length(), bufferedInputStream));
+      } catch (MalformedURLException e) {
+        LOGGER.error("Failed to load: " + this.url, e);
+      } catch (IOException e) {
+        LOGGER.error("Failed to load: " + this.url, e);
       }
+      return Optional.empty();
     }
-    finally {
-      client.close();
+    else {
+      final Client client = JerseyClientBuilder.createClient();
+      try {
+        final Response response = client.target(url)
+            .path("locatorExcel")
+            .queryParam("sType", "SA")
+            .request()
+            .buildGet()
+            .invoke();
+
+        if (response.getStatus() == 200) {
+          try (final InputStream inputStream = response.readEntity(InputStream.class);
+              final BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                  inputStream)) {
+            return Optional.of(handleStream(response.getLength(), bufferedInputStream));
+          } catch (IOException e) {
+            LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
+          }
+        }
+      } finally {
+        client.close();
+      }
     }
 
     return Optional.empty();
   }
 
+  private Tuple2<String, String> handleStream(final long contentLength,  final InputStream inputStream)
+      throws IOException {
+    LOGGER.info("Successfully, fetched SAMSHA treatment facilities excel");
+
+    final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+    final ObjectMetadata objectMetadata = new ObjectMetadata();
+
+    final long collected_at = System.currentTimeMillis();
+    final String objectKey = createObjectKey();
+    final long epochMillis = System.currentTimeMillis();
+    final Feed feed = new Feed(SAMSHA, objectKey, epochMillis);
+
+    objectMetadata.addUserMetadata("collected_at", "" + collected_at);
+    objectMetadata.addUserMetadata("feed_id", ShortUuid.randomShortUuid());
+
+    if (contentLength > 0)
+      objectMetadata.setContentLength(contentLength);
+
+
+    amazonS3.putObject(this.bucket, objectKey, inputStream, objectMetadata);
+
+
+    try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(FEED_WRITER.writeValueAsBytes(feed))) {
+      amazonS3.putObject(this.bucket, "feeds/samsha.feed.json", byteArrayInputStream, new ObjectMetadata());
+    }
+
+    return new Tuple2<>(bucket, objectKey);
+  }
 
   private String createObjectKey() {
-    return "samsha/locations-" + ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT) + ".xlsx";
+    return "samsha/locations-" + ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("YYYYMMddHHmmss")) + ".xlsx";
   }
 
   private Optional<Feed> getFeed() {

@@ -36,6 +36,7 @@ public class RedisFacilityIndexDao implements IndexFacility {
     byGeo.index(feed, facility);
     byServiceCode.index(feed, facility);
     byCategoryCode.index(feed, facility);
+    LOGGER.debug("Index facility {} in feed {}", facility.getId(), facility.getFeedId());
   }
 
   @Override
