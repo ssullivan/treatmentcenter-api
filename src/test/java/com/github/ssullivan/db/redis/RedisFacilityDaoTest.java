@@ -18,6 +18,7 @@ import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.ServicesCondition;
+import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityDaoTest {
+  private static final String FeedId = ShortUuid.randomShortUuid();
   private static final String FirstId = ShortUuid.randomShortUuid();
   private static final String SecondId = ShortUuid.randomShortUuid();
   private static final String ThirdId = ShortUuid.randomShortUuid();
@@ -82,6 +84,7 @@ public class RedisFacilityDaoTest {
   public void testAddingFacility() throws IOException {
     final Facility original = new Facility();
     original.setId(FirstId);
+    original.setFeedId(FeedId);
     original.setCategoryCodes(Sets.newHashSet("TEST"));
     original.setServiceCodes(Sets.newHashSet("BAR"));
     original.setCity("New York");
@@ -90,7 +93,7 @@ public class RedisFacilityDaoTest {
     original.setWebsite("http://www.test.com");
     original.setZip("10001");
 
-    _dao.addFacility(original);
+    _dao.addFacility(FeedId, original);
 
     final Facility fromDb = _dao.getFacility(original.getId());
     MatcherAssert.assertThat(fromDb, Matchers.notNullValue());

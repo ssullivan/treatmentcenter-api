@@ -51,10 +51,6 @@ public class LoadTreatmentFacilitiesTask extends Command {
 
     final File file = namespace.get("File");
 
-    String feedId = ShortUuid.randomShortUuid();
-    
-    injector.getInstance(IFeedDao.class).setCurrentFeedId();
-
 
     injector.getInstance(LoadTreatmentFacilitiesFunctor.class)
         .run(file);

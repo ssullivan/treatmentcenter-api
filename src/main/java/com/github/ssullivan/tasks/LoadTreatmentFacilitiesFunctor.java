@@ -37,22 +37,39 @@ public class LoadTreatmentFacilitiesFunctor {
     this.feedDao = feedDao;
   }
 
+  public void run(final File file) throws IOException {
+    this.feedId = feedDao.currentFeedId().orElseGet(() -> {
+      final String retval = ShortUuid.randomShortUuid();
+      try {
+        feedDao.setCurrentFeedId(retval);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return retval;
+    });
+
+    run(file, feedId);
+  }
+
   public void run(final File file, final String feedId) throws IOException {
     this.feedId = feedId;
     boolean isGzipFile = file.getName().endsWith("gz");
     try (FileInputStream fileInputStream = new FileInputStream(file)) {
       if (isGzipFile) {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream)) {
-          loadStream(gzipInputStream);
+          loadStream(gzipInputStream, feedId);
         }
       } else {
-        loadStream(fileInputStream);
+        loadStream(fileInputStream, feedId);
       }
     }
 
   }
 
-  public void loadStream(final InputStream inputStream) throws IOException {
+
+
+  public void loadStream(final InputStream inputStream, final String feedId) throws IOException {
+    this.feedId = feedId;
     processRows(objectReader.readValues(inputStream));
   }
 

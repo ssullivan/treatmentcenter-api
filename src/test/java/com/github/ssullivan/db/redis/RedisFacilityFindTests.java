@@ -45,6 +45,7 @@ public class RedisFacilityFindTests {
   private LoadCategoriesAndServicesFunctor loadCategoriesAndServicesFunctor;
   private LoadTreatmentFacilitiesFunctor loadTreatmentFacilitiesFunctor;
   private FindBySearchRequest findBySearchRequest;
+  private String feedId;
 
   @BeforeAll
   private void setup() throws Exception {
@@ -64,10 +65,10 @@ public class RedisFacilityFindTests {
 
     IFeedDao feedDao = injector.getInstance(IFeedDao.class);
 
-    final String nextFeedId = feedDao.nextFeedId().get();
+    feedId = feedDao.nextFeedId().get();
 
-    feedDao.setCurrentFeedId(nextFeedId);
-    feedDao.setSearchFeedId(nextFeedId);
+    feedDao.setCurrentFeedId(feedId);
+    feedDao.setSearchFeedId(feedId);
 
     loadFixtures();
   }
@@ -76,7 +77,7 @@ public class RedisFacilityFindTests {
     this.loadCategoriesAndServicesFunctor.loadStream(Resources.getResource(
         "fixtures/service_codes_records.json").openStream());
     this.loadTreatmentFacilitiesFunctor.loadStream(Resources.getResource(
-        "fixtures/locations_geocoded.json").openStream());
+        "fixtures/locations_geocoded.json").openStream(), feedId);
   }
 
 

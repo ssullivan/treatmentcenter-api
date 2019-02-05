@@ -41,6 +41,7 @@ import org.mockito.Mockito;
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class FacilitySearchResourceTest {
+  private static final String FeedId = ShortUuid.encode(UUID.randomUUID());
   private static final String FirstId = ShortUuid.encode(UUID.randomUUID());
   private static final String SecondId = ShortUuid.encode(UUID.randomUUID());
 
@@ -78,7 +79,7 @@ public class FacilitySearchResourceTest {
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
       .build();
 
-    private static final Facility facility = new Facility(FirstId, "test",
+    private static final Facility facility = new Facility(FirstId, FeedId, "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",
@@ -86,7 +87,7 @@ public class FacilitySearchResourceTest {
 
 
 
-  private static final Facility facilit2y = new Facility(SecondId,
+  private static final Facility facilit2y = new Facility(SecondId, FeedId,
       "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
