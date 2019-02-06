@@ -14,9 +14,6 @@ import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.db.IndexFacility;
-import com.github.ssullivan.db.IndexFacilityByCategoryCode;
-import com.github.ssullivan.db.IndexFacilityByGeo;
-import com.github.ssullivan.db.IndexFacilityByServiceCode;
 import com.github.ssullivan.model.AvailableServices;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
@@ -283,5 +280,32 @@ public class RedisFacilityDao implements IFacilityDao {
     }
 
     return new AvailableServices(availableServicesByCategory.values());
+  }
+
+  @Override
+  public Set<String> getKeysForFeed(String feedId) throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      return connection.sync().smembers(TREATMENT_FACILITIES_IDS  + feedId);
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        LOGGER.error("Interrupted while fetching facility {}", feedId);
+        Thread.currentThread().interrupt();
+      }
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  @Override
+  public void expire(String id, long seconds) throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      connection.sync().expire(facilityKey(id), seconds);
+
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        LOGGER.error("Interrupted while fetching facility {}", id);
+        Thread.currentThread().interrupt();
+      }
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
   }
 }

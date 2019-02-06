@@ -7,6 +7,7 @@ import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacilityByGeo;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.model.Facility;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.Optional;
@@ -53,6 +54,13 @@ public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility imp
       throw new IOException("No current feed id is set");
     }
     index(feedDao.currentFeedId().get(), facility);
+  }
+
+  @Override
+  public void expire(String feed, long seconds) throws Exception {
+    try (final StatefulRedisConnection<String, String> connection = this.pool.borrowConnection()) {
+      connection.sync().expire(indexByGeoKey(feed), seconds);
+    }
   }
 
 }

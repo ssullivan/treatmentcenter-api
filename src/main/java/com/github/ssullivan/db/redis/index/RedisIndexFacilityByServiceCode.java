@@ -1,5 +1,6 @@
 package com.github.ssullivan.db.redis.index;
 
+import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_CATEGORIES;
 import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_SERVICES;
 import static com.github.ssullivan.db.redis.RedisConstants.isValidIdentifier;
 
@@ -7,7 +8,6 @@ import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacilityByServiceCode;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.model.Facility;
-import com.sun.org.apache.bcel.internal.generic.IFEQ;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.Objects;
@@ -59,5 +59,10 @@ public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility 
       throw new IOException("No current feed id is set");
     }
     index(feedDao.currentFeedId().get(), facility);
+  }
+
+  @Override
+  public void expire(String feed, long seconds) throws IOException {
+    expireMatching( INDEX_BY_CATEGORIES + ":" + feed + ":", seconds);
   }
 }

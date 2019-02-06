@@ -3,9 +3,6 @@ package com.github.ssullivan.tasks.feeds;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.github.ssullivan.db.ICategoryCodesDao;
-import com.github.ssullivan.db.IFacilityDao;
-import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.google.common.base.Stopwatch;
@@ -27,9 +24,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
   private Optional<String> locatorBucket = Optional.empty();
   private Optional<String> locatorObjectKey = Optional.empty();
   private Optional<SamshaLocatorData> samshaLocatorData = Optional.empty();
-  private IFacilityDao facilityDao;
-  private ICategoryCodesDao catsDao;
-  private IServiceCodesDao servicesDao;
+  private ManageFeeds manageFeeds;
 
   private String feedId;
   private AmazonS3 amazonS3;
@@ -38,12 +33,14 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
   public SamshaLocatorEtl(final FetchSamshaDataFeed fetchSamshaDataFeed,
       final TransformLocatorSpreadsheet transformLocatorSpreadsheet,
       final StoreSamshaLocatorData storeSamshaLocatorData,
+      final ManageFeeds manageFeeds,
       final AmazonS3 amazonS3) {
 
     this.fetchSamshaDataFeed = fetchSamshaDataFeed;
     this.transformLocatorSpreadsheet = transformLocatorSpreadsheet;
     this.storeSamshaLocatorData = storeSamshaLocatorData;
     this.amazonS3 = amazonS3;
+    this.manageFeeds = manageFeeds;
   }
 
   @Override
@@ -104,6 +101,13 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
       if (samshaLocatorData.get().isGood()) {
         if (!this.storeSamshaLocatorData.apply(samshaLocatorData.get())) {
           LOGGER.warn("Failed to store SAMSHA locator data!");
+        }
+        else {
+          try {
+            this.manageFeeds.expireOldFeeds(this.samshaLocatorData.get().getFeedId());
+          } catch (Exception e) {
+            LOGGER.error("Failed to expire old keys", e);
+          }
         }
       }
       else {

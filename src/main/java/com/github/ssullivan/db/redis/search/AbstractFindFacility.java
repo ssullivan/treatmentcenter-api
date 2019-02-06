@@ -1,31 +1,12 @@
 package com.github.ssullivan.db.redis.search;
 
-import static com.github.ssullivan.db.redis.RedisConstants.DEFAULT_EXPIRE_SECONDS;
-import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_GEO;
 import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_SERVICES;
-import static com.github.ssullivan.db.redis.RedisConstants.indexByGeoKey;
 
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.redis.IAsyncRedisConnectionPool;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
-import com.github.ssullivan.db.redis.ToFacilityWithRadiusConverter;
-import com.github.ssullivan.model.AvailableServices;
-import com.github.ssullivan.model.FacilityWithRadius;
-import com.github.ssullivan.model.GeoRadiusCondition;
-import com.github.ssullivan.model.SearchResults;
-import com.github.ssullivan.model.ServicesCondition;
-import io.lettuce.core.GeoRadiusStoreArgs;
-import io.lettuce.core.ZStoreArgs;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.api.sync.RedisCommands;
-import io.lettuce.core.protocol.RedisCommand;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

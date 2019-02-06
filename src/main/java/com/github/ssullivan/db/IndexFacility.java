@@ -10,4 +10,6 @@ public interface IndexFacility {
   void index(final String feed, final Facility facility) throws IOException;
 
   void index(final Facility facility) throws IOException;
+
+  void expire(final String feed, final long seconds) throws Exception;
 }

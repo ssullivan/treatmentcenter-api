@@ -3,6 +3,7 @@ package com.github.ssullivan.db;
 import com.github.ssullivan.db.redis.RedisFeedDao;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Optional;
 
 @ImplementedBy(RedisFeedDao.class)
@@ -20,6 +21,10 @@ public interface IFeedDao {
   Optional<String> setCurrentFeedId(final String id) throws IOException;
 
   Optional<String> setSearchFeedId(final String id) throws IOException;
+
+  Collection<String> getFeedIds() throws IOException;
+
+
 
 
   /**

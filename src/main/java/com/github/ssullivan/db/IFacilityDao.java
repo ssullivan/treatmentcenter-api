@@ -7,6 +7,7 @@ import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 @ImplementedBy(RedisFacilityDao.class)
@@ -24,5 +25,9 @@ public interface IFacilityDao {
   CompletionStage<List<Facility>> fetchBatchAsync(final Collection<String> ids);
 
   AvailableServices getAvailableServices( final Facility facility);
+
+  Set<String> getKeysForFeed(final String feedId) throws IOException;
+
+  void expire(final String id, long seconds) throws IOException;
 
 }

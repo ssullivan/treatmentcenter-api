@@ -6,7 +6,6 @@ import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;
