@@ -34,6 +34,7 @@ public class RedisFeedDao implements IFeedDao {
     try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
       Optional<String> result = Optional.ofNullable(redis.sync().set(CURRENT_FEED_KEY, id));
       redis.sync().sadd(FEED_IDS_KEY, id);
+      return result;
     } catch (Exception e) {
       handleException(e);
     }
