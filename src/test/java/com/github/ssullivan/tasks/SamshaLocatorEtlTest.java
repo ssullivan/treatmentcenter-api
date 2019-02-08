@@ -10,12 +10,15 @@ import java.nio.charset.Charset;
 import java.util.Optional;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.eclipse.jetty.util.IO;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class SamshaLocatorEtlTest {
 
@@ -54,6 +57,28 @@ public class SamshaLocatorEtlTest {
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(500)
         .setHeader("Content-Type", "application/html")
+    );
+
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed("http://localhost:8181", "test", amazonS3);
+    Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
+    MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
+  }
+
+  @Test
+  public void testStoringS3Failed() throws IOException {
+    AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
+    Mockito.when(amazonS3.putObject(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+        .thenAnswer(new Answer<Object>() {
+          @Override
+          public Object answer(InvocationOnMock invocation) throws Throwable {
+            throw new IOException("");
+          }
+        });
+
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .setHeader("Content-Type", "application/octet-stream")
+        .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
     FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed("http://localhost:8181", "test", amazonS3);
