@@ -2,15 +2,14 @@ package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.github.ssullivan.model.collections.Tuple2;
-import com.github.ssullivan.tasks.feeds.FetchSamshaDataFeed;
-import com.github.ssullivan.tasks.feeds.SamshaLocatorEtl;
+import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.eclipse.jetty.util.IO;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -84,5 +83,16 @@ public class SamshaLocatorEtlTest {
     FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed("http://localhost:8181", "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
+  }
+
+  @Test
+  public void testTransformLocatorSpreadheet() throws IOException {
+    TransformLocatorSpreadsheet transformLocatorSpreadsheet = new TransformLocatorSpreadsheet();
+    Optional<SamshaLocatorData> data = transformLocatorSpreadsheet.apply(ShortUuid.randomShortUuid(), Resources.getResource("fixtures/Locator.xlsx").openStream());
+
+    MatcherAssert.assertThat(data.isPresent(), Matchers.equalTo(true));
+    MatcherAssert.assertThat(data.get().isGood(), Matchers.equalTo(true));
+    MatcherAssert.assertThat(data.get().getServices(), Matchers.equalTo(190));
+    MatcherAssert.assertThat(data.get().getCategories(), Matchers.equalTo(27));
   }
 }
