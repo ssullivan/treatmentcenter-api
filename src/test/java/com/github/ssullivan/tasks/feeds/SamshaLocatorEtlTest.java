@@ -1,12 +1,17 @@
 package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.github.ssullivan.db.ICategoryCodesDao;
+import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.Optional;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -95,4 +100,30 @@ public class SamshaLocatorEtlTest {
     MatcherAssert.assertThat(data.get().getServices(), Matchers.equalTo(190));
     MatcherAssert.assertThat(data.get().getCategories(), Matchers.equalTo(27));
   }
+
+  @Test
+  public void testStoringData() {
+    IFeedDao feedDao = Mockito.mock(IFeedDao.class);
+    ICategoryCodesDao categoryCodesDao = Mockito.mock(ICategoryCodesDao.class);
+    IServiceCodesDao serviceCodesDao = Mockito.mock(IServiceCodesDao.class);
+    IFacilityDao facilityDao = Mockito.mock(IFacilityDao.class);
+
+    StoreSamshaLocatorData storeSamshaLocatorData = new StoreSamshaLocatorData(feedDao,
+        categoryCodesDao, serviceCodesDao,
+        facilityDao
+        );
+
+    SamshaLocatorData samshaLocatorData = new SamshaLocatorData(ShortUuid.randomShortUuid(),
+        new HashSet<>(),
+        new HashSet<>(),
+        new HashSet<>()
+        );
+
+    MatcherAssert.assertThat(storeSamshaLocatorData.apply(samshaLocatorData),
+        Matchers.equalTo(true));
+
+
+  }
+
+
 }
