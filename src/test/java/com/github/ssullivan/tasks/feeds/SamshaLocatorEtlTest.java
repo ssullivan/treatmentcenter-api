@@ -97,8 +97,8 @@ public class SamshaLocatorEtlTest {
 
     MatcherAssert.assertThat(data.isPresent(), Matchers.equalTo(true));
     MatcherAssert.assertThat(data.get().isGood(), Matchers.equalTo(true));
-    MatcherAssert.assertThat(data.get().getServices(), Matchers.equalTo(190));
-    MatcherAssert.assertThat(data.get().getCategories(), Matchers.equalTo(27));
+    MatcherAssert.assertThat(data.get().getServices().size(), Matchers.equalTo(190));
+    MatcherAssert.assertThat(data.get().getCategories().size(), Matchers.equalTo(27));
   }
 
   @Test
