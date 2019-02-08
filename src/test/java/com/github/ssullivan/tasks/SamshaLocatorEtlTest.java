@@ -47,4 +47,17 @@ public class SamshaLocatorEtlTest {
     MatcherAssert.assertThat(result.get().get_2(), Matchers.startsWith("samsha/locations-"));
     MatcherAssert.assertThat(result.get().get_2(), Matchers.endsWith(".xlsx"));
   }
+
+  @Test
+  public void testFetchingFailed() throws IOException {
+    AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
+    );
+
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed("http://localhost:8181", "test", amazonS3);
+    Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
+    MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
+  }
 }
