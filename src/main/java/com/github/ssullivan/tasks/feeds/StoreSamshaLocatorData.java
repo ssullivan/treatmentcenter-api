@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boolean> {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(StoreSamshaLocatorData.class);
 
   private final IFeedDao feedDao;
@@ -42,38 +43,34 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
       try {
         this.categoryCodesDao.addCategory(samshaLocatorData.getFeedId(), category);
         totalCats++;
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         LOGGER.error("Failed to add category: {}", category);
       }
     }
     LOGGER.info("Loaded {} of {} categories", totalCats, samshaLocatorData.getCategories().size());
-
 
     int totalServices = 0;
     for (final Service service : samshaLocatorData.getServices()) {
       try {
         this.serviceCodesDao.addService(samshaLocatorData.getFeedId(), service);
         totalServices++;
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         LOGGER.error("Failed to add service: {}", service);
       }
     }
     LOGGER.info("Loaded {} of {} services", totalServices, samshaLocatorData.getServices().size());
-
 
     int totalLocations = 0;
     for (final Facility facility : samshaLocatorData.getFacilities()) {
       try {
         facilityDao.addFacility(samshaLocatorData.getFeedId(), facility);
         totalLocations++;
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         LOGGER.error("Failed to add facility: {}", facility);
       }
     }
-    LOGGER.info("Loaded {} of {} locations", totalLocations, samshaLocatorData.getFacilities().size());
+    LOGGER.info("Loaded {} of {} locations", totalLocations,
+        samshaLocatorData.getFacilities().size());
 
     return true;
   }

@@ -9,10 +9,10 @@ import java.util.Collections;
 import java.util.Objects;
 
 /**
- * Immutable object representing all of the data from
- * the SAMSHA locator spreadsheet.
+ * Immutable object representing all of the data from the SAMSHA locator spreadsheet.
  */
 public class SamshaLocatorData implements Serializable {
+
   private final String feedId;
   private final Collection<Category> categories;
   private final Collection<Service> services;

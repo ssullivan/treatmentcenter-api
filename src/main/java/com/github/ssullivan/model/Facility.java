@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 @ApiModel
 public class Facility {
+
   private String id;
   private String feedId;
   private String name1;
@@ -49,12 +50,15 @@ public class Facility {
     this.website = facility.getWebsite();
     this.county = facility.getCounty();
 
-    if (facility.getPhoneNumbers() != null)
+    if (facility.getPhoneNumbers() != null) {
       this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
-    if (facility.getCategoryCodes() != null)
+    }
+    if (facility.getCategoryCodes() != null) {
       this.categoryCodes = new HashSet<>(facility.getCategoryCodes());
-    if (facility.getServiceCodes() != null)
+    }
+    if (facility.getServiceCodes() != null) {
       this.serviceCodes = new HashSet<>(facility.getServiceCodes());
+    }
     if (facility.getAvailableServices() != null) {
       this.availableServices = facility.getAvailableServices();
     }
@@ -247,26 +251,34 @@ public class Facility {
 
   @JsonIgnore
   public boolean hasService(final String serviceCode) {
-    if (null == serviceCode || serviceCode.isEmpty()) return false;
+    if (null == serviceCode || serviceCode.isEmpty()) {
+      return false;
+    }
     return this.getServiceCodes().contains(serviceCode);
   }
 
   @JsonIgnore
   public boolean hasAllOf(final String... services) {
-    if (null == services || services.length <= 0) return false;
+    if (null == services || services.length <= 0) {
+      return false;
+    }
     final Set<String> uniq = ImmutableSet.copyOf(services);
     return uniq.size() == Sets.intersection(uniq, this.serviceCodes).size();
   }
 
   @JsonIgnore
   public boolean hasAnyOf(final Set<String> services) {
-    if (null == services || services.isEmpty()) return false;
+    if (null == services || services.isEmpty()) {
+      return false;
+    }
     return !Sets.intersection(services, this.serviceCodes).isEmpty();
   }
 
   @JsonIgnore
   public boolean hasAnyOf(final String... services) {
-    if (null == services || services.length <= 0) return false;
+    if (null == services || services.length <= 0) {
+      return false;
+    }
     return Stream.of(services)
         .anyMatch(it -> this.getServiceCodes() != null && this.getServiceCodes().contains(it));
   }

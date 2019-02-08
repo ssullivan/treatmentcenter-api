@@ -11,16 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ManageFeeds {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ManageFeeds.class);
 
   private static final long DefaultExpireSeconds = 86400;
 
   private final IFeedDao feedDao;
-  private IndexFacility indexDao;
   private final IFacilityDao facilityDao;
+  private IndexFacility indexDao;
 
   @Inject
-  public ManageFeeds(final IFeedDao feedDao, IFacilityDao facilityDao, IndexFacility indexFacility) {
+  public ManageFeeds(final IFeedDao feedDao, IFacilityDao facilityDao,
+      IndexFacility indexFacility) {
     this.feedDao = feedDao;
     this.facilityDao = facilityDao;
     this.indexDao = indexFacility;
@@ -35,8 +37,7 @@ public class ManageFeeds {
       if (!feedId.equalsIgnoreCase(currentFeedID)) {
         if (expireKeys(feedId)) {
           LOGGER.info("Set expiration for all keys for feed {}", feedId);
-        }
-        else {
+        } else {
           LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
         }
       }
@@ -51,11 +52,11 @@ public class ManageFeeds {
       }
       this.indexDao.expire(feedId, DefaultExpireSeconds);
       return true;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       LOGGER.error("Failed to expire keys for feed {}", feedId, e);
       if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();;
+        Thread.currentThread().interrupt();
+        ;
       }
     }
     return false;

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisHealthCheck extends HealthCheck {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisHealthCheck.class);
 
   private IRedisConnectionPool redisConnectionPool;
@@ -20,7 +21,8 @@ public class RedisHealthCheck extends HealthCheck {
 
   @Override
   protected Result check() throws Exception {
-    try (StatefulRedisConnection<String, String> connection = this.redisConnectionPool.borrowConnection()) {
+    try (StatefulRedisConnection<String, String> connection = this.redisConnectionPool
+        .borrowConnection()) {
       if ("PONG".equalsIgnoreCase(connection.sync().ping())) {
         return Result.healthy();
       }

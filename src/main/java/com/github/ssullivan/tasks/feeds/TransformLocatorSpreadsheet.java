@@ -36,40 +36,12 @@ import org.slf4j.LoggerFactory;
  */
 public class TransformLocatorSpreadsheet implements
     BiFunction<String, InputStream, Optional<SamshaLocatorData>> {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(TransformLocatorSpreadsheet.class);
 
 
   private static final int FACILITIES_WITH_SERVICE_CODE_DETAIL = 0;
   private static final int SERVICE_CODER_REFERENCE = 1;
-
-  @Override
-  public Optional<SamshaLocatorData> apply(final String feedId, final InputStream inputStream) {
-    Objects.requireNonNull(feedId, "The feedId must not be empty");
-    Objects.requireNonNull(inputStream, "The spreadsheet stream must not be empty");
-
-    LOGGER.info("Parsing spreadsheet for feed {}", feedId);
-    try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-
-      final Sheet facilitySheet = workbook.getSheetAt(FACILITIES_WITH_SERVICE_CODE_DETAIL);
-      final Sheet serviceCodeSheet = workbook.getSheetAt(SERVICE_CODER_REFERENCE);
-
-      final ImmutableList<ImmutableMap<String, String>> locations = collectMaps(facilitySheet);
-      final ImmutableList<ImmutableMap<String, String>> serviceCodes = collectMaps(serviceCodeSheet);
-
-      final Tuple2<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(serviceCodes);
-      final Collection<Facility> facilities = transformToFacilities(feedId, locations, serviceCodes);
-
-
-      return Optional.of(new SamshaLocatorData(feedId, services.get_1(), services.get_2(), facilities));
-    } catch (IOException e) {
-      LOGGER.error("Failed to process Workbook", e);
-    }
-    finally {
-      LOGGER.info("Finished parsing data for feed {}", feedId);
-    }
-    return Optional.empty();
-  }
-
 
   private static Collection<Facility> transformToFacilities(final String feedId,
       final ImmutableList<ImmutableMap<String, String>> locations,
@@ -87,7 +59,8 @@ public class TransformLocatorSpreadsheet implements
 
     catsAndServices
         .forEach(row -> {
-          final Category category = cats.computeIfAbsent(row.get("category_code"), (k) -> asCategory(row));
+          final Category category = cats
+              .computeIfAbsent(row.get("category_code"), (k) -> asCategory(row));
           final Service service = asService(row);
 
           category.addServiceCode(service);
@@ -96,7 +69,6 @@ public class TransformLocatorSpreadsheet implements
 
     return new Tuple2<>(cats.values(), services);
   }
-
 
   private static Service asService(final ImmutableMap<String, String> categoryAndService) {
     final Service service = new Service();
@@ -114,7 +86,8 @@ public class TransformLocatorSpreadsheet implements
     return category;
   }
 
-  private static Facility asFacility(final ImmutableMap<String, String> location, final ImmutableList<ImmutableMap<String, String>> serviceCodes) {
+  private static Facility asFacility(final ImmutableMap<String, String> location,
+      final ImmutableList<ImmutableMap<String, String>> serviceCodes) {
     final Facility facility = new Facility();
     facility.setName1(location.get("name1"));
     facility.setName2(location.get("name2"));
@@ -152,12 +125,12 @@ public class TransformLocatorSpreadsheet implements
     return facility;
   }
 
-  private static boolean hasService(final ImmutableMap<String, String> location, final String serviceCode) {
+  private static boolean hasService(final ImmutableMap<String, String> location,
+      final String serviceCode) {
     final String cellValue = location.getOrDefault(serviceCode.toLowerCase(), "");
     if (cellValue.isEmpty()) {
       return false;
-    }
-    else if ("1".equalsIgnoreCase(cellValue)) {
+    } else if ("1".equalsIgnoreCase(cellValue)) {
       return true;
     }
 
@@ -221,8 +194,6 @@ public class TransformLocatorSpreadsheet implements
     return street1 + ", " + street2;
   }
 
-
-
   private static ImmutableList<ImmutableMap<String, String>> collectMaps(final Sheet sheet) {
     final ImmutableList.Builder<ImmutableMap<String, String>> builder = new ImmutableList.Builder<>();
 
@@ -244,11 +215,13 @@ public class TransformLocatorSpreadsheet implements
 
   /**
    * Maps the row into a dictionary of field name => field value
+   *
    * @param headers the headers so we can associate values to the correct field
    * @param row the current row containing a facility
    * @return a non-null list of immutable maps
    */
-  private static ImmutableMap<String, String> toMap(final ImmutableMap<Integer, String> headers, final Row row) {
+  private static ImmutableMap<String, String> toMap(final ImmutableMap<Integer, String> headers,
+      final Row row) {
     final ImmutableMap.Builder<String, String> builder = new Builder<>();
     int i = 0;
     final Iterator<Cell> itty = row.cellIterator();
@@ -263,6 +236,7 @@ public class TransformLocatorSpreadsheet implements
 
   /**
    * Creates a dictionary of row index to header field name
+   *
    * @param row the header row
    * @return a non-null map of the headers
    */
@@ -277,6 +251,36 @@ public class TransformLocatorSpreadsheet implements
     }
 
     return builder.build();
+  }
+
+  @Override
+  public Optional<SamshaLocatorData> apply(final String feedId, final InputStream inputStream) {
+    Objects.requireNonNull(feedId, "The feedId must not be empty");
+    Objects.requireNonNull(inputStream, "The spreadsheet stream must not be empty");
+
+    LOGGER.info("Parsing spreadsheet for feed {}", feedId);
+    try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+
+      final Sheet facilitySheet = workbook.getSheetAt(FACILITIES_WITH_SERVICE_CODE_DETAIL);
+      final Sheet serviceCodeSheet = workbook.getSheetAt(SERVICE_CODER_REFERENCE);
+
+      final ImmutableList<ImmutableMap<String, String>> locations = collectMaps(facilitySheet);
+      final ImmutableList<ImmutableMap<String, String>> serviceCodes = collectMaps(
+          serviceCodeSheet);
+
+      final Tuple2<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(
+          serviceCodes);
+      final Collection<Facility> facilities = transformToFacilities(feedId, locations,
+          serviceCodes);
+
+      return Optional
+          .of(new SamshaLocatorData(feedId, services.get_1(), services.get_2(), facilities));
+    } catch (IOException e) {
+      LOGGER.error("Failed to process Workbook", e);
+    } finally {
+      LOGGER.info("Finished parsing data for feed {}", feedId);
+    }
+    return Optional.empty();
   }
 
 }

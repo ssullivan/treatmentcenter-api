@@ -22,12 +22,11 @@ public class FacilityComparator<F extends Facility> implements Comparator<Facili
 
   private int compareByRadius(final Facility f1, final Facility f2) {
     if (f1 instanceof FacilityWithRadius && f2 instanceof FacilityWithRadius) {
-      return Double.compare(((FacilityWithRadius) f1).getRadius(), ((FacilityWithRadius) f2).getRadius());
-    }
-    else if (f1 instanceof FacilityWithRadius) {
+      return Double
+          .compare(((FacilityWithRadius) f1).getRadius(), ((FacilityWithRadius) f2).getRadius());
+    } else if (f1 instanceof FacilityWithRadius) {
       return 1;
-    }
-    else if (f2 instanceof FacilityWithRadius) {
+    } else if (f2 instanceof FacilityWithRadius) {
       return -1;
     }
     return 0;
@@ -36,14 +35,11 @@ public class FacilityComparator<F extends Facility> implements Comparator<Facili
   private int compareByString(final String f1, final String f2) {
     if (f1 == null && f2 == null) {
       return 0;
-    }
-    else if (f1 != null && f2 == null) {
+    } else if (f1 != null && f2 == null) {
       return 1;
-    }
-    else if (f1 == null) {
+    } else if (f1 == null) {
       return -1;
-    }
-    else {
+    } else {
       return f1.compareTo(f2);
     }
   }

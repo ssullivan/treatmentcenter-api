@@ -7,7 +7,8 @@ import static com.github.ssullivan.core.analytics.Constants.YOUNG_ADULTS;
 import com.github.ssullivan.model.Facility;
 import java.time.LocalDate;
 
-public class ScoreByAge implements IScoreFacility{
+public class ScoreByAge implements IScoreFacility {
+
   // 25 years - 2 months
   private static final int YOUNG_ADULT_AGE_CEILING_MONTHS = 298;
   // 18 years - 2 months
@@ -20,13 +21,14 @@ public class ScoreByAge implements IScoreFacility{
   }
 
   public double score(final Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     final int ageYears = new CalculateAgeYears().apply(dateOfBirth);
     final int ageMonths = new CalculateAgeMonths().apply(dateOfBirth);
 
     boolean isYoungAdult = isYoungAdult(ageYears, ageMonths);
     boolean isChild = isChild(ageYears, ageMonths);
-
 
     if ((ageYears >= 25 && facility.hasService(ADULT)) ||
         (isYoungAdult && facility.hasAllOf(YOUNG_ADULTS, ADULT)) ||

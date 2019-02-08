@@ -1,6 +1,7 @@
 package com.github.ssullivan.model.datafeeds;
 
 public class Feed {
+
   private String name;
   private String lastKey;
   private long lastTimestamp;

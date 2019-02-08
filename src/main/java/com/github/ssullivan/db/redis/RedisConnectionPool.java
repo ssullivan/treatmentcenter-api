@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisConnectionPool implements IRedisConnectionPool {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisConnectionPool.class);
 
   private RedisClient redisClient;
@@ -23,7 +24,6 @@ public class RedisConnectionPool implements IRedisConnectionPool {
 
     GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
     genericObjectPoolConfig.setMaxTotal(16);
-
 
     this.pool = ConnectionPoolSupport
         .createGenericObjectPool(redisClient::connect, genericObjectPoolConfig);
@@ -48,8 +48,7 @@ public class RedisConnectionPool implements IRedisConnectionPool {
       } finally {
         this.redisClient.shutdown();
       }
-    }
-    else {
+    } else {
       LOGGER.warn("Pool has already been closed");
     }
   }

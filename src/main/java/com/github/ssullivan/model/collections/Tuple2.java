@@ -2,7 +2,8 @@ package com.github.ssullivan.model.collections;
 
 import java.util.Objects;
 
-public class Tuple2<T1,T2> {
+public class Tuple2<T1, T2> {
+
   private T1 t1;
   private T2 t2;
 

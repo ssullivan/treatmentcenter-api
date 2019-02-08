@@ -6,11 +6,13 @@ import com.github.ssullivan.model.GeoPoint;
 import java.util.function.Function;
 
 public class ToFacilityWithRadiusConverter implements Function<Facility, FacilityWithRadius> {
+
   private final double latitude;
   private final double longitude;
   private final String geoUnit;
 
-  public ToFacilityWithRadiusConverter(final double latitude, final double longitude, final String geoUnit) {
+  public ToFacilityWithRadiusConverter(final double latitude, final double longitude,
+      final String geoUnit) {
     this.latitude = latitude;
     this.longitude = longitude;
     this.geoUnit = geoUnit;
@@ -20,15 +22,12 @@ public class ToFacilityWithRadiusConverter implements Function<Facility, Facilit
     if (geoPoint != null) {
       this.latitude = geoPoint.lat();
       this.longitude = geoPoint.lon();
-    }
-    else {
+    } else {
       this.latitude = 0.0;
       this.longitude = 0.0;
     }
     this.geoUnit = geoUnit;
   }
-
-
 
 
   @Override

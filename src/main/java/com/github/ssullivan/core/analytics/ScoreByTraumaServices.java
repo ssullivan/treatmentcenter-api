@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 public class ScoreByTraumaServices implements IScoreFacility {
+
   private boolean needsSupport;
   private Set<TraumaTypes> traumaTypes;
   private Set<String> serviceCodes;
@@ -30,7 +31,9 @@ public class ScoreByTraumaServices implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     if (!needsSupport) {
       return 1.0;
     }
@@ -48,7 +51,7 @@ public class ScoreByTraumaServices implements IScoreFacility {
     if (Sets.anyMatch(traumaTypes, TraumaTypes.TRAUMA, TraumaTypes.DOMESTIC)
         && hasTraumaSupport
         && facility.hasAnyOf("DV", "DVFP")) {
-        return 1.0;
+      return 1.0;
     }
     if (Sets.anyMatch(traumaTypes, TraumaTypes.TRAUMA, TraumaTypes.SEXUAL)
         && hasTraumaSupport
@@ -60,7 +63,7 @@ public class ScoreByTraumaServices implements IScoreFacility {
         && hasTraumaSupport
         && facility.hasAnyOf("DV", "DVP")
         && facility.hasAnyOf("XA")) {
-        return 1.0;
+      return 1.0;
     }
     return 0;
   }

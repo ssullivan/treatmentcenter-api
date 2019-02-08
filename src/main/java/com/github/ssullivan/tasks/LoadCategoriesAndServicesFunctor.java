@@ -26,14 +26,12 @@ public class LoadCategoriesAndServicesFunctor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LoadCategoriesAndServicesFunctor.class);
-
-  private ICategoryCodesDao categoryCodesDao;
-  private IServiceCodesDao serviceCodesDao;
   private final ObjectMapper objectMapper = Jackson.newMinimalObjectMapper();
-
   private final ObjectReader objectReader = objectMapper.readerFor(ServiceCategoryCode.class);
   private final Map<String, Category> categoryMap = new HashMap<>(128);
   private final Map<String, Set<String>> categoryServiceMap = new HashMap<>(128);
+  private ICategoryCodesDao categoryCodesDao;
+  private IServiceCodesDao serviceCodesDao;
 
   @Inject
   LoadCategoriesAndServicesFunctor(ICategoryCodesDao categoryCodesDao,

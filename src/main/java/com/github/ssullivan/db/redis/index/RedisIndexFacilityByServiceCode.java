@@ -16,8 +16,11 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility implements IndexFacilityByServiceCode {
-  private static final Logger LOGGER = LoggerFactory.getLogger(RedisIndexFacilityByServiceCode.class);
+public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility implements
+    IndexFacilityByServiceCode {
+
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(RedisIndexFacilityByServiceCode.class);
 
   @Inject
   public RedisIndexFacilityByServiceCode(IRedisConnectionPool pool, IFeedDao feedDao) {
@@ -25,7 +28,8 @@ public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility 
   }
 
   @Override
-  protected void index(final RedisCommands<String, String> sync, final String feed, final Facility facility) {
+  protected void index(final RedisCommands<String, String> sync, final String feed,
+      final Facility facility) {
     if (facility == null) {
       return;
     }
@@ -46,7 +50,6 @@ public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility 
 
           Long totalResults = sync.sadd(key, facility.getId());
 
-
           LOGGER.debug("Added {} keys to {}", totalResults, key);
         });
   }
@@ -63,6 +66,6 @@ public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility 
 
   @Override
   public void expire(String feed, long seconds) throws IOException {
-    expireMatching( INDEX_BY_CATEGORIES + ":" + feed + ":", seconds);
+    expireMatching(INDEX_BY_CATEGORIES + ":" + feed + ":", seconds);
   }
 }

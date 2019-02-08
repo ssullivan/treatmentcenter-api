@@ -4,6 +4,7 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreBySmokingCessation implements IScoreFacility {
+
   private static final String NRT = "NRT";
   private static final String NSC = "NSC";
   private static final String STU = "STU";
@@ -18,14 +19,16 @@ public class ScoreBySmokingCessation implements IScoreFacility {
   public ScoreBySmokingCessation(final Set<String> serviceCodes, final boolean smokingCessation) {
     this.serviceCodes = serviceCodes;
     this.smokingCessation = smokingCessation;
-    if (this.smokingCessation)
+    if (this.smokingCessation) {
       this.importance = Importance.SOMEWHAT;
-    else
+    } else {
       this.importance = Importance.NOT;
+    }
   }
 
 
-  public ScoreBySmokingCessation(final Set<String> serviceCodes, final boolean smokingCessation, final Importance importance) {
+  public ScoreBySmokingCessation(final Set<String> serviceCodes, final boolean smokingCessation,
+      final Importance importance) {
     this.serviceCodes = serviceCodes;
     this.smokingCessation = smokingCessation;
     this.importance = importance;
@@ -41,7 +44,9 @@ public class ScoreBySmokingCessation implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     if (this.smokingCessation) {
       if (facility.hasAnyOf(NRT, NSC, STU, TCC)) {
         return 1.0;

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class SamshaFacility {
+
   private String name1;
   private String name2;
   private String street1;
@@ -247,13 +248,15 @@ public class SamshaFacility {
     return unknown;
   }
 
-  @JsonAnySetter
-  public void setProperty(final String key, final Object value) {
-    if (this.unknown == null) this.unknown = new HashMap<>();
-    this.unknown.put(key, value);
-  }
-
   public void setUnknown(Map<String, Object> unknown) {
     this.unknown = unknown;
+  }
+
+  @JsonAnySetter
+  public void setProperty(final String key, final Object value) {
+    if (this.unknown == null) {
+      this.unknown = new HashMap<>();
+    }
+    this.unknown.put(key, value);
   }
 }

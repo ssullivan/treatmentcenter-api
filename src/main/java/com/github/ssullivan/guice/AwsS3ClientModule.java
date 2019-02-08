@@ -12,10 +12,11 @@ import java.util.Objects;
 
 
 /**
- * Guice module for providing an AmazonS3 client. Supports using a client
- * with accesskey + secretkey (primarilyu used for local dev with minio) + ec2 instance profiles
+ * Guice module for providing an AmazonS3 client. Supports using a client with accesskey + secretkey
+ * (primarilyu used for local dev with minio) + ec2 instance profiles
  */
 public class AwsS3ClientModule extends AbstractModule {
+
   private final AwsS3Settings awsS3Settings;
   private final String locatorUrl;
 
@@ -47,10 +48,10 @@ public class AwsS3ClientModule extends AbstractModule {
 
     if (this.awsS3Settings.getEndpoint() != null) {
       builder.setEndpointConfiguration(
-          new EndpointConfiguration(this.awsS3Settings.getEndpoint(), this.awsS3Settings.getRegion())
+          new EndpointConfiguration(this.awsS3Settings.getEndpoint(),
+              this.awsS3Settings.getRegion())
       );
-    }
-    else {
+    } else {
       builder.setRegion(this.awsS3Settings.getRegion());
     }
 

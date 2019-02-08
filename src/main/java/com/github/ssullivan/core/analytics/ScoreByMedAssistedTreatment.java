@@ -4,6 +4,7 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreByMedAssistedTreatment implements IScoreFacility {
+
   private static final String BMW = "BMW";
   private static final String BU = "BU";
   private static final String BUM = "BUM";
@@ -21,7 +22,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
   private static final String NALT = "NALT";
   private static final String VIV = "VIV";
 
-  private static final String[] MED_CODES = new String[] {
+  private static final String[] MED_CODES = new String[]{
       BMW, BU, BUP, BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL, NALT, IMETH, VIV, NMOA
   };
 
@@ -36,7 +37,9 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     if (this.useMeds) {
       if (noPref() && usesMeds(facility)) {
         return 1.0;

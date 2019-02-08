@@ -6,6 +6,7 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class GeoPoint {
+
   private static final double EARTH_RADIUS_KM = 6_371.0;
 
   @JsonCreator
@@ -13,12 +14,6 @@ public abstract class GeoPoint {
       @JsonProperty("lon") final double lon) {
     return new AutoValue_GeoPoint(lat, lon);
   }
-
-  @JsonProperty("lat")
-  public abstract double lat();
-
-  @JsonProperty("long")
-  public abstract double lon();
 
   public static boolean isValidLat(final double lat) {
     return !(lat > 90) && !(lat < -90);
@@ -32,9 +27,16 @@ public abstract class GeoPoint {
     return isValidLat(lat) && isValidLon(lon);
   }
 
+  @JsonProperty("lat")
+  public abstract double lat();
+
+  @JsonProperty("long")
+  public abstract double lon();
+
   public double getDistance(final GeoPoint other, final String geoUnit) {
     return distanceInRadians(other) * getEarthRadius(geoUnit);
   }
+
   public double getDistance(final GeoPoint other, final GeoUnit geoUnit) {
     return distanceInRadians(other) * getEarthRadius(geoUnit);
   }
@@ -86,13 +88,11 @@ public abstract class GeoPoint {
     double temp = Math.sin(deltaLatRadians / 2) *
         Math.sin(deltaLatRadians / 2) +
         Math.cos(lat1Radians) * Math.cos(lat2Radians)
-        * Math.sin(deltaLonRadians / 2) *
+            * Math.sin(deltaLonRadians / 2) *
             Math.sin(deltaLonRadians / 2);
 
     return 2 * Math.atan2(Math.sqrt(temp), Math.sqrt(1 - temp));
   }
-
-
 
 
 }

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public interface IFacilitySearchDao {
+
   /**
    * Finds the all of the facilities that any of the specified service codes withhin a certain
    * radius.
@@ -37,7 +38,8 @@ public interface IFacilitySearchDao {
    * @param distance radius distance
    * @param geoUnit distance unit (m, km, ft, mi)
    */
-  SearchResults<FacilityWithRadius> findByServiceCodesWithin(final Collection<String> mustServiceCodes,
+  SearchResults<FacilityWithRadius> findByServiceCodesWithin(
+      final Collection<String> mustServiceCodes,
       final Collection<String> mustNotServiceCodes,
       final boolean matchAny,
       final double longitude,
@@ -46,7 +48,8 @@ public interface IFacilitySearchDao {
       final String geoUnit,
       final Page page) throws IOException;
 
-  default SearchResults<FacilityWithRadius> findByServiceCodesWithin(final Collection<String> mustServiceCodes,
+  default SearchResults<FacilityWithRadius> findByServiceCodesWithin(
+      final Collection<String> mustServiceCodes,
       final Collection<String> mustNotServiceCodes,
       final double longitude,
       final double latitude,
@@ -60,6 +63,7 @@ public interface IFacilitySearchDao {
 
   CompletionStage<SearchResults<Facility>> find(final SearchRequest searchRequest,
       final Page page) throws Exception;
+
   /**
    * Finds the all of the facilities that any of the specified service codes.
    *
@@ -69,7 +73,8 @@ public interface IFacilitySearchDao {
   SearchResults<Facility> findByServiceCodes(final Collection<String> serviceCodes, final Page page)
       throws IOException;
 
-  SearchResults<Facility> findByServiceCodes(final Collection<String> serviceCodes, final Collection<String> mustNotServiceCodes,
+  SearchResults<Facility> findByServiceCodes(final Collection<String> serviceCodes,
+      final Collection<String> mustNotServiceCodes,
       final boolean matchAny, final Page page)
       throws IOException;
 

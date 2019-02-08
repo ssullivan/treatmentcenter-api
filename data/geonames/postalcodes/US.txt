@@ -122,7 +122,7 @@ US	99663	Seldovia	Alaska	AK	Kenai Peninsula	122			59.4495	-151.7009	4
 US	99664	Seward	Alaska	AK	Kenai Peninsula	122			60.1329	-149.3985	1
 US	99669	Soldotna	Alaska	AK	Kenai Peninsula	122			60.4818	-151.1358	1
 US	99672	Sterling	Alaska	AK	Kenai Peninsula	122			60.5136	-150.8532	4
-US	99682	Tyonek	Alaska	AK	Kenai Peninsula	122			61.0681	-151.1369	4
+US	99682	Tyonek	Alas  ka	AK	Kenai Peninsula	122			61.0681	-151.1369	4
 US	99901	Ketchikan	Alaska	AK	Ketchikan Gateway	130			55.372	-131.6832	4
 US	99928	Ward Cove	Alaska	AK	Ketchikan Gateway	130			55.3954	-131.6754	4
 US	99950	Ketchikan	Alaska	AK	Ketchikan Gateway	130			55.3422	-131.6478	4

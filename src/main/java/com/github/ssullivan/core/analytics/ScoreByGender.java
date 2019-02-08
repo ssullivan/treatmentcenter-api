@@ -7,6 +7,7 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreByGender implements IScoreFacility {
+
   private final String gender;
 
   public ScoreByGender(final String gender) {
@@ -14,7 +15,7 @@ public class ScoreByGender implements IScoreFacility {
   }
 
   public ScoreByGender(final Set<String> serviceCodes) {
-    this.gender= serviceCodes.stream()
+    this.gender = serviceCodes.stream()
         .filter(it -> FEMALE.equalsIgnoreCase(it) || MALE.equalsIgnoreCase(it))
         .findFirst()
         .orElse("");
@@ -22,7 +23,9 @@ public class ScoreByGender implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     if (gender == null || gender.isEmpty()) {
       return 0;
     }

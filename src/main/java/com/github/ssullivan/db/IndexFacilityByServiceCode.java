@@ -7,5 +7,6 @@ import java.io.IOException;
 
 @ImplementedBy(RedisIndexFacilityByServiceCode.class)
 public interface IndexFacilityByServiceCode extends IndexFacility {
+
   void index(final String feed, final Facility facility) throws IOException;
 }

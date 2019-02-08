@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisFeedDao implements IFeedDao {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFeedDao.class);
 
   private static final String CURRENT_FEED_KEY = "CURR_FEED";
@@ -84,8 +85,7 @@ public class RedisFeedDao implements IFeedDao {
     if (e instanceof InterruptedException) {
       LOGGER.error("Interrupted while generating feed id", e);
       Thread.currentThread().interrupt();
-    }
-    else {
+    } else {
       throw new IOException("Failed to get next feed id", e);
     }
   }

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisCategoryCodesDao implements ICategoryCodesDao {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
 
   private static final String KEY = "treatment:categories";
@@ -31,15 +32,15 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   private ObjectWriter objectWriter;
   private LoadingCache<String, Category> categoryCache =
       CacheBuilder.newBuilder()
-      .maximumSize(512)
-      .concurrencyLevel(8)
-      .expireAfterAccess(60, TimeUnit.MINUTES)
-      .build(new CacheLoader<String, Category>() {
-        @Override
-        public Category load(final String key) throws Exception {
-          return get(key);
-        }
-      });
+          .maximumSize(512)
+          .concurrencyLevel(8)
+          .expireAfterAccess(60, TimeUnit.MINUTES)
+          .build(new CacheLoader<String, Category>() {
+            @Override
+            public Category load(final String key) throws Exception {
+              return get(key);
+            }
+          });
 
   @Inject
   public RedisCategoryCodesDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
@@ -68,16 +69,15 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   @Override
   public Category get(String id, boolean fromCache) throws IOException {
     try {
-      if (fromCache)
+      if (fromCache) {
         return this.categoryCache.get(id);
-      else
+      } else {
         return this.get(id);
-    }
-    catch (InvalidCacheLoadException e) {
+      }
+    } catch (InvalidCacheLoadException e) {
       LOGGER.error("failed to load category '{}'", id, e);
       throw new IOException("Failed to load category", e);
-    }
-    catch (ExecutionException e) {
+    } catch (ExecutionException e) {
       LOGGER.error("Failed to get Category '{}' from in-memory cache", id, e);
       throw new IOException(e);
     }
@@ -139,7 +139,9 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   }
 
   private Category deserialize(@Nonnull final String json, final Category defaultValue) {
-    if (json.isEmpty()) return defaultValue;
+    if (json.isEmpty()) {
+      return defaultValue;
+    }
     try {
       return deserialize(json);
     } catch (IOException e) {

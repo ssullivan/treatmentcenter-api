@@ -7,6 +7,7 @@ import java.io.IOException;
 
 @ImplementedBy(RedisFacilityIndexDao.class)
 public interface IndexFacility {
+
   void index(final String feed, final Facility facility) throws IOException;
 
   void index(final Facility facility) throws IOException;

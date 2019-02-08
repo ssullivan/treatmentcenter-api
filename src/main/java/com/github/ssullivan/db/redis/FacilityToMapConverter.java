@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FacilityToMapConverter implements Function<Facility, Map<String, String>> {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(FacilityToMapConverter.class);
   private final ObjectMapper objectMapper;
   private final ObjectWriter objectWriter;
@@ -51,8 +52,7 @@ public class FacilityToMapConverter implements Function<Facility, Map<String, St
       toReturn.put("_source", objectWriter.writeValueAsString(facility));
       toReturn.put("phoneNumbers", objectMapper.writeValueAsString(facility.getPhoneNumbers()));
       return toReturn;
-    }
-    catch (JsonProcessingException e) {
+    } catch (JsonProcessingException e) {
       LOGGER.error("Failed to convert facility to map", e);
       throw new RuntimeException("Failed to convert facility to map", e);
     }

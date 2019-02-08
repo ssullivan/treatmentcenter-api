@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 @Deprecated
 public class LoadCategoriesAndServicesTask extends Command {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(LoadCategoriesAndServicesTask.class);
 
   public LoadCategoriesAndServicesTask() {
@@ -28,7 +29,7 @@ public class LoadCategoriesAndServicesTask extends Command {
         .type(File.class)
         .help("Loads category and services from a NDJSON (newline delimited JSON file");
 
-    subparser.addArgument( "--host")
+    subparser.addArgument("--host")
         .dest("Host")
         .required(false)
         .setDefault("localhost")

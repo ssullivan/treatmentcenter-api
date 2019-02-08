@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AwsS3Settings {
+
   private final Optional<String> awsSecretKey;
   private final Optional<String> awsAccessKey;
   private final String endpoint;
@@ -26,6 +27,10 @@ public class AwsS3Settings {
     this.bucket = bucket;
   }
 
+  public AwsS3Settings(String region, String bucket) {
+    this(null, null, null, region, bucket);
+  }
+
   public AWSCredentialsProvider getAWSCredentialsProvider() {
     if (hasAwsCredentials()) {
       return new AWSStaticCredentialsProvider(new AWSCredentials() {
@@ -39,8 +44,7 @@ public class AwsS3Settings {
           return awsSecretKey.orElse("");
         }
       });
-    }
-    else {
+    } else {
       return new InstanceProfileCredentialsProvider(false);
     }
   }
@@ -50,10 +54,6 @@ public class AwsS3Settings {
         && awsSecretKey.isPresent()
         && !awsAccessKey.get().isEmpty()
         && !awsSecretKey.get().isEmpty();
-  }
-
-  public AwsS3Settings(String region, String bucket) {
-    this(null, null, null, region, bucket);
   }
 
   public Optional<String> getAwsSecretKey() {

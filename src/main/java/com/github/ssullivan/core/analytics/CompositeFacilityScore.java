@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class CompositeFacilityScore implements IScoreFacility {
+
   private Optional<ScoreByAge> scoreByAge = Optional.empty();
   private Optional<ScoreByGender> scoreByGender = Optional.empty();
   private Optional<ScoreByHearingSupport> scoreByHearingSupport = Optional.empty();
@@ -71,7 +72,9 @@ public class CompositeFacilityScore implements IScoreFacility {
 
   @Override
   public double score(final Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     return Stream.of(scoreByAge,
         scoreByGender,
         scoreByHearingSupport,
@@ -91,6 +94,7 @@ public class CompositeFacilityScore implements IScoreFacility {
   }
 
   public static class Builder {
+
     private Set<String> serviceCodes = new HashSet<>();
     private LocalDate dateOfBirth = null;
     private Importance hearingSupport = Importance.NOT;
@@ -108,7 +112,9 @@ public class CompositeFacilityScore implements IScoreFacility {
     }
 
     public Builder withDateOfBirth(final LocalDate dateOfBirth) {
-      if (null == dateOfBirth) return this;
+      if (null == dateOfBirth) {
+        return this;
+      }
       this.dateOfBirth = dateOfBirth;
       return this;
     }
@@ -119,7 +125,7 @@ public class CompositeFacilityScore implements IScoreFacility {
     }
 
     public Builder withLangSupport(final Importance importance) {
-      this.langSupport =  importance;
+      this.langSupport = importance;
       return this;
     }
 
@@ -155,12 +161,15 @@ public class CompositeFacilityScore implements IScoreFacility {
           Optional.of(new ScoreByMentalHealth(serviceCodes)),
           Optional.of(new ScoreByMilitaryFamilyStatus(serviceCodes, milFamilySupport)),
           Optional.of(new ScoreByServiceSetting(serviceCodes)),
-          Optional.of(new ScoreBySmokingCessation(serviceCodes, smokingCessationImp == null ? Importance.NOT : smokingCessationImp)),
+          Optional.of(new ScoreBySmokingCessation(serviceCodes,
+              smokingCessationImp == null ? Importance.NOT : smokingCessationImp)),
           Optional.of(new ScoreBySmokingPolicy(serviceCodes)),
           Optional.of(new ScoreBySubstanceDetoxServices(serviceCodes)),
-          traumaSupport != null ? Optional.of(new ScoreByTraumaServices(traumaSupport.get_1(), traumaSupport.get_2(), serviceCodes)) : Optional.of(new ScoreByTraumaServices(serviceCodes)),
+          traumaSupport != null ? Optional
+              .of(new ScoreByTraumaServices(traumaSupport.get_1(), traumaSupport.get_2(),
+                  serviceCodes)) : Optional.of(new ScoreByTraumaServices(serviceCodes)),
           Optional.of(new ScoreByMilitaryStatus(serviceCodes, milStatusSupport))
-          );
+      );
     }
   }
 }

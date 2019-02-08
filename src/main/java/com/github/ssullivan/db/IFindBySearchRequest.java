@@ -10,6 +10,7 @@ import java.util.concurrent.CompletionStage;
 
 @ImplementedBy(FindBySearchRequest.class)
 public interface IFindBySearchRequest {
+
   CompletionStage<SearchResults<Facility>> find(SearchRequest searchRequest,
       Page page) throws Exception;
 }

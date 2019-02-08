@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisFacilityDao implements IFacilityDao {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);
 
 
@@ -79,7 +80,9 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   private static String facilityKey(final String id) {
-    if (id == null) throw new NullPointerException("Id must not be null");
+    if (id == null) {
+      throw new NullPointerException("Id must not be null");
+    }
     return TREATMENT_FACILITIES + ":" + id;
   }
 
@@ -91,7 +94,8 @@ public class RedisFacilityDao implements IFacilityDao {
     return new ArrayList<>();
   }
 
-  private void addFacility(final RedisCommands<String, String> redis,  Facility facility) throws IOException {
+  private void addFacility(final RedisCommands<String, String> redis, Facility facility)
+      throws IOException {
     if (!isValidIdentifier(facility.getId())) {
       facility.setId(generatePrimaryKey());
     }
@@ -99,12 +103,10 @@ public class RedisFacilityDao implements IFacilityDao {
     final Map<String, String> stringStringMap = toStringMap(facility);
     redis.hmset(facilityKey(facility.getId()), stringStringMap);
 
-
     // this is so we can quickly delete stuff in the future
     redis.sadd(TREATMENT_FACILITIES_IDS + facility.getFeedId(), facility.getId());
     LOGGER.debug("Loaded Facility {} for feed {}", facility.getId(), facility.getFeedId());
   }
-
 
 
   @Override
@@ -139,8 +141,7 @@ public class RedisFacilityDao implements IFacilityDao {
           .runAsync(async -> fetchBatch(async, ids))
           .toCompletableFuture()
           .get(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT);
-    }
-    catch (TimeoutException e) {
+    } catch (TimeoutException e) {
       LOGGER.error("Timeout waiting for locations", e);
     } catch (InterruptedException e) {
       LOGGER.error("Interrupted waiting for locations", e);
@@ -154,12 +155,13 @@ public class RedisFacilityDao implements IFacilityDao {
   public CompletionStage<List<Facility>> fetchBatchAsync(final Collection<String> ids) {
     return this.asyncPool
         .borrowConnection()
-        .thenCompose(it -> fetchBatchAsync(it.async(), ids).whenComplete((s, error) -> asyncPool.relase(it)));
+        .thenCompose(it -> fetchBatchAsync(it.async(), ids)
+            .whenComplete((s, error) -> asyncPool.relase(it)));
   }
 
   private Facility getFacility(final StatefulRedisConnection<String, String> connection,
       final String pk) {
-      return toFacility(connection.sync().hmget(TREATMENT_FACILITIES + ":" + pk, "_source"));
+    return toFacility(connection.sync().hmget(TREATMENT_FACILITIES + ":" + pk, "_source"));
   }
 
   private CompletionStage<Facility> getFacilityAsync(
@@ -178,26 +180,28 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
 
-  private CompletionStage<List<Facility>> fetchBatchAsync(final RedisAsyncCommands<String, String> asyncCommands, final Collection<String> ids) {
+  private CompletionStage<List<Facility>> fetchBatchAsync(
+      final RedisAsyncCommands<String, String> asyncCommands, final Collection<String> ids) {
     if (asyncCommands == null || ids == null) {
-     return CompletableFuture.completedFuture(new ArrayList<>(0));
+      return CompletableFuture.completedFuture(new ArrayList<>(0));
     }
 
     final Set<String> distinctIdentifiers = new HashSet<>(ids);
     final List<CompletionStage<Facility>> facilityFutures =
         distinctIdentifiers.stream()
-        .map(id -> getFacilityAsync(asyncCommands, id))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+            .map(id -> getFacilityAsync(asyncCommands, id))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-   return CompletableFutures.successfulAsList(facilityFutures, t -> {
+    return CompletableFutures.successfulAsList(facilityFutures, t -> {
       LOGGER.error("Fetching one of the facilities failed", t);
       return null;
     }).thenApply(
         results -> results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
-  private List<Facility> fetchBatch(final RedisAsyncCommands<String, String> asyncCommands, final Collection<String> ids) {
+  private List<Facility> fetchBatch(final RedisAsyncCommands<String, String> asyncCommands,
+      final Collection<String> ids) {
     if (asyncCommands == null || ids == null) {
       return new ArrayList<>(0);
     }
@@ -253,9 +257,9 @@ public class RedisFacilityDao implements IFacilityDao {
 
     for (final String categoryCode : facility.getCategoryCodes()) {
       final Category availableCategory =
-          availableServicesByCategory.getOrDefault(categoryCode, new Category(categoryCode, "",  new HashSet<String>()));
+          availableServicesByCategory
+              .getOrDefault(categoryCode, new Category(categoryCode, "", new HashSet<String>()));
       availableServicesByCategory.putIfAbsent(categoryCode, availableCategory);
-
 
       final Category category = this.categoryCodesDao.getFromCache(categoryCode);
       if (category != null) {
@@ -285,7 +289,7 @@ public class RedisFacilityDao implements IFacilityDao {
   @Override
   public Set<String> getKeysForFeed(String feedId) throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      return connection.sync().smembers(TREATMENT_FACILITIES_IDS  + feedId);
+      return connection.sync().smembers(TREATMENT_FACILITIES_IDS + feedId);
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
         LOGGER.error("Interrupted while fetching facility {}", feedId);

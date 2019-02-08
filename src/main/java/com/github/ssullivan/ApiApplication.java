@@ -36,6 +36,20 @@ public class ApiApplication extends Application<AppConfig> {
     new ApiApplication().run(args);
   }
 
+  private static String getProperty(final String property, String defaultValue) {
+    final String fromEnvs = System.getenv(property);
+    final String fromProps = System.getProperty(property);
+
+    if (fromEnvs != null) {
+      return fromEnvs;
+    }
+
+    if (fromProps != null) {
+      return fromProps;
+    }
+    return defaultValue;
+  }
+
   @Override
   public void initialize(Bootstrap<AppConfig> bootstrap) {
 
@@ -62,12 +76,10 @@ public class ApiApplication extends Application<AppConfig> {
         swaggerBundleConfiguration.setVersion(getProperty("API_VERSION", "dev"));
         swaggerBundleConfiguration.setIsPrettyPrint(true);
 
-
         final String environment = getProperty("ENVIRONMENT", "dev");
         if ("prod".equalsIgnoreCase(environment)) {
           swaggerBundleConfiguration.setHost("api.centerlocator.org");
         }
-
 
         swaggerBundleConfiguration.setTitle("Treatmentcenter API");
         swaggerBundleConfiguration
@@ -95,27 +107,14 @@ public class ApiApplication extends Application<AppConfig> {
 
     bootstrap.addBundle(new DropwizardGuiceBundle<>(module,
         new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);
-        bindConstant().annotatedWith(PropPostalcodesPath.class).to(getProperty("POSTALCODES_US_PATH",
-            "/treatmentcenter-api-latest/data/US.txt"));
-      }
-    }));
-  }
-
-  private static String getProperty(final String property, String defaultValue) {
-    final String fromEnvs = System.getenv(property);
-    final String fromProps = System.getProperty(property);
-
-    if (fromEnvs != null) {
-      return fromEnvs;
-    }
-
-    if (fromProps != null) {
-      return fromProps;
-    }
-    return defaultValue;
+          @Override
+          protected void configure() {
+            bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);
+            bindConstant().annotatedWith(PropPostalcodesPath.class)
+                .to(getProperty("POSTALCODES_US_PATH",
+                    "/treatmentcenter-api-latest/data/US.txt"));
+          }
+        }));
   }
 
   private String getAllowedOrigins() {
@@ -139,7 +138,8 @@ public class ApiApplication extends Application<AppConfig> {
     LOGGER.info("Attempting to get config from S3");
 
     final Injector injector = InjectorRegistry.getInjector(this);
-    environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(), injector.getInstance(RedisHealthCheck.class));
+    environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(),
+        injector.getInstance(RedisHealthCheck.class));
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {
@@ -147,13 +147,13 @@ public class ApiApplication extends Application<AppConfig> {
           }
         });
 
-
     environment.jersey().packages(this.getClass().getPackage().getName());
     FilterHolder filterHolder = environment.getApplicationContext()
         .addFilter(CrossOriginFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
     filterHolder.setAsyncSupported(true);
     filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, getAllowedOrigins());
     filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD,OPTIONS");
-    filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Cache-Control");
+    filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM,
+        "X-Requested-With,Content-Type,Accept,Origin,Cache-Control");
   }
 }

@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FindBySearchRequest extends AbstractFindFacility {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(FindBySearchRequest.class);
 
   @Inject
@@ -64,9 +65,11 @@ public class FindBySearchRequest extends AbstractFindFacility {
       final String searchKey = "s:" + ShortUuid.randomShortUuid() + ":";
 
       final Tuple2<Long, String> serviceCodeResults =
-          findByServiceCodeConditions(sync, searchKey, searchRequest.getFinalSetOperation(), searchRequest.getConditions());
+          findByServiceCodeConditions(sync, searchKey, searchRequest.getFinalSetOperation(),
+              searchRequest.getConditions());
 
-      LOGGER.debug("Found {} matching locations for the service code conditions", serviceCodeResults.get_1());
+      LOGGER.debug("Found {} matching locations for the service code conditions",
+          serviceCodeResults.get_1());
 
       totalResults = serviceCodeResults.get_1();
       if (searchRequest.getGeoRadiusCondition() != null) {
@@ -78,8 +81,7 @@ public class FindBySearchRequest extends AbstractFindFacility {
         if (serviceCodeResults.get_1() > 0) {
           totalResults = sync.zinterstore(serviceCodeResults.get_2(), serviceCodeResults.get_2(),
               geoResult.get_2());
-        }
-        else {
+        } else {
           totalResults = sync.zunionstore(serviceCodeResults.get_2(), serviceCodeResults.get_2(),
               geoResult.get_2());
         }
@@ -94,12 +96,10 @@ public class FindBySearchRequest extends AbstractFindFacility {
       facilityIdentifiers.addAll(results);
     }
 
-
     final Long totalFound = totalResults;
 
     final Function<List<Facility>, List<Facility>> toFacilityWithRadius =
         applyToFacilityWithRadius(searchRequest);
-
 
     return this.facilityDao.fetchBatchAsync(facilityIdentifiers)
         .thenApply(this::applyAvailableServicesAll)
@@ -116,7 +116,6 @@ public class FindBySearchRequest extends AbstractFindFacility {
     Objects.requireNonNull(searchKey, "Search key must not be null");
     Objects.requireNonNull(geoRadiusCondition, "Geo Condition  must not be null");
 
-
     Long totalResults = sync
         .georadius(indexByGeoKey(feedKey), geoRadiusCondition.getGeoPoint()
                 .lon(), geoRadiusCondition.getGeoPoint().lat(),
@@ -127,7 +126,8 @@ public class FindBySearchRequest extends AbstractFindFacility {
     if (totalResults == null) {
       totalResults = 0L;
     }
-    LOGGER.debug("Found {} locations within {} {} of {}", totalResults, geoRadiusCondition.getRadius(),
+    LOGGER.debug("Found {} locations within {} {} of {}", totalResults,
+        geoRadiusCondition.getRadius(),
         geoRadiusCondition.getGeoUnit(), geoRadiusCondition.getGeoPoint());
 
     sync.expire(searchKey + "geo", DEFAULT_EXPIRE_SECONDS);
@@ -142,7 +142,7 @@ public class FindBySearchRequest extends AbstractFindFacility {
    * @param setOperation an final set operation to perfrom across all the result sets
    * @param conditions the user provided search conditions to filter by
    * @return an instance of {@link Tuple2} wher the first item is the number of results, and the
-   *         second result is the key where the final results are stored
+   * second result is the key where the final results are stored
    */
   private Tuple2<Long, String> findByServiceCodeConditions(final RedisCommands<String, String> sync,
       final String searchKey,
@@ -154,7 +154,6 @@ public class FindBySearchRequest extends AbstractFindFacility {
     Objects.requireNonNull(setOperation, "Set operation must not be null");
     Objects.requireNonNull(conditions, "ServicesConditions must not be null");
 
-
     final String[] conditionKeys = new String[conditions.size()];
     int i = 0;
     for (ServicesCondition servicesCondition : conditions) {
@@ -162,7 +161,6 @@ public class FindBySearchRequest extends AbstractFindFacility {
       long totalFound = findByServiceConditions(sync, conditionKeys[i], servicesCondition);
       i++;
     }
-
 
     Long totalFound = 0L;
     if (!conditions.isEmpty()) {
@@ -185,7 +183,8 @@ public class FindBySearchRequest extends AbstractFindFacility {
   }
 
 
-  private long findByServiceConditions(final RedisCommands<String, String> sync, final String searchKey, final ServicesCondition servicesCondition)
+  private long findByServiceConditions(final RedisCommands<String, String> sync,
+      final String searchKey, final ServicesCondition servicesCondition)
       throws IOException {
     /**
      * Locations are are indexed by service code. There are multiple redis sets
@@ -194,7 +193,8 @@ public class FindBySearchRequest extends AbstractFindFacility {
      * Based on the user's query we are figuring which of these service code indices we need to
      * query.
      */
-    final String[] services = getServiceCodeIndices(feedDao.searchFeedId().orElse(""), servicesCondition.getServices());
+    final String[] services = getServiceCodeIndices(feedDao.searchFeedId().orElse(""),
+        servicesCondition.getServices());
     Long totalFound = 0L;
     switch (servicesCondition.getMatchOperator()) {
       case MUST:
@@ -211,10 +211,12 @@ public class FindBySearchRequest extends AbstractFindFacility {
       totalFound = 0L;
     }
 
-    LOGGER.debug("[{}] Found {} services matching {}", searchKey, totalFound, servicesCondition.getServices());
+    LOGGER.debug("[{}] Found {} services matching {}", searchKey, totalFound,
+        servicesCondition.getServices());
 
     // searchKey now contains a all of the ids for the locations we are looking for
-    final String[] mustNotServices = getServiceCodeIndices(servicesCondition.getMustNotServiceCodes());
+    final String[] mustNotServices = getServiceCodeIndices(
+        servicesCondition.getMustNotServiceCodes());
     Long totalDiff = 0L;
     if (totalFound > 0 && mustNotServices.length > 0) {
       sync.sunionstore(searchKey + ":!", mustNotServices);
@@ -226,7 +228,8 @@ public class FindBySearchRequest extends AbstractFindFacility {
         totalDiff = 0L;
       }
 
-      LOGGER.debug("[{}] Found {} services matching {} after diff", searchKey, totalDiff, servicesCondition.getServices());
+      LOGGER.debug("[{}] Found {} services matching {} after diff", searchKey, totalDiff,
+          servicesCondition.getServices());
       return totalDiff;
     }
 
@@ -249,17 +252,21 @@ public class FindBySearchRequest extends AbstractFindFacility {
 
   /**
    * Higher order function to return a function that will change Facility to FacilityWithRadius.
-   *
-   * @param searchRequest
-   * @return
    */
-  private Function<List<Facility>, List<Facility>> applyToFacilityWithRadius(final SearchRequest searchRequest) {
+  private Function<List<Facility>, List<Facility>> applyToFacilityWithRadius(
+      final SearchRequest searchRequest) {
 
-    final GeoPoint geoPoint = searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition().getGeoPoint() : null;
-    final GeoUnit geoUnit = searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition().getGeoUnit() : GeoUnit.MILE;
+    final GeoPoint geoPoint =
+        searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition()
+            .getGeoPoint() : null;
+    final GeoUnit geoUnit =
+        searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition()
+            .getGeoUnit() : GeoUnit.MILE;
 
-    final ToFacilityWithRadiusConverter ToFacilityWithRadius = new ToFacilityWithRadiusConverter(geoPoint, geoUnit.getAbbrev());
+    final ToFacilityWithRadiusConverter ToFacilityWithRadius = new ToFacilityWithRadiusConverter(
+        geoPoint, geoUnit.getAbbrev());
 
-    return facilities1 -> facilities1.stream().map(ToFacilityWithRadius).collect(Collectors.toList());
+    return facilities1 -> facilities1.stream().map(ToFacilityWithRadius)
+        .collect(Collectors.toList());
   }
 }

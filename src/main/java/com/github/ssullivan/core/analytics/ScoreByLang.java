@@ -5,32 +5,33 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ScoreByLang implements IScoreFacility {
+
   private static final String FX = "FX";
   private static final String NX = "NX";
   private static final String SP = "SP";
-  private static final String  N13="N13";
-  private static final String  N18="N18";
-  private static final String  N23="N23";
-  private static final String  N24="N24";
-  private static final String  N40="N40";
-  private static final String  F4 ="F4";
-  private static final String  F17="F17";
-  private static final String  F19="F19";
-  private static final String  F25="F25";
-  private static final String  F28="F28";
-  private static final String  F30="F30";
-  private static final String  F31="F31";
-  private static final String  F35="F35";
-  private static final String  F36="F36";
-  private static final String  F37="F37";
-  private static final String  F42="F42";
-  private static final String  F43="F43";
-  private static final String  F47="F47";
-  private static final String  F66="F66";
-  private static final String  F67="F67";
-  private static final String  F70="F70";
-  private static final String  F81="F81";
-  private static final String  F92="F92";
+  private static final String N13 = "N13";
+  private static final String N18 = "N18";
+  private static final String N23 = "N23";
+  private static final String N24 = "N24";
+  private static final String N40 = "N40";
+  private static final String F4 = "F4";
+  private static final String F17 = "F17";
+  private static final String F19 = "F19";
+  private static final String F25 = "F25";
+  private static final String F28 = "F28";
+  private static final String F30 = "F30";
+  private static final String F31 = "F31";
+  private static final String F35 = "F35";
+  private static final String F36 = "F36";
+  private static final String F37 = "F37";
+  private static final String F42 = "F42";
+  private static final String F43 = "F43";
+  private static final String F47 = "F47";
+  private static final String F66 = "F66";
+  private static final String F67 = "F67";
+  private static final String F70 = "F70";
+  private static final String F81 = "F81";
+  private static final String F92 = "F92";
 
   private static final String[] LANGS = new String[]{
       N13,
@@ -38,7 +39,7 @@ public class ScoreByLang implements IScoreFacility {
       N23,
       N24,
       N40,
-      F4 ,
+      F4,
       F17,
       F19,
       F25,
@@ -57,13 +58,13 @@ public class ScoreByLang implements IScoreFacility {
       F81,
       F92
   };
-
+  private final Set<String> selectedLangs;
   private Set<String> serviceCodes;
   private boolean isEnglishFirst;
   private Importance importance;
-  private final Set<String> selectedLangs;
 
-  public ScoreByLang(final Set<String> serviceCodes, final boolean isEnglishFirst, Importance importance) {
+  public ScoreByLang(final Set<String> serviceCodes, final boolean isEnglishFirst,
+      Importance importance) {
     this.serviceCodes = serviceCodes;
     this.isEnglishFirst = isEnglishFirst;
     this.importance = importance;
@@ -92,28 +93,6 @@ public class ScoreByLang implements IScoreFacility {
     this.selectedLangs = langCodes(serviceCodes);
   }
 
-  @Override
-  public double score(Facility facility) {
-    if (facility == null) return 0.0;
-    if (this.isEnglishFirst || (importance == Importance.NOT)) {
-      return 1.0;
-    }
-
-    if (!selectedLangs.isEmpty() && facility.hasAnyOf(selectedLangs)) {
-      return 1.0;
-    }
-
-    if (!this.isEnglishFirst
-        && importance == Importance.SOMEWHAT
-        && !selectedLangs.isEmpty()
-        && !facility.hasAnyOf(selectedLangs)) {
-      return .8;
-    }
-
-
-    return 0;
-  }
-
   private static boolean isLang(final String serviceCode) {
     if (serviceCode == null || serviceCode.isEmpty()) {
       return false;
@@ -129,7 +108,7 @@ public class ScoreByLang implements IScoreFacility {
         return true;
       case N40:
         return true;
-      case F4 :
+      case F4:
         return true;
       case F17:
         return true;
@@ -172,5 +151,28 @@ public class ScoreByLang implements IScoreFacility {
 
   private static Set<String> langCodes(final Set<String> serviceCodes) {
     return serviceCodes.stream().filter(ScoreByLang::isLang).collect(Collectors.toSet());
+  }
+
+  @Override
+  public double score(Facility facility) {
+    if (facility == null) {
+      return 0.0;
+    }
+    if (this.isEnglishFirst || (importance == Importance.NOT)) {
+      return 1.0;
+    }
+
+    if (!selectedLangs.isEmpty() && facility.hasAnyOf(selectedLangs)) {
+      return 1.0;
+    }
+
+    if (!this.isEnglishFirst
+        && importance == Importance.SOMEWHAT
+        && !selectedLangs.isEmpty()
+        && !facility.hasAnyOf(selectedLangs)) {
+      return .8;
+    }
+
+    return 0;
   }
 }

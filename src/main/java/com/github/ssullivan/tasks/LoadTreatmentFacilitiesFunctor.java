@@ -20,12 +20,11 @@ import javax.inject.Inject;
 
 @Deprecated
 public class LoadTreatmentFacilitiesFunctor {
-  private IFacilityDao facilityDao;
-  private ICategoryCodesDao categoryCodesDao;
 
   private final ObjectMapper objectMapper = Jackson.newMinimalObjectMapper();
-
   private final ObjectReader objectReader = objectMapper.readerFor(SamshaFacility.class);
+  private IFacilityDao facilityDao;
+  private ICategoryCodesDao categoryCodesDao;
   private IFeedDao feedDao;
   private String feedId;
 
@@ -66,7 +65,6 @@ public class LoadTreatmentFacilitiesFunctor {
     }
 
   }
-
 
 
   public void loadStream(final InputStream inputStream, final String feedId) throws IOException {

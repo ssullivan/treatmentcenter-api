@@ -6,14 +6,16 @@ import java.util.List;
 
 public class ServicesConditionFactory {
 
-  public ImmutableList<ServicesCondition> fromRequestParams(final List<String> serviceCodes, final List<String> matchAny) {
+  public ImmutableList<ServicesCondition> fromRequestParams(final List<String> serviceCodes,
+      final List<String> matchAny) {
     final ImmutableList.Builder<ServicesCondition> builder = new ImmutableList.Builder<>();
     builder.addAll(fromList(serviceCodes, MatchOperator.MUST));
     builder.addAll(fromList(matchAny, MatchOperator.SHOULD));
     return builder.build();
   }
 
-  private List<ServicesCondition> fromList(final List<String> serviceCodes, final MatchOperator matchOperator) {
+  private List<ServicesCondition> fromList(final List<String> serviceCodes,
+      final MatchOperator matchOperator) {
     if (null == serviceCodes) {
       return ImmutableList.of();
     }

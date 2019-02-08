@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRedisIndexFacility implements IndexFacility {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRedisIndexFacility.class);
 
   protected IRedisConnectionPool pool;
@@ -39,7 +40,8 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
     }
   }
 
-  abstract protected  void index(final RedisCommands<String, String> sync, final String feed, final Facility facility);
+  abstract protected void index(final RedisCommands<String, String> sync, final String feed,
+      final Facility facility);
 
   protected void expireMatching(final String pattern, final long seconds) throws IOException {
     Objects.requireNonNull(pattern, "Key pattern must not be null");
@@ -51,7 +53,7 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
       KeyScanCursor<String> cursor = connection.sync().scan(
           ScanArgs.Builder.matches(pattern));
       while (!cursor.isFinished()) {
-        for (final String key :cursor.getKeys()) {
+        for (final String key : cursor.getKeys()) {
           connection.sync().expire(key, seconds);
         }
         cursor = connection.sync().scan(cursor);

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AsyncRedisConnectionPool implements IAsyncRedisConnectionPool {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AsyncRedisConnectionPool.class);
 
   private RedisClient redisClient;
@@ -40,7 +41,8 @@ public class AsyncRedisConnectionPool implements IAsyncRedisConnectionPool {
     return this.pool.acquire();
   }
 
-  public <R> CompletableFuture<R> runAsync(Function<RedisAsyncCommands<String, String>, R> function) {
+  public <R> CompletableFuture<R> runAsync(
+      Function<RedisAsyncCommands<String, String>, R> function) {
     return borrowConnection()
         .thenCompose(redis -> {
           final RedisAsyncCommands<String, String> async = redis.async();
@@ -67,8 +69,7 @@ public class AsyncRedisConnectionPool implements IAsyncRedisConnectionPool {
       } finally {
         this.redisClient.shutdown();
       }
-    }
-    else {
+    } else {
       LOGGER.warn("Pool has already been closed");
     }
   }
@@ -77,14 +78,13 @@ public class AsyncRedisConnectionPool implements IAsyncRedisConnectionPool {
   public void closeAsync() {
     if (isClosed.compareAndSet(false, true)) {
       this.pool.closeAsync()
-            .whenComplete((s, throwable) -> {
-              if (throwable != null) {
-                LOGGER.error("Failed to close cleanly", throwable);
-              }
-              this.redisClient.shutdown();
-            });
-    }
-    else {
+          .whenComplete((s, throwable) -> {
+            if (throwable != null) {
+              LOGGER.error("Failed to close cleanly", throwable);
+            }
+            this.redisClient.shutdown();
+          });
+    } else {
       LOGGER.warn("Pool has already been closed");
     }
   }

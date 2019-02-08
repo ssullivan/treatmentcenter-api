@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 @Produces({MediaType.APPLICATION_JSON})
 @Path("categories")
 public class CategoryCodesResource {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CategoryCodesResource.class);
 
   private final ICategoryCodesDao categoryCodesDao;
@@ -53,8 +54,7 @@ public class CategoryCodesResource {
           .build();
 
       asyncResponse.resume(successResponse);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       LOGGER.error("Failed to list services", e);
       asyncResponse.resume(Response.serverError().build());
     }

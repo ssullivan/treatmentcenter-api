@@ -18,9 +18,8 @@ public class DropwizardModule<T extends Configuration> extends AbstractModule {
   private final Environment environment;
 
   /**
-   * Creates a new instance of {@link DropwizardModule}.
-   * This module will bind the configuratoin, and environment so they
-   * are available for injection.
+   * Creates a new instance of {@link DropwizardModule}. This module will bind the configuratoin,
+   * and environment so they are available for injection.
    *
    * @param configuration the applications configuration
    * @param environment the applications environment

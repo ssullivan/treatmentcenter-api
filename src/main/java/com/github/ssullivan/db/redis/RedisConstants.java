@@ -31,15 +31,17 @@ public final class RedisConstants {
     return key;
   }
 
-  public static String[] getServiceCodeIndices(final String feed, final Collection<String> serviceCodes) {
-    if (null == serviceCodes || serviceCodes.isEmpty()) return new String[]{};
+  public static String[] getServiceCodeIndices(final String feed,
+      final Collection<String> serviceCodes) {
+    if (null == serviceCodes || serviceCodes.isEmpty()) {
+      return new String[]{};
+    }
     return serviceCodes
         .stream()
         .map(code -> {
           if (feed == null || feed.isEmpty()) {
             return INDEX_BY_SERVICES + ":" + code;
-          }
-          else {
+          } else {
             return INDEX_BY_SERVICES + ":" + feed + ":" + code;
           }
         })
@@ -54,8 +56,6 @@ public final class RedisConstants {
   public static boolean isValidIdentifier(final String id) {
     return id != null && !id.isEmpty() && !id.matches("^\\s{1,}$");
   }
-
-
 
 
   public static boolean isEmpty(final Collection<String> list) {

@@ -61,10 +61,11 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   @Override
   public Service get(String id, boolean fromCache) throws IOException {
     try {
-      if (fromCache)
+      if (fromCache) {
         return this.cache.get(id);
-      else
+      } else {
         return this.get(id);
+      }
     } catch (InvalidCacheLoadException e) {
       LOGGER.error("Failed to get service code '{}' from db", id, e);
       throw new IOException("Failed to load service code", e);

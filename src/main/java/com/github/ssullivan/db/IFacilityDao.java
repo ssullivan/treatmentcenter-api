@@ -24,7 +24,7 @@ public interface IFacilityDao {
 
   CompletionStage<List<Facility>> fetchBatchAsync(final Collection<String> ids);
 
-  AvailableServices getAvailableServices( final Facility facility);
+  AvailableServices getAvailableServices(final Facility facility);
 
   Set<String> getKeysForFeed(final String feedId) throws IOException;
 

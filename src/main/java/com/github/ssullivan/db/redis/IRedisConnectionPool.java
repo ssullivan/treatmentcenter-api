@@ -4,7 +4,8 @@ import com.google.inject.ImplementedBy;
 import io.lettuce.core.api.StatefulRedisConnection;
 
 @ImplementedBy(RedisConnectionPool.class)
-public interface IRedisConnectionPool  {
+public interface IRedisConnectionPool {
+
   StatefulRedisConnection<String, String> borrowConnection() throws Exception;
 
   boolean isClosed();

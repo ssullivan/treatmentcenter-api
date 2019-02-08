@@ -12,12 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractFindFacility {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFindFacility.class);
 
   protected IRedisConnectionPool syncPool;
   protected IFacilityDao facilityDao;
   protected IFeedDao feedDao;
   protected IAsyncRedisConnectionPool asyncPool;
+
   public AbstractFindFacility(IRedisConnectionPool redis,
       IAsyncRedisConnectionPool asyncPool,
       IFacilityDao facilityDao,
@@ -29,28 +31,26 @@ public abstract class AbstractFindFacility {
   }
 
 
-
   protected static String[] getServiceCodeIndices(final Collection<String> serviceCodes) {
     return getServiceCodeIndices("", serviceCodes);
   }
 
-  protected static String[] getServiceCodeIndices(final String feed, final Collection<String> serviceCodes) {
-    if (null == serviceCodes || serviceCodes.isEmpty()) return new String[]{};
+  protected static String[] getServiceCodeIndices(final String feed,
+      final Collection<String> serviceCodes) {
+    if (null == serviceCodes || serviceCodes.isEmpty()) {
+      return new String[]{};
+    }
     return serviceCodes
         .stream()
         .map(code -> {
           if (feed == null || feed.isEmpty()) {
             return INDEX_BY_SERVICES + ":" + code;
-          }
-          else {
+          } else {
             return INDEX_BY_SERVICES + ":" + feed + ":" + code;
           }
         })
         .collect(Collectors.toSet()).toArray(new String[]{});
   }
-
-
-
 
 
 }

@@ -50,7 +50,6 @@ public class LoadTreatmentFacilitiesTask extends Command {
 
     final File file = namespace.get("File");
 
-
     injector.getInstance(LoadTreatmentFacilitiesFunctor.class)
         .run(file);
   }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RedisFacilityIndexDao implements IndexFacility {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityIndexDao.class);
 
   private IndexFacilityByGeo byGeo;

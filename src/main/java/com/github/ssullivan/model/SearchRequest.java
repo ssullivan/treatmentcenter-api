@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class SearchRequest {
+
   private GeoRadiusCondition geoRadiusCondition;
   private List<ServicesCondition> conditions;
   private SetOperation finalSetOperation;

@@ -15,8 +15,11 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility implements IndexFacilityByGeo {
-  private static final Logger LOGGER = LoggerFactory.getLogger(RedisIndexFacilityByServiceCode.class);
+public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility implements
+    IndexFacilityByGeo {
+
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(RedisIndexFacilityByServiceCode.class);
 
 
   @Inject
@@ -25,7 +28,8 @@ public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility imp
   }
 
   @Override
-  protected void index(final RedisCommands<String, String> sync, final String feed, final Facility facility) {
+  protected void index(final RedisCommands<String, String> sync, final String feed,
+      final Facility facility) {
     if (facility == null) {
       return;
     }

@@ -4,6 +4,7 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreByMilitaryStatus implements IScoreFacility {
+
   private boolean isMilitary;
   private boolean noMilitaryService;
   private Importance importance;
@@ -19,15 +20,14 @@ public class ScoreByMilitaryStatus implements IScoreFacility {
   @Override
   public double score(Facility facility) {
     if (this.noMilitaryService
-    || (Sets.anyMatch(serviceCodes, "AD", "GR", "IVET") && importance == Importance.NOT)
-    || (Sets.anyMatch(serviceCodes, "AD") && facility.hasAnyOf("ADM"))
-    || (Sets.anyMatch(serviceCodes, "IVET", "GR") && facility.hasAnyOf("VET"))){
+        || (Sets.anyMatch(serviceCodes, "AD", "GR", "IVET") && importance == Importance.NOT)
+        || (Sets.anyMatch(serviceCodes, "AD") && facility.hasAnyOf("ADM"))
+        || (Sets.anyMatch(serviceCodes, "IVET", "GR") && facility.hasAnyOf("VET"))) {
       return 1.0;
     }
 
     if ((Sets.allMatch(serviceCodes, "AD", "MSI") && !facility.hasAnyOf("ADM"))
-        || (Sets.anyMatch(serviceCodes, "IVET", "GR") && !facility.hasAnyOf("VET")))
-    {
+        || (Sets.anyMatch(serviceCodes, "IVET", "GR") && !facility.hasAnyOf("VET"))) {
       return 0.8;
     }
 

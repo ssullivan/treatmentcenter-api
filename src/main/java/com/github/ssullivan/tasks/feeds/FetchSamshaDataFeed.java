@@ -35,14 +35,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Fetches the raw XLSX from samsha and stores it in an S3 bucket like:
  *
- * General format is:
- * {bucket}/feeds/{feedName}/{prefix}-{timestamp}.{type}
+ * General format is: {bucket}/feeds/{feedName}/{prefix}-{timestamp}.{type}
  * {bucket}/feeds/{feedname}.feed.json
  *
- * {bucket}/feeds/samsha/locations-{timestamp}.xlsx
- * {bucket}/feeds/samsha.feed.json
+ * {bucket}/feeds/samsha/locations-{timestamp}.xlsx {bucket}/feeds/samsha.feed.json
  */
-public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, String>>>, Function<Void, Optional<Tuple2<String, String>>> {
+public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, String>>>,
+    Function<Void, Optional<Tuple2<String, String>>> {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(FetchSamshaDataFeed.class);
   private static final ObjectReader FEED_READER = new ObjectMapper().readerFor(Feed.class);
   private static final ObjectWriter FEED_WRITER = new ObjectMapper().writerFor(Feed.class);
@@ -53,7 +53,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
   private AmazonS3 amazonS3;
 
   @Inject
-  public FetchSamshaDataFeed(@SamshaUrl final String url, @BucketName final String bucket, final AmazonS3 amazonS3) {
+  public FetchSamshaDataFeed(@SamshaUrl final String url, @BucketName final String bucket,
+      final AmazonS3 amazonS3) {
     this.url = url;
     this.bucket = bucket;
     this.amazonS3 = amazonS3;
@@ -62,9 +63,9 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
   @Override
   public Optional<Tuple2<String, String>> get() {
     if (this.url.startsWith("file")) {
-      final File file  = new File(this.url.replaceFirst("file:/", ""));
+      final File file = new File(this.url.replaceFirst("file:/", ""));
       try (FileInputStream fileInputStream = new FileInputStream(file);
-           BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, 8192)
+          BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, 8192)
       ) {
         return Optional.of(handleStream(file.length(), bufferedInputStream));
       } catch (MalformedURLException e) {
@@ -73,8 +74,7 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
         LOGGER.error("Failed to load: " + this.url, e);
       }
       return Optional.empty();
-    }
-    else {
+    } else {
       final Client client = JerseyClientBuilder.createClient();
       try {
         final Response response = client.target(url)
@@ -101,7 +101,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
     return Optional.empty();
   }
 
-  private Tuple2<String, String> handleStream(final long contentLength,  final InputStream inputStream)
+  private Tuple2<String, String> handleStream(final long contentLength,
+      final InputStream inputStream)
       throws IOException {
     LOGGER.info("Successfully, fetched SAMSHA treatment facilities excel");
 
@@ -116,30 +117,32 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
     objectMetadata.addUserMetadata("collected_at", "" + collected_at);
     objectMetadata.addUserMetadata("feed_id", ShortUuid.randomShortUuid());
 
-    if (contentLength > 0)
+    if (contentLength > 0) {
       objectMetadata.setContentLength(contentLength);
-
+    }
 
     amazonS3.putObject(this.bucket, objectKey, inputStream, objectMetadata);
 
-
-    try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(FEED_WRITER.writeValueAsBytes(feed))) {
-      amazonS3.putObject(this.bucket, "feeds/samsha.feed.json", byteArrayInputStream, new ObjectMetadata());
+    try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+        FEED_WRITER.writeValueAsBytes(feed))) {
+      amazonS3.putObject(this.bucket, "feeds/samsha.feed.json", byteArrayInputStream,
+          new ObjectMetadata());
     }
 
     return new Tuple2<>(bucket, objectKey);
   }
 
   private String createObjectKey() {
-    return "samsha/locations-" + ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("YYYYMMddHHmmss")) + ".xlsx";
+    return "samsha/locations-" + ZonedDateTime.now(ZoneOffset.UTC)
+        .format(DateTimeFormatter.ofPattern("YYYYMMddHHmmss")) + ".xlsx";
   }
 
   private Optional<Feed> getFeed() {
     final S3Object s3Object = amazonS3.getObject(this.bucket, "feeds/samsha.feed.json");
 
     try (S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent();
-         BufferedInputStream bufferedInputStream = new BufferedInputStream(s3ObjectInputStream)) {
-        return FEED_READER.readValue(bufferedInputStream);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(s3ObjectInputStream)) {
+      return FEED_READER.readValue(bufferedInputStream);
     } catch (IOException e) {
       LOGGER.error("Failed to fetch samsha.feed.json", e);
     }

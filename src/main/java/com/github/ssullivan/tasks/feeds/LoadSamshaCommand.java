@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LoadSamshaCommand extends Command {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(LoadSamshaCommand.class);
   private Injector injector;
 
@@ -108,7 +109,8 @@ public class LoadSamshaCommand extends Command {
       final String awsBucket = namespace.getString("Bucket");
       final String awsRegion = namespace.getString("Region");
 
-      final AwsS3Settings settings = new AwsS3Settings(awsSecretKey, awsAccessKey, namespace.getString("Endpoint"), awsRegion,
+      final AwsS3Settings settings = new AwsS3Settings(awsSecretKey, awsAccessKey,
+          namespace.getString("Endpoint"), awsRegion,
           awsBucket);
 
       final File spreadsheetFile = namespace.get("File");
@@ -128,13 +130,11 @@ public class LoadSamshaCommand extends Command {
       samshaEtlJob.extract();
       samshaEtlJob.transform();
       samshaEtlJob.load();
-    }
-    finally {
+    } finally {
       try {
         this.injector.getInstance(RedisClient.class).shutdown();
         LOGGER.info("Shutdown redis client");
-      }
-      finally {
+      } finally {
         this.injector.getInstance(AmazonS3.class).shutdown();
         LOGGER.info("Shutdown AmazonS3 client");
       }
