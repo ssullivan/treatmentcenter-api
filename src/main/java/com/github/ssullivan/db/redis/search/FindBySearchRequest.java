@@ -56,12 +56,12 @@ public class FindBySearchRequest extends AbstractFindFacility {
     try (StatefulRedisConnection<String, String> connection = syncPool.borrowConnection()) {
       RedisCommands<String, String> sync = connection.sync();
 
-      final Optional<String> feedOption = this.feedDao.searchFeedId();
+      final String searchFeedId = this.feedDao.searchFeedId().orElse("");
 
-      if (!feedOption.isPresent()) {
-        LOGGER.error("Error connecting to the backend database! Unable to find current feed");
-        return CompletableFuture.completedFuture(SearchResults.empty());
+      if (searchFeedId.isEmpty()) {
+        LOGGER.warn("Search Feed Id is EMPTY! Default to empty string ''");
       }
+
       final String searchKey = "s:" + ShortUuid.randomShortUuid() + ":";
 
       final Tuple2<Long, String> serviceCodeResults =
@@ -73,7 +73,7 @@ public class FindBySearchRequest extends AbstractFindFacility {
 
       totalResults = serviceCodeResults.get_1();
       if (searchRequest.getGeoRadiusCondition() != null) {
-        final Tuple2<Long, String> geoResult = findByGeoPoint(sync, feedOption.get(),
+        final Tuple2<Long, String> geoResult = findByGeoPoint(sync, searchFeedId,
             searchKey, searchRequest.getGeoRadiusCondition());
 
         LOGGER.debug("");
