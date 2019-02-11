@@ -52,8 +52,7 @@ public class ServiceCodesResource {
           .build();
 
       asyncResponse.resume(successResponse);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       LOGGER.error("Failed to list services", e);
       asyncResponse.resume(Response.serverError().build());
     }

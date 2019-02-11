@@ -1,0 +1,6 @@
+# Environment Settings
+env_name: "{{ env | lower }}"
+ssh_user: ansible
+
+# AWS Settings
+aws_region: us-east-2

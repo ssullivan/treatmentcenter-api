@@ -11,7 +11,6 @@ import com.github.ssullivan.model.ServiceCategoryCode;
 import io.dropwizard.jackson.Jackson;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -22,18 +21,17 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public class LoadCategoriesAndServicesFunctor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LoadCategoriesAndServicesFunctor.class);
-
-  private ICategoryCodesDao categoryCodesDao;
-  private IServiceCodesDao serviceCodesDao;
   private final ObjectMapper objectMapper = Jackson.newMinimalObjectMapper();
-
   private final ObjectReader objectReader = objectMapper.readerFor(ServiceCategoryCode.class);
   private final Map<String, Category> categoryMap = new HashMap<>(128);
   private final Map<String, Set<String>> categoryServiceMap = new HashMap<>(128);
+  private ICategoryCodesDao categoryCodesDao;
+  private IServiceCodesDao serviceCodesDao;
 
   @Inject
   LoadCategoriesAndServicesFunctor(ICategoryCodesDao categoryCodesDao,

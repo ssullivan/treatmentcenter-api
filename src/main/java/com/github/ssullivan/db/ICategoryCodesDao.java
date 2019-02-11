@@ -5,16 +5,12 @@ import com.github.ssullivan.model.Category;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
 import java.util.List;
-import org.eclipse.jetty.util.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ImplementedBy(RedisCategoryCodesDao.class)
 public interface ICategoryCodesDao {
 
-  class Holder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ICategoryCodesDao.class);
-  }
   /**
    * Fetches the service code record from the database with the provided id.
    *
@@ -29,8 +25,7 @@ public interface ICategoryCodesDao {
   default Category getFromCache(final String id) {
     try {
       return get(id, true);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Holder.LOGGER.error("Failed to get category", e);
     }
     return null;
@@ -51,5 +46,14 @@ public interface ICategoryCodesDao {
 
   List<Category> listCategories() throws IOException;
 
-  boolean addCategory(final Category category) throws IOException;
+  boolean addCategory(final String feed, final Category category) throws IOException;
+
+  default boolean addCategory(final Category category) throws IOException {
+    return addCategory("", category);
+  }
+
+  class Holder {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ICategoryCodesDao.class);
+  }
 }

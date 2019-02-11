@@ -1,0 +1,20 @@
+aws_vpc_name: production
+use_vpc_dns: yes
+
+# PRIVATE
+aws_private_cidrs:
+  a: 10.192.21.0/24
+  b: 10.192.20.0/24
+  c: 10.192.23.0/24
+  d: 10.192.22.0/24
+
+aws_private_subnet_info: "{{ aws_region | build_subnet_data(aws_private_subnet_name, env, aws_private_cidrs) }}"
+
+
+# PUBLIC
+aws_public_cidrs:
+  a: 10.192.11.0/24
+  b: 10.192.10.0/24
+
+aws_db_cidrs:
+  a:

@@ -4,6 +4,7 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreBySmokingPolicy implements IScoreFacility {
+
   private static final String SMON = "SMON";
   private static final String SMPD = "SMPD";
   private static final String SMOP = "SMOP";
@@ -22,7 +23,9 @@ public class ScoreBySmokingPolicy implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     if (isSmoker) {
       if (Sets.anyMatch(serviceCodes, SMON) && facility.hasAnyOf(SMON, SMPD, SMOP)) {
         return 1.0;
@@ -33,8 +36,7 @@ public class ScoreBySmokingPolicy implements IScoreFacility {
       if (Sets.anyMatch(serviceCodes, SMOP) && facility.hasAnyOf(SMOP)) {
         return 1.0;
       }
-    }
-    else {
+    } else {
       if (Sets.anyMatch(serviceCodes, SMON) && facility.hasAnyOf(SMON)) {
         return 1.0;
       }

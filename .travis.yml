@@ -37,6 +37,11 @@ matrix:
           script: ./gradlew dockerTagImageProdLatest pushImageProdLatest
           on:
             branch: master
+        - skip_cleanup: true
+          provider: script
+          script: ./graldew dockerTagImageDevLatest pushImageDevLatest
+          on:
+            branch: master
     - language: node_js
       node_js:
         - "node"

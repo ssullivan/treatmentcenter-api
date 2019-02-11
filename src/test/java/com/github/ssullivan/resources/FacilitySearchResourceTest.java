@@ -3,6 +3,7 @@ package com.github.ssullivan.resources;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.redis.search.FindBySearchRequest;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
@@ -10,6 +11,7 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.SortDirection;
 import com.github.ssullivan.resources.FacilitySearchResource;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -20,6 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -38,6 +41,10 @@ import org.mockito.Mockito;
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class FacilitySearchResourceTest {
+  private static final String FeedId = ShortUuid.encode(UUID.randomUUID());
+  private static final String FirstId = ShortUuid.encode(UUID.randomUUID());
+  private static final String SecondId = ShortUuid.encode(UUID.randomUUID());
+
   private static final GenericType<SearchResults<Facility>> SEARCH_RESULTS_GENERIC_TYPE =
       new GenericType<SearchResults<Facility>>(){
 
@@ -45,7 +52,7 @@ public class FacilitySearchResourceTest {
 
   private static final IFacilityDao dao = Mockito.mock(IFacilityDao.class);
   private static final IPostalcodeService postalCodeService = Mockito.mock(IPostalcodeService.class);
-
+  private static final FindBySearchRequest find = Mockito.mock(FindBySearchRequest.class);
   private static class FacilitySearchResults {
     private long totalHits;
     private List<FacilityWithRadius> hits;
@@ -68,18 +75,20 @@ public class FacilitySearchResourceTest {
   }
 
   public static final ResourceExtension resources = ResourceExtension.builder()
-      .addResource(new FacilitySearchResource(dao, postalCodeService))
+      .addResource(new FacilitySearchResource(find, postalCodeService))
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
       .build();
 
-  private static final Facility facility = new Facility(1L,
+    private static final Facility facility = new Facility(FirstId, FeedId, "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",
       ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("BAR"));
 
 
-  private static final Facility facilit2y = new Facility(2L,
+
+  private static final Facility facilit2y = new Facility(SecondId, FeedId,
+      "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",
@@ -88,56 +97,10 @@ public class FacilitySearchResourceTest {
   @BeforeAll
   public void setup() throws Exception {
 
-    Mockito.when(dao.findByServiceCodes(Mockito.eq(Lists.newArrayList("BAR")),
-        Mockito.eq(Page.page())))
-        .thenReturn(SearchResults.searchResults(1L, facility));
-
-
-
-    Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.eq(Lists.newArrayList("BAR")),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.eq("mi"),
-        Mockito.any()))
-        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
-
-    Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.eq(Lists.newArrayList("BAR")),
-        Mockito.eq(Lists.newArrayList("FIZZ")),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.eq("mi"),
-        Mockito.any()))
-        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
-
-    Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.eq(Sets.newHashSet("BAR")),
-        Mockito.eq(Sets.newHashSet("FIZZ")),
-        Mockito.eq(false),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.eq("mi"),
-        Mockito.any()))
-        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
-
-    Mockito.when(dao.findByServiceCodesWithin(
-        Mockito.eq(Sets.newHashSet("BAR")),
-        Mockito.eq(Sets.newHashSet()),
-        Mockito.eq(false),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.anyDouble(),
-        Mockito.eq("mi"),
-        Mockito.any()))
-        .thenReturn(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0)));
-
-    Mockito.when(dao.find(Mockito.any(), Mockito.any()))
-        .thenReturn(CompletableFuture.completedFuture(SearchResults.searchResults(1L, new FacilityWithRadius(facility, 1.0))));
-
+    Mockito.when(find.find(Mockito.any(), Mockito.any()))
+        .thenReturn(CompletableFuture.completedFuture(
+            SearchResults.searchResults(1, ImmutableList.of(facility))
+        ));
     Mockito.when(postalCodeService.fetchGeos(Mockito.anyString()))
         .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33,33)));
   }

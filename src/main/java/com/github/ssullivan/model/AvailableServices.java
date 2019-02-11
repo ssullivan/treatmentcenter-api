@@ -9,6 +9,7 @@ import java.util.List;
 
 @ApiModel
 public class AvailableServices {
+
   private ImmutableList<Category> categoryCodes;
 
   public AvailableServices() {
@@ -20,15 +21,17 @@ public class AvailableServices {
   }
 
   public List<Category> getCategoryCodes() {
-    if (this.categoryCodes == null)
+    if (this.categoryCodes == null) {
       return new ArrayList<>();
+    }
 
     return new ArrayList<>(categoryCodes);
   }
 
   public void setCategoryCodes(final List<Category> categoryCodes) {
-    if (categoryCodes == null)
+    if (categoryCodes == null) {
       return;
+    }
 
     this.categoryCodes = ImmutableList.copyOf(categoryCodes);
   }

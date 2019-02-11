@@ -4,6 +4,7 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
+
   private Set<String> serviceCodes;
   private Importance importance;
   private boolean isMilitary;
@@ -23,7 +24,9 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
 
   @Override
   public double score(Facility facility) {
-    if (facility == null) return 0.0;
+    if (facility == null) {
+      return 0.0;
+    }
     if (!this.isMilitary || importance == Importance.NOT) {
       return 1.0;
     }

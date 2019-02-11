@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 public class RedisClientProvider implements Provider<RedisClient> {
+
   private final RedisConfig redisConfig;
 
   @Inject

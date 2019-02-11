@@ -5,20 +5,19 @@ import java.util.Set;
 
 public class ScoreBySubstanceDetoxServices implements IScoreFacility {
 
+  public static final String METHADONE_DETOX = "DM";
+  public static final String DETOXIFICATION = "DX";
+  public static final String ALCOHOL_DETOX = "ADTX";
+  public static final String COCAINE_DETOX = "CDTX";
   private static final String HOSPITAL_INPATIENT = "HID";
   private static final String RESIDENTIAL = "RD";
   private static final String OUTPATIENT = "OD";
-
   private static final String BUPRENORPHINE_DETOX = "DB";
-  public static final String METHADONE_DETOX = "DM";
   private static final String COCAINE = "CD";
   private static final String METH = "MD";
   private static final String BENZODIAZEPINE = "BD";
   private static final String ALCOHOL = "AD";
-  public static final String DETOXIFICATION = "DX";
-  public static final String ALCOHOL_DETOX = "ADTX";
   private static final String BENZODIAZEPINES_DETOX = "BDTX";
-  public static final String COCAINE_DETOX = "CDTX";
   private static final String METH_DETOX = "MDTX";
   private static final String OPIOIDS_DETOX = "ODTX";
 
@@ -31,7 +30,8 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
   }
 
   public ScoreBySubstanceDetoxServices(final Set<String> serviceCodes) {
-    this(serviceCodes, Sets.anyMatch(serviceCodes, BUPRENORPHINE_DETOX, COCAINE_DETOX, METH_DETOX, OPIOIDS_DETOX));
+    this(serviceCodes,
+        Sets.anyMatch(serviceCodes, BUPRENORPHINE_DETOX, COCAINE_DETOX, METH_DETOX, OPIOIDS_DETOX));
   }
 
   @Override

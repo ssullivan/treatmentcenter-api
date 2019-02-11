@@ -1,6 +1,7 @@
 package com.github.ssullivan.model.collections;
 
-public class Pair<L,R> {
+public class Pair<L, R> {
+
   private L lhs;
   private R rhs;
 

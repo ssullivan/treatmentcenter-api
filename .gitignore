@@ -37,3 +37,13 @@ node_modules
 .idea
 1
 *.swp
+
+# Redis
+*.rdb
+
+# Crypto
+*.jks
+*.p12
+*.p7b
+*.cert
+*.key

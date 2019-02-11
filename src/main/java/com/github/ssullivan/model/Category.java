@@ -13,13 +13,15 @@ import javax.annotation.Nonnull;
 
 @ApiModel
 public class Category {
+
   private String code;
   private String name;
   private Set<String> serviceCodes;
   private Set<Service> services;
 
   public Category() {
-
+    this.serviceCodes = new HashSet<>();
+    this.services = new HashSet<>();
   }
 
   public Category(final String code, final String name, final Set<String> serviceCodes) {
@@ -74,23 +76,26 @@ public class Category {
   }
 
   public void addAllServiceCodes(@Nonnull final Collection<Service> services) {
-      services
-          .stream()
-          .filter(Objects::nonNull)
-          .forEach(this::addServiceCode);
+    services
+        .stream()
+        .filter(Objects::nonNull)
+        .forEach(this::addServiceCode);
   }
 
 
   @ApiModelProperty(value = "A list of services", example = "[ABC,EDU]", dataType = "java.util.Set")
   public Set<Service> getServices() {
-    if (this.services == null)
+    if (this.services == null) {
       return ImmutableSet.of();
+    }
 
     return ImmutableSet.copyOf(services);
   }
 
   public void setServices(Set<Service> services) {
-    if (services == null) return;
+    if (services == null) {
+      return;
+    }
 
     this.services = ImmutableSet.copyOf(services);
   }

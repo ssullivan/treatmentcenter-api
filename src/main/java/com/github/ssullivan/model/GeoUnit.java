@@ -20,6 +20,21 @@ public enum GeoUnit {
     this.scale = scale;
   }
 
+  public static GeoUnit asGeoUnit(final String unit) {
+    switch (unit) {
+      case "mi":
+        return MILE;
+      case "km":
+        return KILOMETER;
+      case "m":
+        return METER;
+      case "ft":
+        return FEET;
+      default:
+        return MILE;
+    }
+  }
+
   public double convertTo(final GeoUnit toUnit, final double value) {
     if (this == toUnit) {
       return value;
@@ -47,21 +62,6 @@ public enum GeoUnit {
         return Unit.km;
       default:
         return Unit.mi;
-    }
-  }
-
-  public static GeoUnit asGeoUnit(final String unit) {
-    switch (unit) {
-      case "mi":
-        return MILE;
-      case "km":
-        return KILOMETER;
-      case "m":
-        return METER;
-      case "ft":
-        return FEET;
-      default:
-        return MILE;
     }
   }
 

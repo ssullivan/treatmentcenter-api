@@ -6,6 +6,7 @@ import java.util.Objects;
 
 @ApiModel
 public class FacilityWithRadius extends Facility {
+
   private double radius;
   private String geoUnit;
 

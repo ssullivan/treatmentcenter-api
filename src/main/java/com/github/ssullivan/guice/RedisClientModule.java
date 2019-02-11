@@ -9,6 +9,7 @@ import io.lettuce.core.RedisClient;
 import javax.annotation.Nonnull;
 
 public class RedisClientModule extends AbstractModule {
+
   private final RedisConfig redisConfig;
 
   public RedisClientModule(@Nonnull RedisConfig redisConfig) {
@@ -21,7 +22,6 @@ public class RedisClientModule extends AbstractModule {
     bind(RedisClient.class).toProvider(RedisClientProvider.class).in(Singleton.class);
     bind(IRedisConnectionPool.class).to(RedisConnectionPool.class).in(Singleton.class);
   }
-
 
 
 }

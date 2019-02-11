@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PostalcodeService implements IPostalcodeService {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PostalcodeService.class);
 
   private ImmutableMap<String, List<GeoPoint>> postalCodes;

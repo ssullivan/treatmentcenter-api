@@ -3,6 +3,7 @@ package com.github.ssullivan.model;
 import com.google.common.base.Preconditions;
 
 public class GeoRadiusCondition {
+
   private GeoPoint geoPoint;
   private double radius;
   private GeoUnit geoUnit;

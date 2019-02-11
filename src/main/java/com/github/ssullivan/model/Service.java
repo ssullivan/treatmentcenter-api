@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
 public class Service {
+
   private String code;
   private String name;
   private String description;

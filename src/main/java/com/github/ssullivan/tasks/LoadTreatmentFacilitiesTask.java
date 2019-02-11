@@ -10,6 +10,7 @@ import java.io.File;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 
+@Deprecated
 public class LoadTreatmentFacilitiesTask extends Command {
 
   public LoadTreatmentFacilitiesTask() {

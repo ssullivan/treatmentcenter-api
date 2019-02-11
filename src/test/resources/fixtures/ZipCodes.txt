@@ -1,0 +1,3 @@
+US	99553	Akutan	Alaska	AK	Aleutians East	013			54.143	-165.7854	1
+US	99571	Cold Bay	Alaska	AK	Aleutians East	013			55.1858	-162.7211	1
+US	99583	False Pass	Alaska	AK	Aleutians East	013			54.8542	-163.4113	1

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.IServiceCodesDao;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -62,10 +61,11 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   @Override
   public Service get(String id, boolean fromCache) throws IOException {
     try {
-      if (fromCache)
+      if (fromCache) {
         return this.cache.get(id);
-      else
+      } else {
         return this.get(id);
+      }
     } catch (InvalidCacheLoadException e) {
       LOGGER.error("Failed to get service code '{}' from db", id, e);
       throw new IOException("Failed to load service code", e);
@@ -137,6 +137,11 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
+  }
+
+  @Override
+  public boolean addService(String feedId, Service service) throws IOException {
+    return false;
   }
 
   private String serialize(@Nonnull final Service service) throws IOException {

@@ -7,18 +7,20 @@ import com.google.common.collect.Sets;
 import io.swagger.annotations.ApiModel;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @ApiModel
 public class Facility {
-  private long id;
+
+  private String id;
+  private String feedId;
   private String name1;
   private String name2;
   private String zip;
   private String street;
   private String city;
   private String state;
+  private String county;
   private String googlePlaceId;
   private GeoPoint location;
   private String formattedAddress;
@@ -35,6 +37,7 @@ public class Facility {
 
   public Facility(Facility facility) {
     this.id = facility.getId();
+    this.feedId = facility.getFeedId();
     this.name1 = facility.getName1();
     this.name2 = facility.getName2();
     this.zip = facility.getZip();
@@ -45,13 +48,17 @@ public class Facility {
     this.location = facility.getLocation();
     this.formattedAddress = facility.getFormattedAddress();
     this.website = facility.getWebsite();
+    this.county = facility.getCounty();
 
-    if (facility.getPhoneNumbers() != null)
+    if (facility.getPhoneNumbers() != null) {
       this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
-    if (facility.getCategoryCodes() != null)
+    }
+    if (facility.getCategoryCodes() != null) {
       this.categoryCodes = new HashSet<>(facility.getCategoryCodes());
-    if (facility.getServiceCodes() != null)
+    }
+    if (facility.getServiceCodes() != null) {
       this.serviceCodes = new HashSet<>(facility.getServiceCodes());
+    }
     if (facility.getAvailableServices() != null) {
       this.availableServices = facility.getAvailableServices();
     }
@@ -75,13 +82,15 @@ public class Facility {
    * @param categoryCodes categories of services offered by the facility
    * @param serviceCodes services offered by the facility
    */
-  public Facility(long id, String name1, String name2, String zip, String street,
-      String city, String state, String googlePlaceId, GeoPoint location,
+  public Facility(String id, String feedId, String name1, String name2, String zip, String street,
+      String city, String state, String county, String googlePlaceId, GeoPoint location,
       String formattedAddress, String website, Set<String> phoneNumbers,
       Set<String> categoryCodes, Set<String> serviceCodes) {
     this.id = id;
+    this.feedId = feedId;
     this.name1 = name1;
     this.name2 = name2;
+    this.county = county;
     this.zip = zip;
     this.street = street;
     this.city = city;
@@ -93,6 +102,22 @@ public class Facility {
     this.phoneNumbers = phoneNumbers;
     this.categoryCodes = categoryCodes;
     this.serviceCodes = serviceCodes;
+  }
+
+  public String getFeedId() {
+    return feedId;
+  }
+
+  public void setFeedId(String feedId) {
+    this.feedId = feedId;
+  }
+
+  public String getCounty() {
+    return county;
+  }
+
+  public void setCounty(String county) {
+    this.county = county;
   }
 
   public String getStreet() {
@@ -127,11 +152,11 @@ public class Facility {
     this.state = state;
   }
 
-  public long getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
@@ -226,26 +251,34 @@ public class Facility {
 
   @JsonIgnore
   public boolean hasService(final String serviceCode) {
-    if (null == serviceCode || serviceCode.isEmpty()) return false;
+    if (null == serviceCode || serviceCode.isEmpty()) {
+      return false;
+    }
     return this.getServiceCodes().contains(serviceCode);
   }
 
   @JsonIgnore
   public boolean hasAllOf(final String... services) {
-    if (null == services || services.length <= 0) return false;
+    if (null == services || services.length <= 0) {
+      return false;
+    }
     final Set<String> uniq = ImmutableSet.copyOf(services);
     return uniq.size() == Sets.intersection(uniq, this.serviceCodes).size();
   }
 
   @JsonIgnore
   public boolean hasAnyOf(final Set<String> services) {
-    if (null == services || services.isEmpty()) return false;
+    if (null == services || services.isEmpty()) {
+      return false;
+    }
     return !Sets.intersection(services, this.serviceCodes).isEmpty();
   }
 
   @JsonIgnore
   public boolean hasAnyOf(final String... services) {
-    if (null == services || services.length <= 0) return false;
+    if (null == services || services.length <= 0) {
+      return false;
+    }
     return Stream.of(services)
         .anyMatch(it -> this.getServiceCodes() != null && this.getServiceCodes().contains(it));
   }

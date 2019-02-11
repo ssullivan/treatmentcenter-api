@@ -12,17 +12,17 @@ public class ServicesCondition {
   private MatchOperator matchOperator;
 
   /**
-   * If any of the service codes in the set start with a ! those will be negated from the search results.
+   * If any of the service codes in the set start with a ! those will be negated from the search
+   * results.
    *
-   * These are valid
-   * !a,b,c,!d
+   * These are valid !a,b,c,!d
    *
-   * or
-   * a,b,c,d,e
+   * or a,b,c,d,e
    *
    * @param serviceCodes a list of service codes
    */
-  public ServicesCondition(final Collection<String> serviceCodes, final MatchOperator matchOperator) {
+  public ServicesCondition(final Collection<String> serviceCodes,
+      final MatchOperator matchOperator) {
     final ImmutableSet.Builder<String> serviceCodesBuilder = new Builder<>();
     final ImmutableSet.Builder<String> mustNotServiceCodes = new Builder<>();
 

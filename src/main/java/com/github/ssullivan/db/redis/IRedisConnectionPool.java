@@ -5,6 +5,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 
 @ImplementedBy(RedisConnectionPool.class)
 public interface IRedisConnectionPool {
+
   StatefulRedisConnection<String, String> borrowConnection() throws Exception;
 
   boolean isClosed();

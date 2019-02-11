@@ -24,7 +24,6 @@ public interface IPostalcodeService {
    * Load postalcodes tab separated file.
    *
    * @param file the path to the file to load
-   * @throws IOException
    */
   void loadPostalCodes(final File file) throws IOException;
 

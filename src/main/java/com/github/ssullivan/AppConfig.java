@@ -28,7 +28,7 @@ public class AppConfig extends Configuration {
   }
 
 
-  @JsonProperty("redis")
+  @JsonProperty("syncPool")
   @Nullable
   public RedisConfig getRedisConfig() {
     return redisConfig;

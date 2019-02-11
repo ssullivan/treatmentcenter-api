@@ -1,7 +1,6 @@
 package com.github.ssullivan.db;
 
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Service;
 import com.google.inject.ImplementedBy;
 import java.io.IOException;
@@ -43,4 +42,6 @@ public interface IServiceCodesDao {
   List<String> listServiceCodesInCategory(final String category) throws IOException;
 
   boolean addService(final Service service) throws IOException;
+
+  boolean addService(final String feedId, final Service service) throws IOException;
 }
