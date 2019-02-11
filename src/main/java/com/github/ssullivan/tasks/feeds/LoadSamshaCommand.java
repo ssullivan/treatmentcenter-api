@@ -1,13 +1,16 @@
 package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.github.ssullivan.AppConfig;
 import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import io.dropwizard.Configuration;
 import io.dropwizard.cli.Command;
+import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import io.lettuce.core.RedisClient;
 import java.io.File;
@@ -17,7 +20,7 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoadSamshaCommand extends Command {
+public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LoadSamshaCommand.class);
   private Injector injector;
@@ -28,6 +31,8 @@ public class LoadSamshaCommand extends Command {
 
   @Override
   public void configure(Subparser subparser) {
+    super.configure(subparser);
+
     subparser.addArgument("-f", "--file")
         .dest("File")
         .required(false)
@@ -37,19 +42,22 @@ public class LoadSamshaCommand extends Command {
     subparser.addArgument("-u", "--url")
         .dest("Url")
         .required(false)
-        .type(URL.class)
+        .type(String.class)
+        .setDefault("https://findtreatment.samhsa.gov/locatorExcel?sType=SA&page=1&includeServices=Y&sortIndex=0")
         .help("URL to the SAMSHA locator spreasheet");
 
     subparser.addArgument("-a", "--accesskey")
         .dest("AccessKey")
         .required(false)
         .type(String.class)
+        .setDefault("")
         .help("The AWS access key to use.");
 
     subparser.addArgument("-s", "--secretkey")
         .dest("SecretKey")
         .required(false)
         .type(String.class)
+        .setDefault("")
         .help("The AWS secret key to use.");
 
     subparser.addArgument("-b", "--bucket")
@@ -94,15 +102,20 @@ public class LoadSamshaCommand extends Command {
         .help("The redis database to store the data into (default 0)");
   }
 
+
+
   @Override
-  public void run(Bootstrap<?> bootstrap, Namespace namespace) throws Exception {
+  protected void run(Bootstrap<AppConfig> bootstrap, Namespace namespace, AppConfig configuration)
+      throws Exception {
     try {
       LOGGER.info("Started");
 
-      final RedisConfig redisConfig = new RedisConfig();
-      redisConfig.setHost(namespace.getString("Host"));
-      redisConfig.setPort(namespace.getInt("Port"));
-      redisConfig.setDb(namespace.getInt("Database"));
+      final RedisConfig redisConfig = configuration.getRedisConfig() == null ? new RedisConfig() : configuration.getRedisConfig();
+      if (configuration.getRedisConfig() != null) {
+        redisConfig.setHost(namespace.getString("Host"));
+        redisConfig.setPort(namespace.getInt("Port"));
+        redisConfig.setDb(namespace.getInt("Database"));
+      }
 
       final String awsAccessKey = namespace.getString("AccessKey");
       final String awsSecretKey = namespace.getString("SecretKey");
@@ -114,7 +127,7 @@ public class LoadSamshaCommand extends Command {
           awsBucket);
 
       final File spreadsheetFile = namespace.get("File");
-      final URL spreadheetUrl = namespace.get("Url");
+      final String  spreadheetUrl = namespace.get("Url");
       String locatorUrl = "";
 
       if (spreadsheetFile != null) {
@@ -131,12 +144,14 @@ public class LoadSamshaCommand extends Command {
       samshaEtlJob.transform();
       samshaEtlJob.load();
     } finally {
-      try {
-        this.injector.getInstance(RedisClient.class).shutdown();
-        LOGGER.info("Shutdown redis client");
-      } finally {
-        this.injector.getInstance(AmazonS3.class).shutdown();
-        LOGGER.info("Shutdown AmazonS3 client");
+      if (this.injector != null) {
+        try {
+          this.injector.getInstance(RedisClient.class).shutdown();
+          LOGGER.info("Shutdown redis client");
+        } finally {
+          this.injector.getInstance(AmazonS3.class).shutdown();
+          LOGGER.info("Shutdown AmazonS3 client");
+        }
       }
       LOGGER.info("Done");
     }

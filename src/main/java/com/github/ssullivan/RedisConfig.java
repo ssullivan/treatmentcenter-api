@@ -9,18 +9,14 @@ public class RedisConfig {
   private int db;
 
   public RedisConfig() {
-    this.host = "localhost";
-    this.port = 6379;
-    this.db = 0;
+    this("localhost", 6379, 0);
   }
 
-  public RedisConfig(String host, int port) {
-    this.host = host;
-    this.port = port;
-    this.db = 0;
+  public RedisConfig(final String host, final int port) {
+    this(host, port, 0);
   }
 
-  public RedisConfig(String host, int port, int db) {
+  public RedisConfig(final String host, final int port, final int db) {
     this.host = host;
     this.port = port;
     this.db = db;
