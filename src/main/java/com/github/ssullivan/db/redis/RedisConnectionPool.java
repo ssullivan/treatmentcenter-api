@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class RedisConnectionPool implements IRedisConnectionPool {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisConnectionPool.class);
-
+  private static final long MAX_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(30);
   private RedisClient redisClient;
   private GenericObjectPool<StatefulRedisConnection<String, String>> pool;
   private AtomicBoolean isClosed = new AtomicBoolean(false);
@@ -24,7 +24,8 @@ public class RedisConnectionPool implements IRedisConnectionPool {
     this.redisClient = redisClient;
 
     GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-    genericObjectPoolConfig.setMaxTotal(16);
+    genericObjectPoolConfig.setMaxTotal(20);
+    genericObjectPoolConfig.setMaxWaitMillis(MAX_WAIT_MILLIS);
 
 
     this.pool = ConnectionPoolSupport
@@ -33,7 +34,7 @@ public class RedisConnectionPool implements IRedisConnectionPool {
 
   @Override
   public StatefulRedisConnection<String, String> borrowConnection() throws Exception {
-    return borrowConnection(30, TimeUnit.SECONDS);
+    return borrowConnection(MAX_WAIT_MILLIS, TimeUnit.MILLISECONDS);
   }
 
   @Override
