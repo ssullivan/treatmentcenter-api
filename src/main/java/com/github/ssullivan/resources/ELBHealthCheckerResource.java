@@ -2,6 +2,7 @@ package com.github.ssullivan.resources;
 
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import io.lettuce.core.api.StatefulRedisConnection;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -20,7 +21,7 @@ public class ELBHealthCheckerResource {
 
   @GET
   public Response pong() {
-    try (StatefulRedisConnection<String, String> conn = pool.borrowConnection()) {
+    try (StatefulRedisConnection<String, String> conn = pool.borrowConnection(500L)) {
       return Response.ok().entity("pong").build();
     } catch (Exception e) {
       LOGGER.error("Failed to get redis connection", e);

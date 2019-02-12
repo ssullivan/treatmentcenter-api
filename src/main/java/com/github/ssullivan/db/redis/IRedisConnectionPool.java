@@ -8,6 +8,9 @@ public interface IRedisConnectionPool {
 
   StatefulRedisConnection<String, String> borrowConnection() throws Exception;
 
+
+  StatefulRedisConnection<String, String> borrowConnection(final long maxWaitMillis) throws Exception;
+
   boolean isClosed();
 
   void close();

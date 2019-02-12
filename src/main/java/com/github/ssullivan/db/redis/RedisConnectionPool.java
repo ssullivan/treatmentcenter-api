@@ -39,6 +39,12 @@ public class RedisConnectionPool implements IRedisConnectionPool {
   }
 
   @Override
+  public StatefulRedisConnection<String, String> borrowConnection(long maxWaitMillis)
+      throws Exception {
+    return pool.borrowObject(maxWaitMillis);
+  }
+
+  @Override
   public boolean isClosed() {
     return this.isClosed.get();
   }
