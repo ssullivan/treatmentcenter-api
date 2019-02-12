@@ -23,7 +23,7 @@ public class RedisConnectionPool implements IRedisConnectionPool {
     this.redisClient = redisClient;
 
     GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-    genericObjectPoolConfig.setMaxTotal(16);
+    genericObjectPoolConfig.setMaxTotal(20);
     genericObjectPoolConfig.setMaxWaitMillis(TimeUnit.SECONDS.toMillis(20));
 
 
