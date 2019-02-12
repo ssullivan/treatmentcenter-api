@@ -58,6 +58,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
       }
       return deserialize(json);
     } catch (Exception e) {
+      LOGGER.error("Failed to load category '{}'", id, e);
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
@@ -84,10 +85,11 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   }
 
   @Override
-  public boolean delete(String id) throws IOException {
+  public boolean delete(final String id) throws IOException {
     try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
       return connection.sync().hdel(KEY, id) > 0;
     } catch (Exception e) {
+      LOGGER.error("Failed to delete category '{}'", id, e);
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
@@ -115,6 +117,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
     } catch (Exception e) {
+      LOGGER.error("Failed to list all categories", e);
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
