@@ -34,7 +34,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
       CacheBuilder.newBuilder()
           .maximumSize(512)
           .concurrencyLevel(8)
-          .expireAfterAccess(60, TimeUnit.MINUTES)
+          .expireAfterAccess(86400, TimeUnit.MINUTES)
           .build(new CacheLoader<String, Category>() {
             @Override
             public Category load(final String key) throws Exception {
@@ -51,7 +51,8 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Override
   public Category get(String id) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
+    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection(500,
+        TimeUnit.MILLISECONDS)) {
       final String json = connection.sync().hget(KEY, id);
       if (json == null || json.isEmpty()) {
         return null;

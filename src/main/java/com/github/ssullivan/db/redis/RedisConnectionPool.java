@@ -3,6 +3,7 @@ package com.github.ssullivan.db.redis;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.support.ConnectionPoolSupport;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -25,14 +26,20 @@ public class RedisConnectionPool implements IRedisConnectionPool {
     GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
     genericObjectPoolConfig.setMaxTotal(16);
 
+
     this.pool = ConnectionPoolSupport
         .createGenericObjectPool(redisClient::connect, genericObjectPoolConfig);
   }
 
   @Override
   public StatefulRedisConnection<String, String> borrowConnection() throws Exception {
+    return borrowConnection(30, TimeUnit.SECONDS);
+  }
 
-    return pool.borrowObject();
+  @Override
+  public StatefulRedisConnection<String, String> borrowConnection(long duration, TimeUnit unit)
+      throws Exception {
+    return pool.borrowObject(unit.convert(duration, TimeUnit.MILLISECONDS));
   }
 
   @Override
