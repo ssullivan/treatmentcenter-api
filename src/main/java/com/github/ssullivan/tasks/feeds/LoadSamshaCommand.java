@@ -14,6 +14,7 @@ import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import io.lettuce.core.RedisClient;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
@@ -43,7 +44,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
         .dest("Url")
         .required(false)
         .type(String.class)
-        .setDefault("https://findtreatment.samhsa.gov/locatorExcel?sType=SA&page=1&includeServices=Y&sortIndex=0")
+        .setDefault("https://findtreatment.samhsa.gov")
         .help("URL to the SAMSHA locator spreasheet");
 
     subparser.addArgument("-a", "--accesskey")
@@ -76,7 +77,8 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
     subparser.addArgument("-e", "--endpoint")
         .dest("Endpoint")
         .required(false)
-        .setDefault("http://localhost:9000")
+        // for dev set to http://localhost:9000
+        .setDefault("")
         .type(String.class)
         .help("The AWS API endpoint");
 
@@ -110,12 +112,21 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
     try {
       LOGGER.info("Started");
 
+      final Runtime runtime = Runtime.getRuntime();
+      LOGGER.info("Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",runtime.totalMemory(),
+          runtime.freeMemory(),
+          runtime.maxMemory(),
+          runtime.availableProcessors());
+
       final RedisConfig redisConfig = configuration.getRedisConfig() == null ? new RedisConfig() : configuration.getRedisConfig();
       if (configuration.getRedisConfig() != null) {
         redisConfig.setHost(namespace.getString("Host"));
         redisConfig.setPort(namespace.getInt("Port"));
         redisConfig.setDb(namespace.getInt("Database"));
       }
+
+      LOGGER.info("[redis] Host is {}", redisConfig.getHost());
+      LOGGER.info("[redis] Port is {}", redisConfig.getPort());
 
       final String awsAccessKey = namespace.getString("AccessKey");
       final String awsSecretKey = namespace.getString("SecretKey");
@@ -133,8 +144,10 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       if (spreadsheetFile != null) {
         locatorUrl = spreadsheetFile.toURI().toURL().toString();
       } else {
-        locatorUrl = spreadheetUrl.toString();
+        locatorUrl = spreadheetUrl;
       }
+
+      LOGGER.info("[samsha] Downloading locator.xlsx from {}", locatorUrl);
 
       this.injector = Guice.createInjector(new RedisClientModule(redisConfig),
           new AwsS3ClientModule(settings, locatorUrl));
@@ -143,7 +156,10 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       samshaEtlJob.extract();
       samshaEtlJob.transform();
       samshaEtlJob.load();
-    } finally {
+    } catch (IOException e) {
+      LOGGER.error("Failed to fetch / transform / load SAMSHSA data", e);
+    }
+    finally {
       if (this.injector != null) {
         try {
           this.injector.getInstance(RedisClient.class).shutdown();

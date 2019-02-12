@@ -4,10 +4,14 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.github.ssullivan.guice.AwsS3ClientModule;
 import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AwsS3Settings {
+  private static final Logger LOGGER = LoggerFactory.getLogger(AwsS3Settings.class);
 
   private final Optional<String> awsSecretKey;
   private final Optional<String> awsAccessKey;
@@ -33,6 +37,7 @@ public class AwsS3Settings {
 
   public AWSCredentialsProvider getAWSCredentialsProvider() {
     if (hasAwsCredentials()) {
+      LOGGER.info("[aws] Using provided AWSAccessKey and AWSSecretKey");
       return new AWSStaticCredentialsProvider(new AWSCredentials() {
         @Override
         public String getAWSAccessKeyId() {
@@ -45,6 +50,7 @@ public class AwsS3Settings {
         }
       });
     } else {
+      LOGGER.info("[aws] Using Instance Profile Creds Provider");
       return new InstanceProfileCredentialsProvider(false);
     }
   }

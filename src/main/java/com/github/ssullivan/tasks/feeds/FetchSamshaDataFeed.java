@@ -2,8 +2,10 @@ package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -14,6 +16,7 @@ import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -68,8 +71,6 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
           BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, 8192)
       ) {
         return Optional.of(handleStream(file.length(), bufferedInputStream));
-      } catch (MalformedURLException e) {
-        LOGGER.error("Failed to load: " + this.url, e);
       } catch (IOException e) {
         LOGGER.error("Failed to load: " + this.url, e);
       }
@@ -80,18 +81,30 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
         final Response response = client.target(url)
             .path("locatorExcel")
             .queryParam("sType", "SA")
+            .queryParam("page", 1)
+            .queryParam("includeServices","Y")
+            .queryParam("sortIndex", 0)
             .request()
             .buildGet()
             .invoke();
+
 
         if (response.getStatus() == 200) {
           try (final InputStream inputStream = response.readEntity(InputStream.class);
               final BufferedInputStream bufferedInputStream = new BufferedInputStream(
                   inputStream)) {
-            return Optional.of(handleStream(response.getLength(), bufferedInputStream));
+            try (ByteArrayOutputStream buf = new ByteArrayOutputStream()) {
+              IOUtils.copy(bufferedInputStream, buf);
+
+              return Optional
+                  .of(handleStream(buf.size(), new ByteArrayInputStream(buf.toByteArray())));
+            }
           } catch (IOException e) {
             LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
           }
+        }
+        else {
+          LOGGER.error("Received HTTP {}", response.getStatus());
         }
       } finally {
         client.close();
@@ -121,7 +134,11 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
       objectMetadata.setContentLength(contentLength);
     }
 
-    amazonS3.putObject(this.bucket, objectKey, inputStream, objectMetadata);
+    PutObjectResult putObjectResult = amazonS3.putObject(this.bucket, objectKey, inputStream, objectMetadata);
+    if (putObjectResult != null) {
+      LOGGER.info("[aws] Stored object {}/{} version {}", this.bucket, objectKey,
+          putObjectResult.getVersionId());
+    }
 
     try (final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
         FEED_WRITER.writeValueAsBytes(feed))) {
