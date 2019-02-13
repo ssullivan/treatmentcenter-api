@@ -163,11 +163,12 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       final RedisClient client = this.injector.getInstance(RedisClient.class);
       boolean redisOkay = false;
       try (StatefulRedisConnection<String, String> conn = client.connect()) {
-        LOGGER.info("Successfully, connected to Elasticache/Redis {}", redisConfig.getHost());
+
         redisOkay = "OK".equalsIgnoreCase(conn.sync().ping());
       }
 
       if (redisOkay) {
+        LOGGER.info("Successfully, connected to Elasticache/Redis {}", redisConfig.getHost());
         final ISamshaEtlJob samshaEtlJob = injector.getInstance(ISamshaEtlJob.class);
         samshaEtlJob.extract();
         samshaEtlJob.transform();
