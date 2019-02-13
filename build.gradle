@@ -31,8 +31,7 @@ mainClassName = 'com.github.ssullivan.ApiApplication'
 
 // See: https://www.oracle.com/technetwork/java/javase/8u191-relnotes-5032181.html
 
-applicationDefaultJvmArgs = ['-XX:+PrintFlagsFinal',
-                             '-XX:+UseG1GC',
+applicationDefaultJvmArgs = ['-XX:+UseG1GC',
                              '-Dfile.encoding=UTF-8',
                              '-XX:+UnlockExperimentalVMOptions',
                              '-XX:+UseCGroupMemoryLimitForHeap',

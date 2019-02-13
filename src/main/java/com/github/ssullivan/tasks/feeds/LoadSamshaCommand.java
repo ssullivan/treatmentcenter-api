@@ -87,7 +87,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
     subparser.addArgument("--host")
         .dest("Host")
         .required(false)
-        .setDefault("localhost")
+        .setDefault(System.getenv("REDIS_HOST"))
         .type(String.class)
         .help("The IP address or hostname of the REDIS server (defaults to localhost)");
 
@@ -120,12 +120,12 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
           runtime.maxMemory(),
           runtime.availableProcessors());
 
-      final RedisConfig redisConfig = configuration.getRedisConfig() == null ? new RedisConfig() : configuration.getRedisConfig();
-      if (configuration.getRedisConfig() != null) {
-        redisConfig.setHost(namespace.getString("Host"));
-        redisConfig.setPort(namespace.getInt("Port"));
-        redisConfig.setDb(namespace.getInt("Database"));
-      }
+      RedisConfig redisConfig = new RedisConfig();
+
+      redisConfig.setHost(namespace.getString("Host"));
+      redisConfig.setPort(namespace.getInt("Port"));
+      redisConfig.setDb(namespace.getInt("Database"));
+
 
       LOGGER.info("[redis] Host is {}", redisConfig.getHost());
       LOGGER.info("[redis] Port is {}", redisConfig.getPort());
