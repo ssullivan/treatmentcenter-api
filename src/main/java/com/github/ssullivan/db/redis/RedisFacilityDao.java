@@ -114,6 +114,7 @@ public class RedisFacilityDao implements IFacilityDao {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
       addFacility(connection.sync(), facility);
     } catch (Exception e) {
+      LOGGER.error("Failed to add facility: {} for feed {}", facility, feedId);
       throw new IOException("Failed to get connection to REDIS", e);
     }
 

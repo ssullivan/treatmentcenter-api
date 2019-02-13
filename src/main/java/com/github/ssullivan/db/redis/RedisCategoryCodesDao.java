@@ -128,6 +128,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
       return connection.sync().hset(KEY, category.getCode(),
           serialize(category));
     } catch (Exception e) {
+      LOGGER.error("Failed to store Category: {} in hset {}", category.getCode(), KEY);
       throw new IOException("Failed to connect to REDIS", e);
     }
   }

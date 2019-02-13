@@ -44,7 +44,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
         this.categoryCodesDao.addCategory(samshaLocatorData.getFeedId(), category);
         totalCats++;
       } catch (IOException e) {
-        LOGGER.error("Failed to add category: {}", category);
+        LOGGER.error("Failed to add category: {}", category, e);
       }
     }
     LOGGER.info("Loaded {} of {} categories", totalCats, samshaLocatorData.getCategories().size());
@@ -55,7 +55,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
         this.serviceCodesDao.addService(samshaLocatorData.getFeedId(), service);
         totalServices++;
       } catch (IOException e) {
-        LOGGER.error("Failed to add service: {}", service);
+        LOGGER.error("Failed to add service: {}", service, e);
       }
     }
     LOGGER.info("Loaded {} of {} services", totalServices, samshaLocatorData.getServices().size());
@@ -66,7 +66,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
         facilityDao.addFacility(samshaLocatorData.getFeedId(), facility);
         totalLocations++;
       } catch (IOException e) {
-        LOGGER.error("Failed to add facility: {}", facility);
+        LOGGER.error("Failed to add facility: {}", facility, e);
       }
     }
     LOGGER.info("Loaded {} of {} locations", totalLocations,
