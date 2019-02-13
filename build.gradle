@@ -77,7 +77,7 @@ dependencies {
     compile group: 'org.mockito', name: 'junit-jupiter', version: '2.20.0'
     testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25.1'
     testImplementation(
-            'org.junit.jupiter:junit-jupiter-api:5.1.0'
+            'org.junit.jupiter:junit-jupiter-api:5.4.0'
     )
     testRuntimeOnly(
             'org.junit.jupiter:junit-jupiter-engine:5.1.0'
