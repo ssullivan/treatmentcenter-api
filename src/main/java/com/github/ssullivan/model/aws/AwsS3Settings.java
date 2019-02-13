@@ -3,7 +3,9 @@ package com.github.ssullivan.model.aws;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.ContainerCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.internal.CredentialsEndpointProvider;
 import com.github.ssullivan.guice.AwsS3ClientModule;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +53,7 @@ public class AwsS3Settings {
       });
     } else {
       LOGGER.info("[aws] Using Instance Profile Creds Provider");
-      return new InstanceProfileCredentialsProvider(false);
+      return new ContainerCredentialsProvider();
     }
   }
 

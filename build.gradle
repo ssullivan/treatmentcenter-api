@@ -37,8 +37,8 @@ applicationDefaultJvmArgs = ['-XX:+PrintFlagsFinal',
                              '-XX:+UnlockExperimentalVMOptions',
                              '-XX:+UseCGroupMemoryLimitForHeap',
                              '-XX:+UseContainerSupport',
-                             '-XX:MaxRAMPercentage=80',
-                             '-XX:InitialRAMPercentage=80'
+                             '-XX:MaxRAMPercentage=80.0',
+                             '-XX:InitialRAMPercentage=80.0'
 
 
 ]

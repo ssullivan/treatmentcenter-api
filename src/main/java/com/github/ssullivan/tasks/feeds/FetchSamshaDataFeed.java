@@ -93,12 +93,10 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
           try (final InputStream inputStream = response.readEntity(InputStream.class);
               final BufferedInputStream bufferedInputStream = new BufferedInputStream(
                   inputStream)) {
-            try (ByteArrayOutputStream buf = new ByteArrayOutputStream()) {
-              IOUtils.copy(bufferedInputStream, buf);
 
               return Optional
-                  .of(handleStream(buf.size(), new ByteArrayInputStream(buf.toByteArray())));
-            }
+                  .of(handleStream(response.getLength(), bufferedInputStream));
+
           } catch (IOException e) {
             LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
           }

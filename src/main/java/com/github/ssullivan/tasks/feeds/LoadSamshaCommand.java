@@ -152,6 +152,9 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       this.injector = Guice.createInjector(new RedisClientModule(redisConfig),
           new AwsS3ClientModule(settings, locatorUrl));
 
+      final AmazonS3 amazonS3 = this.injector.getInstance(AmazonS3.class);
+
+
       final ISamshaEtlJob samshaEtlJob = injector.getInstance(ISamshaEtlJob.class);
       samshaEtlJob.extract();
       samshaEtlJob.transform();
