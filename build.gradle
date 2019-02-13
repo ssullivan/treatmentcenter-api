@@ -29,6 +29,19 @@ version = '1.13.0'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
+// See: https://www.oracle.com/technetwork/java/javase/8u191-relnotes-5032181.html
+
+applicationDefaultJvmArgs = ['-XX:+PrintFlagsFinal',
+                             '-XX:+UseG1GC',
+                             '-Dfile.encoding=UTF-8',
+                             '-XX:+UnlockExperimentalVMOptions',
+                             '-XX:+UseCGroupMemoryLimitForHeap',
+                             '-XX:+UseContainerSupport',
+                             '-XX:MaxRAMPercentage=80',
+                             '-XX:InitialRAMPercentage=80'
+
+
+]
 repositories {
     mavenLocal()
     mavenCentral()
