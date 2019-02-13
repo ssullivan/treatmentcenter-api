@@ -2,7 +2,7 @@ FROM openjdk:8-alpine
 ARG UID=7999
 ARG GID=7999
 
-ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+ENV JAVA_OPTS="-XX:+PrintFlagsFinal -XX:+UseG1GC -Dfile.encoding=UTF-8 -XX:+UseContainerSupport -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMPercentage=80 -XX:InitialRAMPercentage=80"
 RUN apk --no-cache update \
     && apk --no-cache upgrade \
     && apk --no-cache add \
