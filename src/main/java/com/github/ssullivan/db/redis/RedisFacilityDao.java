@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -102,6 +103,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
     final Map<String, String> stringStringMap = toStringMap(facility);
     redis.hmset(facilityKey(facility.getId()), stringStringMap);
+
 
     // this is so we can quickly delete stuff in the future
     redis.sadd(TREATMENT_FACILITIES_IDS + facility.getFeedId(), facility.getId());

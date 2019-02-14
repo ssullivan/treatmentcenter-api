@@ -34,13 +34,17 @@ public class ManageFeeds {
     this.feedDao.setCurrentFeedId(currentFeedID);
 
     final Collection<String> feedIds = this.feedDao.getFeedIds();
-
-    for (final String feedId : feedIds) {
-      if (!feedId.equalsIgnoreCase(currentFeedID)) {
-        if (expireKeys(feedId)) {
-          LOGGER.info("Set expiration for all keys for feed {}", feedId);
-        } else {
-          LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
+    if (feedIds.isEmpty()) {
+      LOGGER.warn("There were no known feed ids to clear!");
+    }
+    else {
+      for (final String feedId : feedIds) {
+        if (!feedId.equalsIgnoreCase(currentFeedID)) {
+          if (expireKeys(feedId)) {
+            LOGGER.info("Set expiration for all keys for feed {}", feedId);
+          } else {
+            LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
+          }
         }
       }
     }

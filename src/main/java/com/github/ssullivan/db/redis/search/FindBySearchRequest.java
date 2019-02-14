@@ -76,7 +76,7 @@ public class FindBySearchRequest extends AbstractFindFacility {
         final Tuple2<Long, String> geoResult = findByGeoPoint(sync, searchFeedId,
             searchKey, searchRequest.getGeoRadiusCondition());
 
-        LOGGER.debug("");
+
 
         if (serviceCodeResults.get_1() > 0) {
           totalResults = sync.zinterstore(serviceCodeResults.get_2(), serviceCodeResults.get_2(),
@@ -85,6 +85,7 @@ public class FindBySearchRequest extends AbstractFindFacility {
           totalResults = sync.zunionstore(serviceCodeResults.get_2(), serviceCodeResults.get_2(),
               geoResult.get_2());
         }
+        sync.expire(serviceCodeResults.get_2(), DEFAULT_EXPIRE_SECONDS);
       }
 
       if (totalResults == null) {
@@ -93,6 +94,9 @@ public class FindBySearchRequest extends AbstractFindFacility {
 
       final List<String> results = sync
           .zrange(serviceCodeResults.get_2(), page.offset(), page.offset() + page.size());
+
+      sync.del(serviceCodeResults.get_2());
+
       facilityIdentifiers.addAll(results);
     }
 
@@ -116,12 +120,16 @@ public class FindBySearchRequest extends AbstractFindFacility {
     Objects.requireNonNull(searchKey, "Search key must not be null");
     Objects.requireNonNull(geoRadiusCondition, "Geo Condition  must not be null");
 
+    final String indexGeoKey = indexByGeoKey(feedKey);
+
     Long totalResults = sync
-        .georadius(indexByGeoKey(feedKey), geoRadiusCondition.getGeoPoint()
+        .georadius(indexGeoKey, geoRadiusCondition.getGeoPoint()
                 .lon(), geoRadiusCondition.getGeoPoint().lat(),
             geoRadiusCondition.getRadius(), geoRadiusCondition.getGeoUnit().unit(),
             GeoRadiusStoreArgs.Builder
                 .withStoreDist(searchKey + "geo"));
+
+
 
     if (totalResults == null) {
       totalResults = 0L;
