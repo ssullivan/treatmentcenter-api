@@ -11,6 +11,7 @@ import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import okhttp3.mockwebserver.MockResponse;
@@ -116,7 +117,7 @@ public class SamshaLocatorEtlTest {
     SamshaLocatorData samshaLocatorData = new SamshaLocatorData(ShortUuid.randomShortUuid(),
         new HashSet<>(),
         new HashSet<>(),
-        new HashSet<>()
+        new ArrayList<>()
         );
 
     MatcherAssert.assertThat(storeSamshaLocatorData.apply(samshaLocatorData),

@@ -18,6 +18,8 @@ public interface IFacilityDao {
    */
   void addFacility(final String feedId, final Facility facility) throws IOException;
 
+  void addFacility(final String feedId, final List<Facility> facility) throws IOException;
+
   Facility getFacility(final String id) throws IOException;
 
   List<Facility> fetchBatch(final Collection<String> ids);

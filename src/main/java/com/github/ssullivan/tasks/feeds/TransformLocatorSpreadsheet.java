@@ -43,7 +43,7 @@ public class TransformLocatorSpreadsheet implements
   private static final int FACILITIES_WITH_SERVICE_CODE_DETAIL = 0;
   private static final int SERVICE_CODER_REFERENCE = 1;
 
-  private static Collection<Facility> transformToFacilities(final String feedId,
+  private static List<Facility> transformToFacilities(final String feedId,
       final ImmutableList<ImmutableMap<String, String>> locations,
       final ImmutableList<ImmutableMap<String, String>> serviceCodes) {
     return locations.stream()
@@ -270,7 +270,7 @@ public class TransformLocatorSpreadsheet implements
 
       final Tuple2<Collection<Category>, Collection<Service>> services = transformToCategoriesAndServices(
           serviceCodes);
-      final Collection<Facility> facilities = transformToFacilities(feedId, locations,
+      final List<Facility> facilities = transformToFacilities(feedId, locations,
           serviceCodes);
 
       return Optional

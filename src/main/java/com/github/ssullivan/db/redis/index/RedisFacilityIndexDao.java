@@ -7,6 +7,7 @@ import com.github.ssullivan.db.IndexFacilityByGeo;
 import com.github.ssullivan.db.IndexFacilityByServiceCode;
 import com.github.ssullivan.model.Facility;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.slf4j.Logger;
@@ -38,6 +39,14 @@ public class RedisFacilityIndexDao implements IndexFacility {
     byServiceCode.index(feed, facility);
     byCategoryCode.index(feed, facility);
     LOGGER.debug("Index facility {} in feed {}", facility.getId(), facility.getFeedId());
+  }
+
+  @Override
+  public void index(String feed, List<Facility> batch) throws IOException {
+    byGeo.index(feed, batch);
+    byServiceCode.index(feed, batch);
+    byCategoryCode.index(feed, batch);
+    LOGGER.debug("Index facility {} in feed {}", batch, feed);
   }
 
   @Override

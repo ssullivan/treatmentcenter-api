@@ -8,6 +8,7 @@ import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.function.Function;
 import javax.inject.Inject;
@@ -61,6 +62,15 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
     LOGGER.info("Loaded {} of {} services", totalServices, samshaLocatorData.getServices().size());
 
     int totalLocations = 0;
+
+    Lists.partition(samshaLocatorData.getFacilities(), 5)
+        .forEach(partition -> {
+          try {
+            facilityDao.addFacility(samshaLocatorData.getFeedId(), partition);
+          } catch (IOException e) {
+            LOGGER.error("Failed to store facilities batch: {}", partition);
+          }
+        });
     for (final Facility facility : samshaLocatorData.getFacilities()) {
       try {
         facilityDao.addFacility(samshaLocatorData.getFeedId(), facility);

@@ -6,6 +6,7 @@ import com.github.ssullivan.model.Service;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -16,13 +17,13 @@ public class SamshaLocatorData implements Serializable {
   private final String feedId;
   private final Collection<Category> categories;
   private final Collection<Service> services;
-  private final Collection<Facility> facilities;
+  private final List<Facility> facilities;
 
   public SamshaLocatorData(
       final String feedId,
       final Collection<Category> categories,
       final Collection<Service> services,
-      final Collection<Facility> facilities) {
+      final List<Facility> facilities) {
     this.feedId = Objects.requireNonNull(feedId, "FeedId must not be null");
     this.categories = Objects.requireNonNull(categories, "Cats must not be null");
     this.services = Objects.requireNonNull(services, "Services must not be null");
@@ -37,8 +38,8 @@ public class SamshaLocatorData implements Serializable {
     return Collections.unmodifiableCollection(services);
   }
 
-  public Collection<Facility> getFacilities() {
-    return Collections.unmodifiableCollection(facilities);
+  public List<Facility> getFacilities() {
+    return Collections.unmodifiableList(facilities);
   }
 
   public String getFeedId() {

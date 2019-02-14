@@ -114,15 +114,32 @@ public class RedisFacilityDao implements IFacilityDao {
   @Override
   public void addFacility(String feedId, Facility facility) throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      facility.setFeedId(feedId);
       addFacility(connection.sync(), facility);
     } catch (Exception e) {
       LOGGER.error("Failed to add facility: {} for feed {}", facility, feedId);
       throw new IOException("Failed to get connection to REDIS", e);
     }
 
-    facility.setFeedId(feedId);
-
     indexFacility.index(feedId, facility);
+  }
+
+  @Override
+  public void addFacility(String feedId, List<Facility> batch) throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      final RedisCommands<String, String> sync = connection.sync();
+      for (Facility item : batch) {
+
+        item.setFeedId(feedId);
+        addFacility(sync, item);
+      }
+      indexFacility.index(feedId, batch);
+    } catch (Exception e) {
+      LOGGER.error("Failed to add facility batch: {} for feed {}", batch, feedId);
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+
+
   }
 
   public Facility getFacility(final String pk) throws IOException {
