@@ -31,6 +31,8 @@ public class ManageFeeds {
   @Test
   public void expireOldFeeds(final String currentFeedID) throws Exception {
     this.feedDao.setSearchFeedId(currentFeedID);
+    this.feedDao.setCurrentFeedId(currentFeedID);
+
     final Collection<String> feedIds = this.feedDao.getFeedIds();
 
     for (final String feedId : feedIds) {

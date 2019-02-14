@@ -30,6 +30,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
   private String feedId;
   private AmazonS3 amazonS3;
 
+
   @Inject
   public SamshaLocatorEtl(final FetchSamshaDataFeed fetchSamshaDataFeed,
       final TransformLocatorSpreadsheet transformLocatorSpreadsheet,
