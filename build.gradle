@@ -69,6 +69,7 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:4.0.1'
     implementation 'org.apache.poi:poi:4.0.1'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.485'
+    compile 'org.archive:heritrix:3.4.0'
 
     // https://mvnrepository.com/artifact/io.dropwizard/dropwizard-testing
     testCompile group: 'io.dropwizard', name: 'dropwizard-testing', version: '1.3.8'

@@ -9,6 +9,7 @@ import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.Resources;
+import io.dropwizard.testing.FixtureHelpers;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -46,6 +47,10 @@ public class SamshaLocatorEtlTest {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
       .setResponseCode(200)
+        .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
+    );
+    mockWebServer.enqueue(new MockResponse()
+      .setResponseCode(200)
         .setHeader("Content-Type", "application/octet-stream")
         .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
@@ -53,8 +58,9 @@ public class SamshaLocatorEtlTest {
     FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed("http://localhost:8181", "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
 
-    final RecordedRequest recordedRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
-    final String requestBody = recordedRequest.getBody().readString(Charset.defaultCharset());
+    final RecordedRequest robotsRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
+    final RecordedRequest locatorRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
+
     MatcherAssert.assertThat(result.get().get_1(), Matchers.equalTo("test"));
     MatcherAssert.assertThat(result.get().get_2(), Matchers.startsWith("samsha/locations-"));
     MatcherAssert.assertThat(result.get().get_2(), Matchers.endsWith(".xlsx"));
@@ -63,6 +69,10 @@ public class SamshaLocatorEtlTest {
   @Test
   public void testFetchingFailed() throws IOException {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
+    );
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(500)
         .setHeader("Content-Type", "application/html")
@@ -83,7 +93,10 @@ public class SamshaLocatorEtlTest {
             throw new IOException("");
           }
         });
-
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
+    );
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(200)
         .setHeader("Content-Type", "application/octet-stream")
