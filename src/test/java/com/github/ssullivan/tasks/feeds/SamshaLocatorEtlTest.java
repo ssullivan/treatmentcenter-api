@@ -14,8 +14,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -40,7 +42,7 @@ public class SamshaLocatorEtlTest {
   }
 
   @Test
-  public void testFetchingData() throws IOException {
+  public void testFetchingData() throws IOException, InterruptedException {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
       .setResponseCode(200)
@@ -51,6 +53,8 @@ public class SamshaLocatorEtlTest {
     FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed("http://localhost:8181", "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
 
+    final RecordedRequest recordedRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
+    final String requestBody = recordedRequest.getBody().readString(Charset.defaultCharset());
     MatcherAssert.assertThat(result.get().get_1(), Matchers.equalTo("test"));
     MatcherAssert.assertThat(result.get().get_2(), Matchers.startsWith("samsha/locations-"));
     MatcherAssert.assertThat(result.get().get_2(), Matchers.endsWith(".xlsx"));

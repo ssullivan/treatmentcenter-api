@@ -26,12 +26,20 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.logging.LoggingFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,34 +84,52 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
       }
       return Optional.empty();
     } else {
-      final Client client = JerseyClientBuilder.createClient();
+      final Client client = JerseyClientBuilder.createClient()
+          .register(new LoggingFeature())
+          .register(new MultiPartFeature());
       try {
-        final Response response = client.target(url)
-            .path("locatorExcel")
-            .queryParam("sType", "SA")
-            .queryParam("page", 1)
-            .queryParam("includeServices","Y")
-            .queryParam("sortIndex", 0)
-            .request()
-            .buildGet()
-            .invoke();
+        final WebTarget locatorExcelTarget = client.target(url)
+            .path("locatorExcel");
+        int attempts = 0;
+        try {
+          do {
+            LOGGER.info("Attempting to download spreadsheet from : {}", locatorExcelTarget);
+            final FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
+            formDataMultiPart.field("sType", "SA");
+            formDataMultiPart.field("page", "1");
+            formDataMultiPart.field("includeServices", "Y");
+            formDataMultiPart.field("sortIndex", "0");
 
+            final Response response = locatorExcelTarget.request()
+                .header("User-Agent", "")
+                .header("TE", "Trailers")
+                .buildPost(Entity.entity(formDataMultiPart, formDataMultiPart.getMediaType()))
+                .invoke();
 
-        if (response.getStatus() == 200) {
-          try (final InputStream inputStream = response.readEntity(InputStream.class);
-              final BufferedInputStream bufferedInputStream = new BufferedInputStream(
-                  inputStream)) {
+            if (response.getStatus() == 200) {
+              try (final InputStream inputStream = response.readEntity(InputStream.class);
+                  final BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                      inputStream)) {
 
-              return Optional
-                  .of(handleStream(response.getLength(), bufferedInputStream));
+                return Optional
+                    .of(handleStream(response.getLength(), bufferedInputStream));
 
-          } catch (IOException e) {
-            LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
-          }
+              } catch (IOException e) {
+                LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
+              }
+            } else {
+              LOGGER.error("Received HTTP {}: Body: {}", response.getStatus(), response.readEntity(String.class));
+            }
+
+            Thread.sleep(TimeUnit.SECONDS.toMillis(60));
+          } while (attempts++ < 3);
         }
-        else {
-          LOGGER.error("Received HTTP {}", response.getStatus());
+        catch (InterruptedException e) {
+          LOGGER.error("Interrupted while attempting to download spreadsheet", e);
+          Thread.currentThread().interrupt();
         }
+
+
       } finally {
         client.close();
       }
