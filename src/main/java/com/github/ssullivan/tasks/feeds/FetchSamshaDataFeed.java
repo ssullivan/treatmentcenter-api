@@ -9,9 +9,11 @@ import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.github.ssullivan.core.RobotsTxtParser;
 import com.github.ssullivan.guice.BucketName;
 import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.collections.Tuple2;
+import com.github.ssullivan.model.crawler.RobotsTxt;
 import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
 import java.io.BufferedInputStream;
@@ -30,8 +32,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.logging.LoggingFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +61,7 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
   private String url;
   private String bucket;
   private AmazonS3 amazonS3;
+  private Client client;
 
   @Inject
   public FetchSamshaDataFeed(@SamshaUrl final String url, @BucketName final String bucket,
@@ -61,10 +69,37 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
     this.url = url;
     this.bucket = bucket;
     this.amazonS3 = amazonS3;
+    this.client = JerseyClientBuilder.createClient()
+        .register(LoggingFeature.class)
+        .register(MultiPartFeature.class)
+        .register((ClientRequestFilter) clientRequestContext -> clientRequestContext.getHeaders()
+            .add("User-Agent", "Mozilla/5.0 (compatible; Safebot/1.13.0; https://www.safeproject.us/"));
+  }
+
+  public Optional<RobotsTxt> fetchRobotsTxt() {
+    final WebTarget webTarget = client.target(url).path("robots.txt");
+    try {
+      LOGGER.info("Attempting to download robots.txt from {}", webTarget.getUri().toString());
+      Response response = webTarget.request().buildGet().invoke();
+      if (response.getStatus() == 200) {
+        try (InputStream inputStream = response.readEntity(InputStream.class)) {
+          RobotsTxtParser parser = new RobotsTxtParser();
+          return Optional.ofNullable(parser.parse(inputStream));
+        }
+      } else {
+        LOGGER.error("Failed to get robots.txt! Got HTTP {}", response.getStatus());
+        return Optional.empty();
+      }
+    }
+    catch (IOException e) {
+      LOGGER.error("Failed to get robotx.txt", e);
+    }
+    return Optional.empty();
   }
 
   @Override
   public Optional<Tuple2<String, String>> get() {
+
     if (this.url.startsWith("file")) {
       final File file = new File(this.url.replaceFirst("file:/", ""));
       try (FileInputStream fileInputStream = new FileInputStream(file);
@@ -76,7 +111,10 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
       }
       return Optional.empty();
     } else {
-      final Client client = JerseyClientBuilder.createClient();
+      Optional<RobotsTxt> robotsTxtOptional = fetchRobotsTxt();
+      if (robotsTxtOptional.isPresent()) {
+        LOGGER.info("Success! Fetched robots.txt file");
+      }
       try {
         final Response response = client.target(url)
             .path("locatorExcel")
