@@ -1,0 +1,11 @@
+User-agent: Some_Annoying_Bot
+Disallow: / # this is a comment
+
+User-Agent: *
+Disallow: /*.json
+Disallow: /api
+Disallow: /post
+Disallow: /submit
+Allow: /
+
+# This is a comment
