@@ -109,7 +109,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
         applyToFacilityWithRadius(searchRequest);
 
     return this.facilityDao.fetchBatchAsync(facilityIdentifiers)
-        .thenApply(this::applyAvailableServicesAll)
         .thenApply(toFacilityWithRadius)
         .thenApply(it -> SearchResults.searchResults(totalFound, it));
   }

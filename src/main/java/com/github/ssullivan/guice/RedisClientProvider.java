@@ -23,7 +23,7 @@ public class RedisClientProvider implements Provider<RedisClient> {
         .withHost(redisConfig.getHost())
         .withPort(redisConfig.getPort())
         .withDatabase(redisConfig.getDb())
-        .withTimeout(Duration.ofSeconds(60))
+        .withTimeout(Duration.ofMillis(redisConfig.getTimeout()))
         .build());
   }
 }

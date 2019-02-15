@@ -7,6 +7,7 @@ public class RedisConfig {
   private String host;
   private int port;
   private int db;
+  private long timeout;
 
   public RedisConfig() {
     this("localhost", 6379, 0);
@@ -20,6 +21,7 @@ public class RedisConfig {
     this.host = host;
     this.port = port;
     this.db = db;
+    this.timeout = 500;
   }
 
   @JsonProperty("host")
@@ -47,5 +49,14 @@ public class RedisConfig {
 
   public void setDb(int db) {
     this.db = db;
+  }
+
+  @JsonProperty("timeout")
+  public long getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(long timeout) {
+    this.timeout = timeout;
   }
 }

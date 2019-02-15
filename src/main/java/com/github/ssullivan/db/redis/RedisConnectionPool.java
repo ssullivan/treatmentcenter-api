@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class RedisConnectionPool implements IRedisConnectionPool {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisConnectionPool.class);
-  private static final long MAX_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(1);
+  private static final long MAX_WAIT_MILLIS = 100;
 
   private RedisClient redisClient;
   private GenericObjectPool<StatefulRedisConnection<String, String>> pool;

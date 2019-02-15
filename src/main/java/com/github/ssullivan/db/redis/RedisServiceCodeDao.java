@@ -54,6 +54,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
     try {
       this.sync = redisPool.borrowConnection().sync();
+      LOGGER.info("[success] Got connection from pool");
     }
     catch (Exception e) {
       LOGGER.error("Failed to borrow a connection from the redis pool!", e);
