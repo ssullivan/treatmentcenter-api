@@ -143,7 +143,7 @@ public class ApiApplication extends Application<AppConfig> {
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {
-            LOGGER.error("HealthCheck {} is not healthy because {}", result.getError());
+            LOGGER.error("HealthCheck {} is not healthy because {}", result.getMessage(), result.getError());
           }
         });
 
