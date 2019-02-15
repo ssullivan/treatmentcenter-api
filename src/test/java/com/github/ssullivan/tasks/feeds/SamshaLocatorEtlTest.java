@@ -55,7 +55,7 @@ public class SamshaLocatorEtlTest {
         .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0,"http://localhost:8181", "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
 
     final RecordedRequest robotsRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
@@ -78,7 +78,7 @@ public class SamshaLocatorEtlTest {
         .setHeader("Content-Type", "application/html")
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0,"http://localhost:8181", "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }
@@ -103,7 +103,7 @@ public class SamshaLocatorEtlTest {
         .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0,"http://localhost:8181", "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }

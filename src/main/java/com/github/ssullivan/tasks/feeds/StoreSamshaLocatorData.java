@@ -25,6 +25,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
   private final IServiceCodesDao serviceCodesDao;
   private final IFacilityDao facilityDao;
 
+
   @Inject
   public StoreSamshaLocatorData(final IFeedDao feedDao,
       final ICategoryCodesDao categoryCodesDao,

@@ -81,7 +81,7 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
 
 
   @Inject
-  public FetchSamshaDataFeed(@CrawlDelay final long delay, @SamshaUrl final String url, @BucketName final String bucket,
+  public FetchSamshaDataFeed(@CrawlDelay final Long delay, @SamshaUrl final String url, @BucketName final String bucket,
       final AmazonS3 amazonS3) {
     this.url = url;
     this.bucket = bucket;

@@ -157,7 +157,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
           new AbstractModule() {
             @Override
             protected void configure() {
-              bindConstant().annotatedWith(CrawlDelay.class).to(4096);
+              bindConstant().annotatedWith(CrawlDelay.class).to(4096L);
             }
           },
       new AwsS3ClientModule(settings, locatorUrl));

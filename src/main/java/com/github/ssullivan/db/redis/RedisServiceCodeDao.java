@@ -64,7 +64,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   @Override
   public Service get(String id) throws IOException {
     try {
-      return deserialize(sync.hget(KEY, id));
+      String json = sync.hget(KEY, id);
+      return deserialize(json);
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
@@ -153,7 +154,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   @Override
   public boolean addService(String feedId, Service service) throws IOException {
-    return false;
+    // we aren't sharding the servicces/categories by feed which is why we just call the other add..
+    return addService(service);
   }
 
   private String serialize(@Nonnull final Service service) throws IOException {
