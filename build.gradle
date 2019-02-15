@@ -68,7 +68,7 @@ dependencies {
     // For extracing data from spreadsheet
     implementation 'org.apache.poi:poi-ooxml:4.0.1'
     implementation 'org.apache.poi:poi:4.0.1'
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.485'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.499'
 
 
     // https://mvnrepository.com/artifact/io.dropwizard/dropwizard-testing
