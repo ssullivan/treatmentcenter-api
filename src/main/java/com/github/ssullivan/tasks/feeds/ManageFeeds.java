@@ -28,7 +28,7 @@ public class ManageFeeds {
     this.indexDao = indexFacility;
   }
 
-  @Test
+
   public void expireOldFeeds(final String currentFeedID) throws Exception {
     this.feedDao.setSearchFeedId(currentFeedID);
     this.feedDao.setCurrentFeedId(currentFeedID);
@@ -62,7 +62,6 @@ public class ManageFeeds {
       LOGGER.error("Failed to expire keys for feed {}", feedId, e);
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
-        ;
       }
     }
     return false;
