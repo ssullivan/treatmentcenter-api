@@ -1,5 +1,6 @@
 package com.github.ssullivan.db.redis.index;
 
+import com.amazonaws.annotation.SdkInternalApi;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacility;
 import com.github.ssullivan.db.IndexFacilityByCategoryCode;
@@ -10,9 +11,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class RedisFacilityIndexDao implements IndexFacility {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityIndexDao.class);

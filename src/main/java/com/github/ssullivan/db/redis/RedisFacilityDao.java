@@ -19,6 +19,7 @@ import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.utils.ShortUuid;
+import com.google.inject.Singleton;
 import com.spotify.futures.CompletableFutures;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -44,6 +45,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class RedisFacilityDao implements IFacilityDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFacilityDao.class);

@@ -2,6 +2,7 @@ package com.github.ssullivan.db.redis;
 
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.utils.ShortUuid;
+import com.google.inject.Singleton;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.IOException;
 import java.util.Collection;
@@ -11,6 +12,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class RedisFeedDao implements IFeedDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFeedDao.class);

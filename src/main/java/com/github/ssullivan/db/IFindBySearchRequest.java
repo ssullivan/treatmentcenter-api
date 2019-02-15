@@ -6,6 +6,7 @@ import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.google.inject.ImplementedBy;
+import com.google.inject.Singleton;
 import java.util.concurrent.CompletionStage;
 
 @ImplementedBy(FindBySearchRequest.class)

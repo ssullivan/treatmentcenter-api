@@ -6,11 +6,13 @@ import io.lettuce.core.support.ConnectionPoolSupport;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class RedisConnectionPool implements IRedisConnectionPool {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisConnectionPool.class);

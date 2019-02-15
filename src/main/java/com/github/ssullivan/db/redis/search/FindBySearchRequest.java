@@ -5,6 +5,7 @@ import static com.github.ssullivan.db.redis.RedisConstants.indexByGeoKey;
 
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.db.IFindBySearchRequest;
 import com.github.ssullivan.db.redis.IAsyncRedisConnectionPool;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.ToFacilityWithRadiusConverter;
@@ -33,10 +34,12 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FindBySearchRequest extends AbstractFindFacility {
+@Singleton
+public class FindBySearchRequest extends AbstractFindFacility implements IFindBySearchRequest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FindBySearchRequest.class);
 

@@ -90,6 +90,8 @@ public class ApiApplication extends Application<AppConfig> {
       }
     });
 
+
+
     final DropwizardAwareModule<AppConfig> module = new DropwizardAwareModule<AppConfig>() {
       @Override
       protected void configure() {
@@ -135,7 +137,6 @@ public class ApiApplication extends Application<AppConfig> {
   @Override
   public void run(AppConfig configuration, Environment environment) throws Exception {
 
-    LOGGER.info("Attempting to get config from S3");
 
     final Injector injector = InjectorRegistry.getInjector(this);
     environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(),

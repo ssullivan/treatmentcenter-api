@@ -10,6 +10,7 @@ import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.google.common.collect.Lists;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import javax.inject.Inject;
 import org.slf4j.Logger;
@@ -63,13 +64,17 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
 
     int totalLocations = 0;
 
+    AtomicInteger totalLoaded = new AtomicInteger(0);
     Lists.partition(samshaLocatorData.getFacilities(), 5)
         .forEach(partition -> {
           try {
             facilityDao.addFacility(samshaLocatorData.getFeedId(), partition);
+            totalLoaded.addAndGet(partition.size());
           } catch (IOException e) {
             LOGGER.error("Failed to store facilities batch: {}", partition);
           }
+
+          LOGGER.info("Loaded {} of {}", totalLoaded.get(), samshaLocatorData.getFacilities().size());
         });
     for (final Facility facility : samshaLocatorData.getFacilities()) {
       try {

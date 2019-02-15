@@ -2,6 +2,7 @@ package com.github.ssullivan.db;
 
 import com.github.ssullivan.db.redis.RedisFeedDao;
 import com.google.inject.ImplementedBy;
+import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;

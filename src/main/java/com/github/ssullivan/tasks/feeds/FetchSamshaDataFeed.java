@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.core.RobotsTxtParser;
 import com.github.ssullivan.guice.BucketName;
+import com.github.ssullivan.guice.CrawlDelay;
 import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.crawler.RobotsTxt;
@@ -76,13 +77,16 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
   private String bucket;
   private AmazonS3 amazonS3;
   private Client client;
+  private long crawlDelay;
+
 
   @Inject
-  public FetchSamshaDataFeed(@SamshaUrl final String url, @BucketName final String bucket,
+  public FetchSamshaDataFeed(@CrawlDelay final long delay, @SamshaUrl final String url, @BucketName final String bucket,
       final AmazonS3 amazonS3) {
     this.url = url;
     this.bucket = bucket;
     this.amazonS3 = amazonS3;
+    this.crawlDelay = delay;
     this.client = JerseyClientBuilder.createClient()
         .register(LoggingFeature.class)
         .register(MultiPartFeature.class)
@@ -138,9 +142,10 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
         LOGGER.info("Success! Fetched robots.txt file");
       }
       try {
-        long sleepFuzz = (long) (Math.random() * 1024) + 1;
 
-        Thread.sleep(4096 + sleepFuzz);
+        if (this.crawlDelay > 0) {
+          Thread.sleep(this.crawlDelay);
+        }
 
         final WebTarget locatorExcelTarget = client.target(url)
             .path("locatorExcel");
@@ -174,7 +179,9 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
               LOGGER.error("Received HTTP {}: Body: {}", response.getStatus(), response.readEntity(String.class));
             }
 
-            Thread.sleep(TimeUnit.SECONDS.toMillis(60) + (attempts * sleepFuzz));
+            if (this.crawlDelay > 0) {
+              Thread.sleep(this.crawlDelay);
+            }
           } while (attempts++ < 3);
         }
         catch (InterruptedException e) {

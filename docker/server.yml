@@ -28,13 +28,17 @@ redis:
 logging:
 
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
-  level: DEBUG
+  level: WARN
 
   # Logger-specific levels.
   loggers:
     # Redirects SQL logs to a separate file
     org.hibernate.SQL:
       level: DEBUG
+    com.github.ssullivan:
+      level: INFO
+    io.dropwizard:
+      level: INFO
 
 # Logback's Time Based Rolling Policy - archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}.log.gz
 # Logback's Size and Time Based Rolling Policy -  archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}-%i.log.gz

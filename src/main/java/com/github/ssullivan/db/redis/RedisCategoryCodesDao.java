@@ -10,6 +10,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -18,9 +19,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
@@ -41,18 +44,28 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
               return get(key);
             }
           });
+  private RedisCommands<String, String> sync;
 
   @Inject
   public RedisCategoryCodesDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
     this.redis = redisPool;
     this.objectReader = objectMapper.readerFor(Category.class);
     this.objectWriter = objectMapper.writerFor(Category.class);
+
+    try {
+      this.sync = redisPool.borrowConnection().sync();
+    }
+    catch (Exception e) {
+      LOGGER.error("Failed to borrow a connection from the redis pool!", e);
+      throw new RuntimeException("Failed to connect to Redis", e);
+    }
   }
+
 
   @Override
   public Category get(String id) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      final String json = connection.sync().hget(KEY, id);
+    try {
+      final String json = sync.hget(KEY, id);
       if (json == null || json.isEmpty()) {
         return null;
       }
@@ -86,8 +99,8 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Override
   public boolean delete(final String id) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hdel(KEY, id) > 0;
+    try {
+      return sync.hdel(KEY, id) > 0;
     } catch (Exception e) {
       LOGGER.error("Failed to delete category '{}'", id, e);
       throw new IOException("Failed to connect to REDIS", e);
@@ -101,8 +114,8 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Override
   public List<String> listCategoryCodes() throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hkeys(KEY);
+    try {
+      return sync.hkeys(KEY);
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
@@ -110,8 +123,8 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Override
   public List<Category> listCategories() throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hvals(KEY)
+    try {
+      return sync.hvals(KEY)
           .stream()
           .map(it -> deserialize(it, null))
           .filter(Objects::nonNull)
@@ -124,8 +137,8 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Override
   public boolean addCategory(String feed, Category category) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hset(KEY, category.getCode(),
+    try {
+      return sync.hset(KEY, category.getCode(),
           serialize(category));
     } catch (Exception e) {
       LOGGER.error("Failed to store Category: {} in hset {}", category.getCode(), KEY);

@@ -9,7 +9,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
+import com.google.inject.Singleton;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +23,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class RedisServiceCodeDao implements IServiceCodesDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
@@ -32,27 +35,36 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   private ObjectWriter serviceWriter;
   private LoadingCache<String, Service> cache =
       CacheBuilder.newBuilder()
-          .maximumSize(1024)
+          .maximumSize(200)
           .concurrencyLevel(8)
-          .expireAfterAccess(60, TimeUnit.MINUTES)
+          .expireAfterAccess(1, TimeUnit.DAYS)
           .build(new CacheLoader<String, Service>() {
             @Override
             public Service load(final String key) throws Exception {
               return get(key);
             }
           });
+  private RedisCommands<String, String> sync;
 
   @Inject
   public RedisServiceCodeDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
     this.redis = redisPool;
     this.serviceReader = objectMapper.readerFor(Service.class);
     this.serviceWriter = objectMapper.writerFor(Service.class);
+
+    try {
+      this.sync = redisPool.borrowConnection().sync();
+    }
+    catch (Exception e) {
+      LOGGER.error("Failed to borrow a connection from the redis pool!", e);
+      throw new RuntimeException("Failed to connect to Redis", e);
+    }
   }
 
   @Override
   public Service get(String id) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return deserialize(connection.sync().hget(KEY, id));
+    try {
+      return deserialize(sync.hget(KEY, id));
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
@@ -77,8 +89,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   @Override
   public boolean delete(String id) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hdel(KEY, id) > 0;
+    try {
+      return sync.hdel(KEY, id) > 0;
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
@@ -91,8 +103,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   @Override
   public List<Service> listServices() throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return deserializeSuccessfulAsList(connection.sync().hvals(KEY));
+    try {
+      return deserializeSuccessfulAsList(sync.hvals(KEY));
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
     }
@@ -109,8 +121,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   @Override
   public List<String> listServiceCodesInCategory(String category) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hvals(KEY)
+    try {
+      return sync.hvals(KEY)
           .stream()
           .map(json -> {
             try {
@@ -131,8 +143,8 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   @Override
   public boolean addService(final Service service) throws IOException {
-    try (StatefulRedisConnection<String, String> connection = redis.borrowConnection()) {
-      return connection.sync().hset(KEY, service.getCode(),
+    try {
+      return sync.hset(KEY, service.getCode(),
           serialize(service));
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);

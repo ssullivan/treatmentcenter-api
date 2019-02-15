@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.redis;
 
 import com.github.ssullivan.RedisConfig;
+import com.google.inject.Singleton;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -16,6 +17,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class AsyncRedisConnectionPool implements IAsyncRedisConnectionPool {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AsyncRedisConnectionPool.class);

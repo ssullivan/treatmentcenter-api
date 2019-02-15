@@ -4,6 +4,7 @@ import com.github.ssullivan.db.redis.RedisFacilityDao;
 import com.github.ssullivan.model.AvailableServices;
 import com.github.ssullivan.model.Facility;
 import com.google.inject.ImplementedBy;
+import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
