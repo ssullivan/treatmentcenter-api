@@ -9,7 +9,6 @@ import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.model.Facility;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import javax.inject.Inject;

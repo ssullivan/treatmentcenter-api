@@ -4,20 +4,16 @@ import com.github.ssullivan.model.Facility;
 import java.util.Set;
 
 public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
-
-  private Set<String> serviceCodes;
   private Importance importance;
   private boolean isMilitary;
 
 
   public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes) {
-    this.serviceCodes = serviceCodes;
     this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);
     this.importance = isMilitary ? Importance.VERY : Importance.NOT;
   }
 
   public ScoreByMilitaryFamilyStatus(final Set<String> serviceCodes, final Importance importance) {
-    this.serviceCodes = serviceCodes;
     this.isMilitary = serviceCodes.stream().anyMatch("MF"::equalsIgnoreCase);
     this.importance = importance;
   }

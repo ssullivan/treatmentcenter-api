@@ -1,3 +1,7 @@
+# gradle
+.gradle
+build
+out
 # Dir for API portal deploy
 web_deploy
 

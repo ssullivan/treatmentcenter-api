@@ -1,9 +1,9 @@
 package com.github.ssullivan.db.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.ssullivan.db.ICategoryCodesDao;
-import com.github.ssullivan.model.Category;
-import com.google.common.collect.ImmutableSet;
+import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.IServiceCodesDao;
+import com.github.ssullivan.model.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -17,18 +17,21 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class CategoryDaoMockitoTest {
+public class ServicesDaoMockitoTest {
 
-  private static final ObjectMapper ObjectMapper = new ObjectMapper();
+  private static final com.fasterxml.jackson.databind.ObjectMapper ObjectMapper = new ObjectMapper();
   private IRedisConnectionPool redisPool;
   private StatefulRedisConnection<String, String> redisConnection;
   private RedisCommands<String, String> redisCommand;
   private Injector injector;
-  private ICategoryCodesDao dao;
+  private IServiceCodesDao dao;
+  private Service service;
 
 
   @BeforeEach()
   public void initEach() throws Exception {
+    RedisConfig redisConfig = new RedisConfig();
+    redisConfig.setTimeout(5L);
     redisPool = Mockito.mock(IRedisConnectionPool.class);
     redisConnection = (StatefulRedisConnection<String, String>) Mockito
         .mock(StatefulRedisConnection.class);
@@ -43,41 +46,43 @@ public class CategoryDaoMockitoTest {
       protected void configure() {
         bind(IRedisConnectionPool.class).toInstance(redisPool);
         bind(ObjectMapper.class).toInstance(ObjectMapper);
+        bind(RedisConfig.class).toInstance(redisConfig);
       }
     });
 
-    dao = injector.getInstance(ICategoryCodesDao.class);
-  }
+    this.service = new Service();
+    service.setCode("TEST");
+    service.setName("A test service");
+    service.setCategoryCode("TEST");
+    service.setDescription("A test service");
 
-  @Test
-  public void addCategory() throws Exception {
-    Mockito.when(redisCommand.hset(Mockito.anyString(), Mockito.eq("TEST"), Mockito.anyString()))
+    Mockito.when(redisCommand
+        .hset(Mockito.eq(RedisServiceCodeDao.KEY), Mockito.eq("TEST"), Mockito.anyString()))
         .thenReturn(true);
+    Mockito.when(redisCommand.hget(Mockito.eq(RedisServiceCodeDao.KEY), Mockito.eq("TEST")))
+        .thenReturn(ObjectMapper.writeValueAsString(service));
 
-    Category category = new Category();
-    category.setCode("TEST");
-    category.setName("A test category");
-    category.setServiceCodes(ImmutableSet.of("FOO"));
-
-    final boolean wasadded = dao.addCategory(category);
-    MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
+    dao = injector.getInstance(IServiceCodesDao.class);
   }
 
   @Test
-  public void testGetCategory() throws Exception {
-    Category category = new Category();
-    category.setCode("TEST");
-    category.setName("A test category");
-    category.setServiceCodes(ImmutableSet.of("FOO"));
+  public void addService() throws Exception {
 
-    final String json = ObjectMapper.writeValueAsString(category);
+    final boolean wasadded = dao.addService(service);
 
-    Mockito.when(redisCommand.hget(Mockito.anyString(), Mockito.eq("TEST")))
-        .thenReturn(json);
+    MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
 
-    final Category fromRedis = dao.get("TEST");
-    MatcherAssert.assertThat(fromRedis.getCode(), Matchers.equalTo(category.getCode()));
-    MatcherAssert.assertThat(fromRedis.getName(), Matchers.equalTo(category.getName()));
-    MatcherAssert.assertThat(fromRedis.getServiceCodes(), Matchers.containsInAnyOrder("FOO"));
+  }
+
+  @Test
+  public void testGetService() throws Exception {
+    final boolean wasadded = dao.addService(service);
+    final Service fromDb = dao.get(service.getCode());
+
+    MatcherAssert.assertThat(fromDb.getCode(), Matchers.equalTo(service.getCode()));
+    MatcherAssert.assertThat(fromDb.getName(), Matchers.equalTo(service.getName()));
+    MatcherAssert.assertThat(fromDb.getCategoryCode(), Matchers.equalTo(service.getCategoryCode()));
+    MatcherAssert.assertThat(fromDb.getDescription(), Matchers.equalTo(service.getDescription()));
+
   }
 }

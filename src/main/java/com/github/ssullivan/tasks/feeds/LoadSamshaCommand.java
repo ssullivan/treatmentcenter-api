@@ -3,7 +3,6 @@ package com.github.ssullivan.tasks.feeds;
 import com.amazonaws.services.s3.AmazonS3;
 import com.github.ssullivan.AppConfig;
 import com.github.ssullivan.RedisConfig;
-import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.CrawlDelay;
 import com.github.ssullivan.guice.RedisClientModule;
@@ -11,15 +10,12 @@ import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import io.dropwizard.Configuration;
-import io.dropwizard.cli.Command;
 import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
@@ -166,6 +162,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
 
       // (1) Create an AmazonS3 client
       final AmazonS3 amazonS3 = this.injector.getInstance(AmazonS3.class);
+      LOGGER.info("Region is {}", amazonS3.getRegion());
 
       // (2) Check the redis db
       final RedisClient client = this.injector.getInstance(RedisClient.class);

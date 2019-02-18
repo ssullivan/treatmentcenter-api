@@ -8,7 +8,6 @@ import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import java.security.acl.LastOwnerException;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

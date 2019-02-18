@@ -3,7 +3,6 @@ package com.github.ssullivan.db;
 import com.github.ssullivan.db.redis.index.RedisFacilityIndexDao;
 import com.github.ssullivan.model.Facility;
 import com.google.inject.ImplementedBy;
-import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.List;
 

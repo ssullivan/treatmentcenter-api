@@ -22,7 +22,7 @@ public class RobotsTxtParser {
   public RobotsTxt parse(final InputStream inputStream) throws IOException {
     RobotsTxt robotsTxt = new RobotsTxt();
 
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
       RobotRules robotRules = new RobotRules();
       Optional<String> userAgent = Optional.empty();
 

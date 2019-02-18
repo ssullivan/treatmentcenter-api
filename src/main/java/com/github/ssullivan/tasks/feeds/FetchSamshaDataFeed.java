@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -20,36 +19,26 @@ import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.EncodingFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.message.DeflateEncoder;
 import org.glassfish.jersey.message.GZipEncoder;
@@ -210,15 +199,12 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
       throws IOException {
     LOGGER.info("Successfully, fetched SAMSHA treatment facilities excel");
 
-    final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-    final ObjectMetadata objectMetadata = new ObjectMetadata();
-
-    final long collected_at = System.currentTimeMillis();
     final String objectKey = createObjectKey();
     final long epochMillis = System.currentTimeMillis();
     final Feed feed = new Feed(SAMSHA, objectKey, epochMillis);
 
-    objectMetadata.addUserMetadata("collected_at", "" + collected_at);
+    final ObjectMetadata objectMetadata = new ObjectMetadata();
+    objectMetadata.addUserMetadata("collected_at", "" + System.currentTimeMillis());
     objectMetadata.addUserMetadata("feed_id", ShortUuid.randomShortUuid());
 
     if (contentLength > 0) {

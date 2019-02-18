@@ -9,7 +9,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
-import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.List;
@@ -30,9 +29,9 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   private static final String KEY = "treatment:categories";
 
-  private IRedisConnectionPool redis;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
+  private RedisCommands<String, String> sync;
   private LoadingCache<String, Category> categoryCache =
       CacheBuilder.newBuilder()
           .maximumSize(512)
@@ -44,11 +43,9 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
               return get(key);
             }
           });
-  private RedisCommands<String, String> sync;
 
   @Inject
   public RedisCategoryCodesDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
-    this.redis = redisPool;
     this.objectReader = objectMapper.readerFor(Category.class);
     this.objectWriter = objectMapper.writerFor(Category.class);
 
