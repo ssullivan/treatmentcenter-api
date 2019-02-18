@@ -13,7 +13,7 @@ buildscript {
 
 plugins {
     id "net.ltgt.apt" version "0.19"
-
+    id "com.github.spotbugs" version "1.6.10"
 }
 
 
@@ -26,7 +26,6 @@ apply plugin: 'application'
 apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
-apply plugin: "findbugs"
 
 version = '1.13.0'
 group 'com.github.ssullivan'
@@ -95,16 +94,17 @@ dependencies {
 
 }
 
-findbugs {
-    // until i fix the ones in tests
-    ignoreFailures = true
-}
+
 test {
     useJUnitPlatform()
     // I think these might be breaking on travis
     exclude '**/SamshaLocatorEtlTest.class'
     //exclude '**/RedisFacilityFindTests.class'
     exclude '**/'
+}
+
+spotbugs {
+    ignoreFailures = true
 }
 
 
