@@ -50,8 +50,8 @@ public class SamshaLocatorEtlTest {
     }
   }
 
-  // travis is having issues with this test
-  // @Test
+
+  @Test
   public void testFetchingData() throws IOException, InterruptedException {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
@@ -78,8 +78,7 @@ public class SamshaLocatorEtlTest {
     MatcherAssert.assertThat(result.get().get_2(), Matchers.endsWith(".xlsx"));
   }
 
-  // travis is having issues with this test
-  // @Test
+  @Test
   public void testFetchingFailed() throws IOException {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
