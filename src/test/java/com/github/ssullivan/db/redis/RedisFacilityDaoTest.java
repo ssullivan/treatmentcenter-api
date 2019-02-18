@@ -53,8 +53,11 @@ public class RedisFacilityDaoTest {
 
   @BeforeAll
   private void setup() throws IOException {
+    final RedisConfig redisConfig = new RedisConfig("127.0.0.1", 6379, 1);
+    redisConfig.setTimeout(50);
+
     final Injector injector = Guice
-        .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379, 1)));
+        .createInjector(new RedisClientModule(redisConfig));
     _dao = injector.getInstance(RedisFacilityDao.class);
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);

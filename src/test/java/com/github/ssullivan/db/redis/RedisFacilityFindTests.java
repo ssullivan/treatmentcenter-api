@@ -49,8 +49,11 @@ public class RedisFacilityFindTests {
 
   @BeforeAll
   private void setup() throws Exception {
+    final RedisConfig redisConfig = new RedisConfig("127.0.0.1", 6379, 2);
+    redisConfig.setTimeout(50);
+
     final Injector injector = Guice
-        .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379, 2)));
+        .createInjector(new RedisClientModule(redisConfig));
 
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);

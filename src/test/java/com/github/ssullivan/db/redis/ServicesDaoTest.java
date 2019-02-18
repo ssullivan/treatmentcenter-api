@@ -24,8 +24,11 @@ public class ServicesDaoTest {
 
   @BeforeAll
   private void setup() {
+    final RedisConfig redisConfig = new RedisConfig("127.0.0.1", 6379);
+    redisConfig.setTimeout(50);
+
     final Injector injector = Guice
-        .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
+        .createInjector(new RedisClientModule(redisConfig));
     _dao = injector.getInstance(RedisServiceCodeDao.class);
     _pool = injector.getInstance(IRedisConnectionPool.class);
   }

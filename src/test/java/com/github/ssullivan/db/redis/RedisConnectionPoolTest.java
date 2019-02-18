@@ -14,8 +14,11 @@ public class RedisConnectionPoolTest {
 
   @Test
   public void testClosingPool() throws Exception {
+    final RedisConfig redisConfig = new RedisConfig("127.0.0.1", 6379, 1);
+    redisConfig.setTimeout(50);
+
     final Injector injector = Guice
-        .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379)));
+        .createInjector(new RedisClientModule(redisConfig));
 
     IRedisConnectionPool redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
     redisConnectionPool.close();
