@@ -1,6 +1,5 @@
 package com.github.ssullivan.db.redis;
 
-import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.utils.ShortUuid;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -8,7 +7,6 @@ import java.util.Optional;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class RedisFeedDaoTest {

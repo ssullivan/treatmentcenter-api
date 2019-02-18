@@ -28,7 +28,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
 
-  private static final String KEY = "treatment:services";
+  public static final String KEY = "treatment:services";
 
   private IRedisConnectionPool redis;
   private ObjectReader serviceReader;
