@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class RedisFeedDaoTest {
+
   @Test
   public void testSetCurrentFeedId() throws Exception {
     IRedisConnectionPool pool = Mockito.mock(IRedisConnectionPool.class);

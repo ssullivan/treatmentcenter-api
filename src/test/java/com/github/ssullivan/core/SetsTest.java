@@ -7,6 +7,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class SetsTest {
+
   @Test
   public void testAnyOfInt() {
     MatcherAssert.assertThat(Sets.anyMatch(ImmutableSet.of(1, 2, 3), 1, 2),

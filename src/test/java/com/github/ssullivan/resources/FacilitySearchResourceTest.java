@@ -41,19 +41,23 @@ import org.mockito.Mockito;
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class FacilitySearchResourceTest {
+
   private static final String FeedId = ShortUuid.encode(UUID.randomUUID());
   private static final String FirstId = ShortUuid.encode(UUID.randomUUID());
   private static final String SecondId = ShortUuid.encode(UUID.randomUUID());
 
   private static final GenericType<SearchResults<Facility>> SEARCH_RESULTS_GENERIC_TYPE =
-      new GenericType<SearchResults<Facility>>(){
+      new GenericType<SearchResults<Facility>>() {
 
       };
 
   private static final IFacilityDao dao = Mockito.mock(IFacilityDao.class);
-  private static final IPostalcodeService postalCodeService = Mockito.mock(IPostalcodeService.class);
+  private static final IPostalcodeService postalCodeService = Mockito
+      .mock(IPostalcodeService.class);
   private static final FindBySearchRequest find = Mockito.mock(FindBySearchRequest.class);
+
   private static class FacilitySearchResults {
+
     private long totalHits;
     private List<FacilityWithRadius> hits;
 
@@ -79,12 +83,11 @@ public class FacilitySearchResourceTest {
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
       .build();
 
-    private static final Facility facility = new Facility(FirstId, FeedId, "test",
+  private static final Facility facility = new Facility(FirstId, FeedId, "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",
       ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("BAR"));
-
 
 
   private static final Facility facilit2y = new Facility(SecondId, FeedId,
@@ -102,7 +105,7 @@ public class FacilitySearchResourceTest {
             SearchResults.searchResults(1, ImmutableList.of(facility))
         ));
     Mockito.when(postalCodeService.fetchGeos(Mockito.anyString()))
-        .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33,33)));
+        .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33, 33)));
   }
 
   @AfterAll
@@ -240,7 +243,7 @@ public class FacilitySearchResourceTest {
             .queryParam("serviceCode", "BAR")
             .queryParam("postalCode", "12345600000000000000000000000")
             .request()
-        .get();
+            .get();
     MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(400));
   }
 
@@ -290,7 +293,6 @@ public class FacilitySearchResourceTest {
             "score",
             SortDirection.ASC
         );
-
 
     FacilityWithRadius first = sortedByScore.hits().get(0);
     FacilityWithRadius second = sortedByScore.hits().get(1);
@@ -345,7 +347,6 @@ public class FacilitySearchResourceTest {
             "score",
             SortDirection.DESC
         );
-
 
     FacilityWithRadius first = sortedByScore.hits().get(0);
     FacilityWithRadius second = sortedByScore.hits().get(1);

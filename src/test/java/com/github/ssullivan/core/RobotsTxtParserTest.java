@@ -10,6 +10,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class RobotsTxtParserTest {
+
   @Test
   public void testParsing() throws IOException {
     final String fixture = FixtureHelpers.fixture("fixtures/Robots.txt");

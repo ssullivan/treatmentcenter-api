@@ -11,7 +11,8 @@ public class ScoreByHearingSupportTest {
 
   @Test
   public void testScore() {
-    ScoreByHearingSupport scoreByHearingSupport = new ScoreByHearingSupport(new HashSet<>(), true, Importance.VERY);
+    ScoreByHearingSupport scoreByHearingSupport = new ScoreByHearingSupport(new HashSet<>(), true,
+        Importance.VERY);
     Facility facility = new Facility();
     facility.setServiceCodes(ImmutableSet.of("AH"));
 
@@ -22,7 +23,8 @@ public class ScoreByHearingSupportTest {
 
   @Test
   public void testScoreNoCode() {
-    ScoreByHearingSupport scoreByHearingSupport = new ScoreByHearingSupport(new HashSet<>(), true, Importance.VERY);
+    ScoreByHearingSupport scoreByHearingSupport = new ScoreByHearingSupport(new HashSet<>(), true,
+        Importance.VERY);
     Facility facility = new Facility();
     facility.setServiceCodes(ImmutableSet.of(""));
 

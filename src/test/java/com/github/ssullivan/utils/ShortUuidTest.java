@@ -6,6 +6,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class ShortUuidTest {
+
   @Test
   public void testDecode() {
     final UUID original = UUID.randomUUID();

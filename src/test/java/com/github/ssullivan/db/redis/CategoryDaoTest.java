@@ -39,7 +39,6 @@ public class CategoryDaoTest {
   @Test
   public void testAddingCategoryCode() throws IOException {
 
-
     Category category = new Category();
     category.setCode("TEST" + System.currentTimeMillis());
     category.setName("A test category");

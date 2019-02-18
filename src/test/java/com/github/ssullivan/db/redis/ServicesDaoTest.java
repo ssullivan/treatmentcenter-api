@@ -66,7 +66,6 @@ public class ServicesDaoTest {
     MatcherAssert.assertThat(fromDb.getCategoryCode(), Matchers.equalTo(service.getCategoryCode()));
     MatcherAssert.assertThat(fromDb.getDescription(), Matchers.equalTo(service.getDescription()));
 
-
     _dao.delete(service.getCode());
   }
 }

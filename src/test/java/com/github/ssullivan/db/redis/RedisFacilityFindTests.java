@@ -56,12 +56,12 @@ public class RedisFacilityFindTests {
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
     this.findBySearchRequest = injector.getInstance(FindBySearchRequest.class);
-    this.loadCategoriesAndServicesFunctor = injector.getInstance(LoadCategoriesAndServicesFunctor.class);
-    this.loadTreatmentFacilitiesFunctor = injector.getInstance(LoadTreatmentFacilitiesFunctor.class);
-
+    this.loadCategoriesAndServicesFunctor = injector
+        .getInstance(LoadCategoriesAndServicesFunctor.class);
+    this.loadTreatmentFacilitiesFunctor = injector
+        .getInstance(LoadTreatmentFacilitiesFunctor.class);
 
     _redisConnectionPool.borrowConnection().sync().flushdb();
-
 
     IFeedDao feedDao = injector.getInstance(IFeedDao.class);
 
@@ -90,10 +90,12 @@ public class RedisFacilityFindTests {
   @Test
   public void testSearchingForMultipleServiceCodes_DifferentSets() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
-    searchRequest.setServiceConditions(ImmutableList.of( new ServicesCondition(ImmutableList.of("BIA"), MatchOperator.MUST),
-        new ServicesCondition(ImmutableList.of("SI"), MatchOperator.MUST)));
+    searchRequest.setServiceConditions(
+        ImmutableList.of(new ServicesCondition(ImmutableList.of("BIA"), MatchOperator.MUST),
+            new ServicesCondition(ImmutableList.of("SI"), MatchOperator.MUST)));
 
-    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise = findBySearchRequest
+        .find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
@@ -106,15 +108,18 @@ public class RedisFacilityFindTests {
 
     final Set<String> names = searchResults.hits().stream().map(Facility::getName1).map(
         String::toLowerCase).collect(Collectors.toSet());
-    MatcherAssert.assertThat(names, Matchers.containsInAnyOrder("location 7", "location 5", "location 3"));
+    MatcherAssert
+        .assertThat(names, Matchers.containsInAnyOrder("location 7", "location 5", "location 3"));
   }
 
   @Test
   public void testSearchingForMultipleServiceCodes_SameSets() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
-    searchRequest.setServiceConditions(ImmutableList.of( new ServicesCondition(ImmutableList.of("BIA", "SI"), MatchOperator.MUST)));
+    searchRequest.setServiceConditions(
+        ImmutableList.of(new ServicesCondition(ImmutableList.of("BIA", "SI"), MatchOperator.MUST)));
 
-    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise = findBySearchRequest
+        .find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
@@ -125,19 +130,21 @@ public class RedisFacilityFindTests {
     final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
     MatcherAssert.assertThat(searchResults.hits(), hasSize(3));
 
-
     final Set<String> names = searchResults.hits().stream().map(Facility::getName1).map(
         String::toLowerCase).collect(Collectors.toSet());
-    MatcherAssert.assertThat(names, Matchers.containsInAnyOrder("location 7", "location 5", "location 3"));
+    MatcherAssert
+        .assertThat(names, Matchers.containsInAnyOrder("location 7", "location 5", "location 3"));
   }
 
   @Test
   public void testSearchingForASingleCondition() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
-    ServicesCondition servicesCondition = new ServicesCondition(ImmutableList.of("MALE"), MatchOperator.MUST);
+    ServicesCondition servicesCondition = new ServicesCondition(ImmutableList.of("MALE"),
+        MatchOperator.MUST);
     searchRequest.setServiceConditions(ImmutableList.of(servicesCondition));
 
-    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise = findBySearchRequest
+        .find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
@@ -146,7 +153,7 @@ public class RedisFacilityFindTests {
         .until(promise::isDone);
 
     final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
-    MatcherAssert.assertThat(searchResults.totalHits(),equalTo(8L));
+    MatcherAssert.assertThat(searchResults.totalHits(), equalTo(8L));
     MatcherAssert.assertThat(searchResults.hits(), hasSize(8));
 
   }
@@ -154,10 +161,12 @@ public class RedisFacilityFindTests {
   @Test
   public void testSearchingByGeoCondition() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
-    GeoRadiusCondition geoRadiusCondition = new GeoRadiusCondition(GeoPoint.geoPoint(38.80, -76.80), 15, GeoUnit.MILE);
+    GeoRadiusCondition geoRadiusCondition = new GeoRadiusCondition(GeoPoint.geoPoint(38.80, -76.80),
+        15, GeoUnit.MILE);
     searchRequest.setGeoRadiusCondition(geoRadiusCondition);
 
-    final CompletableFuture<SearchResults<Facility>> promise  = findBySearchRequest.find(searchRequest, Page.page())
+    final CompletableFuture<SearchResults<Facility>> promise = findBySearchRequest
+        .find(searchRequest, Page.page())
         .toCompletableFuture();
 
     Awaitility.await()
@@ -166,14 +175,16 @@ public class RedisFacilityFindTests {
         .until(promise::isDone);
 
     final SearchResults<Facility> searchResults = promise.getNow(SearchResults.empty());
-    MatcherAssert.assertThat(searchResults.totalHits(),equalTo(2L));
+    MatcherAssert.assertThat(searchResults.totalHits(), equalTo(2L));
     MatcherAssert.assertThat(searchResults.hits(), hasSize(2));
 
     final Facility firstFacility = searchResults.hits().get(0);
-    MatcherAssert.assertThat(firstFacility.getName1(), Matchers.anyOf(Matchers.equalTo("Location 1"), Matchers.equalTo("Location 2")));
+    MatcherAssert.assertThat(firstFacility.getName1(),
+        Matchers.anyOf(Matchers.equalTo("Location 1"), Matchers.equalTo("Location 2")));
 
     final Facility secondFacility = searchResults.hits().get(1);
-    MatcherAssert.assertThat(secondFacility.getName1(), Matchers.anyOf(Matchers.equalTo("Location 1"), Matchers.equalTo("Location 2")));
+    MatcherAssert.assertThat(secondFacility.getName1(),
+        Matchers.anyOf(Matchers.equalTo("Location 1"), Matchers.equalTo("Location 2")));
 
   }
 }

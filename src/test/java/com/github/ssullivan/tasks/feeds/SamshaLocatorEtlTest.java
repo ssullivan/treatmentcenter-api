@@ -55,18 +55,19 @@ public class SamshaLocatorEtlTest {
   public void testFetchingData() throws IOException, InterruptedException {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
-      .setResponseCode(200)
+        .setResponseCode(200)
         .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
     );
     mockWebServer.enqueue(new MockResponse()
-      .setResponseCode(200)
+        .setResponseCode(200)
         .setHeader("Content-Type", "application/octet-stream")
-        .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
+        .setBody(Resources
+            .toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
     String s3Url = mockWebServer.url("").toString();
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,s3Url, "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L, s3Url, "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
 
     final RecordedRequest robotsRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
@@ -85,23 +86,23 @@ public class SamshaLocatorEtlTest {
         .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
     );
     mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(500)
-            .setHeader("Content-Type", "application/html")
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
     );
     mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(500)
-            .setHeader("Content-Type", "application/html")
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
     );
     mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(500)
-            .setHeader("Content-Type", "application/html")
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
     );
     mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(500)
-            .setHeader("Content-Type", "application/html")
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
     );
     String s3Url = mockWebServer.url("").toString();
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,s3Url, "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L, s3Url, "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }
@@ -123,10 +124,12 @@ public class SamshaLocatorEtlTest {
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(200)
         .setHeader("Content-Type", "application/octet-stream")
-        .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
+        .setBody(Resources
+            .toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L, "http://localhost:8181",
+        "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }
@@ -134,7 +137,9 @@ public class SamshaLocatorEtlTest {
   @Test
   public void testTransformLocatorSpreadheet() throws IOException {
     TransformLocatorSpreadsheet transformLocatorSpreadsheet = new TransformLocatorSpreadsheet();
-    Optional<SamshaLocatorData> data = transformLocatorSpreadsheet.apply(ShortUuid.randomShortUuid(), Resources.getResource("fixtures/Locator.xlsx").openStream());
+    Optional<SamshaLocatorData> data = transformLocatorSpreadsheet
+        .apply(ShortUuid.randomShortUuid(),
+            Resources.getResource("fixtures/Locator.xlsx").openStream());
 
     MatcherAssert.assertThat(data.isPresent(), Matchers.equalTo(true));
     MatcherAssert.assertThat(data.get().isGood(), Matchers.equalTo(true));
@@ -152,13 +157,13 @@ public class SamshaLocatorEtlTest {
     StoreSamshaLocatorData storeSamshaLocatorData = new StoreSamshaLocatorData(feedDao,
         categoryCodesDao, serviceCodesDao,
         facilityDao
-        );
+    );
 
     SamshaLocatorData samshaLocatorData = new SamshaLocatorData(ShortUuid.randomShortUuid(),
         new HashSet<>(),
         new HashSet<>(),
         new ArrayList<>()
-        );
+    );
 
     MatcherAssert.assertThat(storeSamshaLocatorData.apply(samshaLocatorData),
         Matchers.equalTo(true));

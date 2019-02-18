@@ -8,6 +8,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class RequestUtilsTest {
+
   @Test
   public void testFlattenWithItemThatHasCommas() {
     final List<String> original = ImmutableList.of("a,b", "c");

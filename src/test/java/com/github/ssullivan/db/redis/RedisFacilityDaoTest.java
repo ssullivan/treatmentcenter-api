@@ -40,6 +40,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityDaoTest {
+
   private static final String FeedId = ShortUuid.randomShortUuid();
   private static final String FirstId = ShortUuid.randomShortUuid();
   private static final String SecondId = ShortUuid.randomShortUuid();
@@ -58,7 +59,6 @@ public class RedisFacilityDaoTest {
     _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
     _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
     _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
-
 
     IFeedDao feedDao = injector.getInstance(IFeedDao.class);
 

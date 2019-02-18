@@ -7,6 +7,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class ScoreByLangTest {
+
   @Test
   public void testScoreByLang() {
     ScoreByLang scoreByLang = new ScoreByLang(ImmutableSet.of("F17"), false, Importance.VERY);

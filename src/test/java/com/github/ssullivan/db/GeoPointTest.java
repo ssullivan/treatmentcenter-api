@@ -7,6 +7,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class GeoPointTest {
+
   @Test
   public void testGetEarthRadiusKilometers() {
     GeoPoint geoPoint = GeoPoint.geoPoint(1, 1);
