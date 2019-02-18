@@ -186,9 +186,11 @@ nebulaDocker {
     afterEvaluate {
         apply plugin: 'jacoco'
 
-        task createBuildDir << {
-             mkdir project.buildDir
-             mkdir new File(project.buildDir, "docker")
+        task createBuildDir {
+            doLast {
+                mkdir project.buildDir
+                mkdir new File(project.buildDir, "docker")
+            }
         }
 
         task copyDockerDir(type: Copy, dependsOn: [createBuildDir]) {
@@ -213,8 +215,8 @@ task codeCoverageReport(type: JacocoReport) {
         xml.enabled true
         html.enabled true
         csv.enabled false
-        xml.destination "${buildDir}/reports/jacoco/report.xml"
-        html.destination "${buildDir}/reports/jacoco/report.html"
+        xml.setDestination(file("${buildDir}/reports/jacoco/report.xml"))
+        html.setDestination(file("${buildDir}/reports/jacoco/report.html"))
     }
 
     sourceSets sourceSets.main
