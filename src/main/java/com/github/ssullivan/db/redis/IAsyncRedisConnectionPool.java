@@ -1,7 +1,6 @@
 package com.github.ssullivan.db.redis;
 
 import com.google.inject.ImplementedBy;
-import com.google.inject.Singleton;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import java.util.concurrent.CompletableFuture;

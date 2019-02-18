@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ServicesDaoMockitoTest {
+
   private static final com.fasterxml.jackson.databind.ObjectMapper ObjectMapper = new ObjectMapper();
   private IRedisConnectionPool redisPool;
   private StatefulRedisConnection<String, String> redisConnection;
@@ -55,7 +56,8 @@ public class ServicesDaoMockitoTest {
     service.setCategoryCode("TEST");
     service.setDescription("A test service");
 
-    Mockito.when(redisCommand.hset(Mockito.eq(RedisServiceCodeDao.KEY), Mockito.eq("TEST"), Mockito.anyString()))
+    Mockito.when(redisCommand
+        .hset(Mockito.eq(RedisServiceCodeDao.KEY), Mockito.eq("TEST"), Mockito.anyString()))
         .thenReturn(true);
     Mockito.when(redisCommand.hget(Mockito.eq(RedisServiceCodeDao.KEY), Mockito.eq("TEST")))
         .thenReturn(ObjectMapper.writeValueAsString(service));

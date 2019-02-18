@@ -3,7 +3,6 @@ package com.github.ssullivan.core;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.SortDirection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.hamcrest.Matchers;

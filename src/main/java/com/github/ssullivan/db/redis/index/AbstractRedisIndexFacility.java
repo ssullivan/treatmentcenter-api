@@ -6,7 +6,6 @@ import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.model.Facility;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.ScanArgs;
-import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;

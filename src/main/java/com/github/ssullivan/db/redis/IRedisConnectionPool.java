@@ -1,7 +1,6 @@
 package com.github.ssullivan.db.redis;
 
 import com.google.inject.ImplementedBy;
-import com.google.inject.Singleton;
 import io.lettuce.core.api.StatefulRedisConnection;
 
 @ImplementedBy(RedisConnectionPool.class)

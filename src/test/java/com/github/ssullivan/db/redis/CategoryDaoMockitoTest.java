@@ -75,8 +75,6 @@ public class CategoryDaoMockitoTest {
     Mockito.when(redisCommand.hget(Mockito.anyString(), Mockito.eq("TEST")))
         .thenReturn(json);
 
-
-
     final Category fromRedis = dao.get("TEST");
     MatcherAssert.assertThat(fromRedis.getCode(), Matchers.equalTo(category.getCode()));
     MatcherAssert.assertThat(fromRedis.getName(), Matchers.equalTo(category.getName()));

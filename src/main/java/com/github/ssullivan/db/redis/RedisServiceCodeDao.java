@@ -26,13 +26,12 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class RedisServiceCodeDao implements IServiceCodesDao {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
-
   public static final String KEY = "treatment:services";
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
   private IRedisConnectionPool redis;
   private ObjectReader serviceReader;
   private ObjectWriter serviceWriter;
+  private RedisCommands<String, String> sync;
   private LoadingCache<String, Service> cache =
       CacheBuilder.newBuilder()
           .maximumSize(200)
@@ -44,7 +43,6 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
               return get(key);
             }
           });
-  private RedisCommands<String, String> sync;
 
   @Inject
   public RedisServiceCodeDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {

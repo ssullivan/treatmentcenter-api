@@ -14,8 +14,10 @@ public class RedisFeedDaoTest {
   @Test
   public void testSetCurrentFeedId() throws Exception {
     IRedisConnectionPool pool = Mockito.mock(IRedisConnectionPool.class);
-    StatefulRedisConnection<String, String> conn = (StatefulRedisConnection<String, String>) Mockito.mock(StatefulRedisConnection.class);
-    RedisCommands<String, String> commands = (RedisCommands<String, String>) Mockito.mock(RedisCommands.class);
+    StatefulRedisConnection<String, String> conn = (StatefulRedisConnection<String, String>) Mockito
+        .mock(StatefulRedisConnection.class);
+    RedisCommands<String, String> commands = (RedisCommands<String, String>) Mockito
+        .mock(RedisCommands.class);
 
     Mockito.when(pool.borrowConnection()).thenReturn(conn);
     Mockito.when(conn.sync()).thenReturn(commands);
