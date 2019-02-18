@@ -79,8 +79,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
         final Tuple2<Long, String> geoResult = findByGeoPoint(sync, searchFeedId,
             searchKey, searchRequest.getGeoRadiusCondition());
 
-
-
         if (serviceCodeResults.get_1() > 0) {
           totalResults = sync.zinterstore(serviceCodeResults.get_2(), serviceCodeResults.get_2(),
               geoResult.get_2());
@@ -130,8 +128,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
             geoRadiusCondition.getRadius(), geoRadiusCondition.getGeoUnit().unit(),
             GeoRadiusStoreArgs.Builder
                 .withStoreDist(searchKey + "geo"));
-
-
 
     if (totalResults == null) {
       totalResults = 0L;

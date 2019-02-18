@@ -109,7 +109,6 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
   }
 
 
-
   @Override
   protected void run(Bootstrap<AppConfig> bootstrap, Namespace namespace, AppConfig configuration)
       throws Exception {
@@ -117,17 +116,18 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       LOGGER.info("Started");
 
       final Runtime runtime = Runtime.getRuntime();
-      LOGGER.info("Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",runtime.totalMemory(),
-          runtime.freeMemory(),
-          runtime.maxMemory(),
-          runtime.availableProcessors());
+      LOGGER
+          .info("Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",
+              runtime.totalMemory(),
+              runtime.freeMemory(),
+              runtime.maxMemory(),
+              runtime.availableProcessors());
 
       RedisConfig redisConfig = new RedisConfig();
 
       redisConfig.setHost(namespace.getString("Host"));
       redisConfig.setPort(namespace.getInt("Port"));
       redisConfig.setDb(namespace.getInt("Database"));
-
 
       LOGGER.info("[redis] Host is {}", redisConfig.getHost());
       LOGGER.info("[redis] Port is {}", redisConfig.getPort());
@@ -142,7 +142,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
           awsBucket);
 
       final File spreadsheetFile = namespace.get("File");
-      final String  spreadheetUrl = namespace.get("Url");
+      final String spreadheetUrl = namespace.get("Url");
       String locatorUrl = "";
 
       if (spreadsheetFile != null) {
@@ -160,7 +160,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
               bindConstant().annotatedWith(CrawlDelay.class).to(4096L);
             }
           },
-      new AwsS3ClientModule(settings, locatorUrl));
+          new AwsS3ClientModule(settings, locatorUrl));
 
       // Verify that things are working
 
@@ -171,8 +171,8 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       final RedisClient client = this.injector.getInstance(RedisClient.class);
 
       try (StatefulRedisConnection<String, String> conn = client.connect()) {
-          final String pingResponse = conn.sync().ping();
-          LOGGER.info("[redis] Ping response was {}", pingResponse);
+        final String pingResponse = conn.sync().ping();
+        LOGGER.info("[redis] Ping response was {}", pingResponse);
       }
 
       LOGGER.info("Successfully, connected to Elasticache/Redis {}", redisConfig.getHost());
@@ -183,8 +183,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
 
     } catch (IOException e) {
       LOGGER.error("Failed to fetch / transform / load SAMSHSA data", e);
-    }
-    finally {
+    } finally {
       if (this.injector != null) {
         try {
           this.injector.getInstance(RedisClient.class).shutdown();

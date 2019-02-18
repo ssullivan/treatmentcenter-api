@@ -54,8 +54,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
     try {
       this.sync = redisPool.borrowConnection().sync();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       LOGGER.error("Failed to borrow a connection from the redis pool!", e);
       throw new RuntimeException("Failed to connect to Redis", e);
     }

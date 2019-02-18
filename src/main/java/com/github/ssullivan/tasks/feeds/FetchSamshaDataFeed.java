@@ -81,7 +81,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
 
 
   @Inject
-  public FetchSamshaDataFeed(@CrawlDelay final Long delay, @SamshaUrl final String url, @BucketName final String bucket,
+  public FetchSamshaDataFeed(@CrawlDelay final Long delay, @SamshaUrl final String url,
+      @BucketName final String bucket,
       final AmazonS3 amazonS3) {
     this.url = url;
     this.bucket = bucket;
@@ -93,11 +94,12 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
         .register(GZipEncoder.class)
         .register(DeflateEncoder.class)
         .register((ClientRequestFilter) clientRequestContext -> {
-            clientRequestContext.getHeaders().add(HttpHeaders.ACCEPT_ENCODING, "gzip");
-            clientRequestContext.getHeaders().add(HttpHeaders.USER_AGENT, UserAgent);
-            clientRequestContext.getHeaders().add(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-            clientRequestContext.getHeaders().add(HttpHeaders.ACCEPT_LANGUAGE, "en-US,en;q=0.5");
-            clientRequestContext.getHeaders().add("Upgrade-Insecure-Requests", "1");
+          clientRequestContext.getHeaders().add(HttpHeaders.ACCEPT_ENCODING, "gzip");
+          clientRequestContext.getHeaders().add(HttpHeaders.USER_AGENT, UserAgent);
+          clientRequestContext.getHeaders().add(HttpHeaders.ACCEPT,
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+          clientRequestContext.getHeaders().add(HttpHeaders.ACCEPT_LANGUAGE, "en-US,en;q=0.5");
+          clientRequestContext.getHeaders().add("Upgrade-Insecure-Requests", "1");
 
         });
   }
@@ -116,8 +118,7 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
         LOGGER.error("Failed to get robots.txt! Got HTTP {}", response.getStatus());
         return Optional.empty();
       }
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       LOGGER.error("Failed to get robotx.txt", e);
     }
     return Optional.empty();
@@ -129,7 +130,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
     if (this.url.startsWith("file")) {
       final File file = new File(this.url.replaceFirst("file:/", ""));
       try (FileInputStream fileInputStream = new FileInputStream(file);
-          BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, DefaultBufferSize)
+          BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream,
+              DefaultBufferSize)
       ) {
         return Optional.of(handleStream(file.length(), bufferedInputStream));
       } catch (IOException e) {
@@ -166,9 +168,11 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
                 .invoke();
 
             if (response.getStatus() == 200) {
-              LOGGER.info("Success! Downloading locator spreadsheet [{} bytes]", response.getLength());
+              LOGGER.info("Success! Downloading locator spreadsheet [{} bytes]",
+                  response.getLength());
               try (final InputStream inputStream = response.readEntity(InputStream.class);
-                  final BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, DefaultBufferSize)) {
+                  final BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                      inputStream, DefaultBufferSize)) {
                 return Optional
                     .of(handleStream(response.getLength(), bufferedInputStream));
 
@@ -176,15 +180,15 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
                 LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
               }
             } else {
-              LOGGER.error("Received HTTP {}: Body: {}", response.getStatus(), response.readEntity(String.class));
+              LOGGER.error("Received HTTP {}: Body: {}", response.getStatus(),
+                  response.readEntity(String.class));
             }
 
             if (this.crawlDelay > 0) {
               Thread.sleep(this.crawlDelay);
             }
           } while (attempts++ < 3);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
           LOGGER.error("Interrupted while attempting to download spreadsheet", e);
           Thread.currentThread().interrupt();
         }
@@ -221,7 +225,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
       objectMetadata.setContentLength(contentLength);
     }
 
-    final PutObjectRequest putObjectRequest = new PutObjectRequest(this.bucket, objectKey, inputStream, objectMetadata);
+    final PutObjectRequest putObjectRequest = new PutObjectRequest(this.bucket, objectKey,
+        inputStream, objectMetadata);
     putObjectRequest.getRequestClientOptions().setReadLimit(8192);
 
     PutObjectResult putObjectResult = amazonS3.putObject(putObjectRequest);

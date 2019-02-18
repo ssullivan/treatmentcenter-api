@@ -35,8 +35,7 @@ public class ManageFeeds {
     final Collection<String> feedIds = this.feedDao.getFeedIds();
     if (feedIds.isEmpty()) {
       LOGGER.warn("There were no known feed ids to clear!");
-    }
-    else {
+    } else {
       for (final String feedId : feedIds) {
         if (!feedId.equalsIgnoreCase(currentFeedID)) {
           if (expireKeys(feedId)) {

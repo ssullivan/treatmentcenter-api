@@ -106,7 +106,6 @@ public class RedisFacilityDao implements IFacilityDao {
     final Map<String, String> stringStringMap = toStringMap(facility);
     redis.hmset(facilityKey(facility.getId()), stringStringMap);
 
-
     // this is so we can quickly delete stuff in the future
     redis.sadd(TREATMENT_FACILITIES_IDS + facility.getFeedId(), facility.getId());
     LOGGER.debug("Loaded Facility {} for feed {}", facility.getId(), facility.getFeedId());

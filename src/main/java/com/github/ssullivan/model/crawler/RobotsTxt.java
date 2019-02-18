@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RobotsTxt {
+
   private final Map<String, RobotRules> rules = new HashMap<>();
 
   public RobotsTxt() {

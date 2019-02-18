@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 public class RobotRules {
+
   private Set<String> disallow;
   private Set<String> allow;
 

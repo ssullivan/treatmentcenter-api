@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
  * (primarilyu used for local dev with minio) + ec2 instance profiles
  */
 public class AwsS3ClientModule extends AbstractModule {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AwsS3ClientModule.class);
 
   private final AwsS3Settings awsS3Settings;

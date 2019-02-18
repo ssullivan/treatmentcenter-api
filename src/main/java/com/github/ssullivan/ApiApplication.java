@@ -90,8 +90,6 @@ public class ApiApplication extends Application<AppConfig> {
       }
     });
 
-
-
     final DropwizardAwareModule<AppConfig> module = new DropwizardAwareModule<AppConfig>() {
       @Override
       protected void configure() {
@@ -137,14 +135,14 @@ public class ApiApplication extends Application<AppConfig> {
   @Override
   public void run(AppConfig configuration, Environment environment) throws Exception {
 
-
     final Injector injector = InjectorRegistry.getInjector(this);
     environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(),
         injector.getInstance(RedisHealthCheck.class));
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {
-            LOGGER.error("HealthCheck {} is not healthy because {}", result.getMessage(), result.getError());
+            LOGGER.error("HealthCheck {} is not healthy because {}", result.getMessage(),
+                result.getError());
           }
         });
 

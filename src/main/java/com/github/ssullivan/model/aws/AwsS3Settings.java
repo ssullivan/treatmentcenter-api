@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AwsS3Settings {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AwsS3Settings.class);
 
   private final Optional<String> awsSecretKey;

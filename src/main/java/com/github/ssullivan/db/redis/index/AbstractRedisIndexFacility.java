@@ -50,8 +50,7 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
     if (e instanceof InterruptedException) {
       LOGGER.error("Interrupted while indexing", e);
       Thread.currentThread().interrupt();
-    }
-    else {
+    } else {
       LOGGER.error("Failed to index facility", e);
     }
     throw new IOException("Failed to index facility", e);

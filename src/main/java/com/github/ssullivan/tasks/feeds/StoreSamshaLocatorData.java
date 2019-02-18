@@ -75,7 +75,8 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
             LOGGER.error("Failed to store facilities batch: {}", partition);
           }
 
-          LOGGER.info("Loaded {} of {}", totalLoaded.get(), samshaLocatorData.getFacilities().size());
+          LOGGER
+              .info("Loaded {} of {}", totalLoaded.get(), samshaLocatorData.getFacilities().size());
         });
     for (final Facility facility : samshaLocatorData.getFacilities()) {
       try {
