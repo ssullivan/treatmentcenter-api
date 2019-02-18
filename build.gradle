@@ -16,6 +16,8 @@ plugins {
 
 }
 
+
+
 apply plugin: 'java'
 apply plugin: 'net.ltgt.apt'
 apply plugin: 'net.ltgt.apt-idea'
@@ -24,6 +26,7 @@ apply plugin: 'application'
 apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
+apply plugin: "findbugs"
 
 version = '1.13.0'
 group 'com.github.ssullivan'
@@ -89,7 +92,9 @@ dependencies {
     testCompile 'org.junit.vintage:junit-vintage-engine:5.1.0'
     testCompile 'org.awaitility:awaitility:3.1.5'
     testImplementation "com.squareup.okhttp3:mockwebserver:+"
+
 }
+
 
 test {
     useJUnitPlatform()

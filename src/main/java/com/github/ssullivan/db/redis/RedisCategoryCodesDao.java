@@ -29,7 +29,6 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   private static final String KEY = "treatment:categories";
 
-  private IRedisConnectionPool redis;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
   private RedisCommands<String, String> sync;
@@ -47,7 +46,6 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Inject
   public RedisCategoryCodesDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
-    this.redis = redisPool;
     this.objectReader = objectMapper.readerFor(Category.class);
     this.objectWriter = objectMapper.writerFor(Category.class);
 

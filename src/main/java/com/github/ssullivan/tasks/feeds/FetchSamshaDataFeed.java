@@ -199,15 +199,12 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
       throws IOException {
     LOGGER.info("Successfully, fetched SAMSHA treatment facilities excel");
 
-    final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-    final ObjectMetadata objectMetadata = new ObjectMetadata();
-
-    final long collected_at = System.currentTimeMillis();
     final String objectKey = createObjectKey();
     final long epochMillis = System.currentTimeMillis();
     final Feed feed = new Feed(SAMSHA, objectKey, epochMillis);
 
-    objectMetadata.addUserMetadata("collected_at", "" + collected_at);
+    final ObjectMetadata objectMetadata = new ObjectMetadata();
+    objectMetadata.addUserMetadata("collected_at", "" + System.currentTimeMillis());
     objectMetadata.addUserMetadata("feed_id", ShortUuid.randomShortUuid());
 
     if (contentLength > 0) {

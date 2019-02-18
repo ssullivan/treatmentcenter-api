@@ -162,6 +162,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
 
       // (1) Create an AmazonS3 client
       final AmazonS3 amazonS3 = this.injector.getInstance(AmazonS3.class);
+      LOGGER.info("Region is {}", amazonS3.getRegion());
 
       // (2) Check the redis db
       final RedisClient client = this.injector.getInstance(RedisClient.class);

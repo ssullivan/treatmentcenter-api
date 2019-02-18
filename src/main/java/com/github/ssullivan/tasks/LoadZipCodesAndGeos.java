@@ -82,7 +82,7 @@ public class LoadZipCodesAndGeos {
 
     final Map<String, List<GeoPoint>> geoPointMap = new HashMap<>();
 
-    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
       String line = null;
       while ((line = bufferedReader.readLine()) != null) {
         if (line.isEmpty()) {

@@ -9,20 +9,17 @@ public class ScoreByTraumaServices implements IScoreFacility {
 
   private boolean needsSupport;
   private Set<TraumaTypes> traumaTypes;
-  private Set<String> serviceCodes;
 
   public ScoreByTraumaServices(boolean needsSupport,
       Set<TraumaTypes> traumaTypes, Set<String> serviceCodes) {
     this.needsSupport = needsSupport;
     this.traumaTypes = traumaTypes;
-    this.serviceCodes = serviceCodes;
   }
 
   public ScoreByTraumaServices(boolean needsSupport,
       List<TraumaTypes> traumaTypes, Set<String> serviceCodes) {
     this.needsSupport = needsSupport;
     this.traumaTypes = ImmutableSet.copyOf(traumaTypes);
-    this.serviceCodes = serviceCodes;
   }
 
   public ScoreByTraumaServices(final Set<String> serviceCodes) {

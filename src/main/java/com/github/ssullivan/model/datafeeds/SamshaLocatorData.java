@@ -12,7 +12,7 @@ import java.util.Objects;
 /**
  * Immutable object representing all of the data from the SAMSHA locator spreadsheet.
  */
-public class SamshaLocatorData implements Serializable {
+public class SamshaLocatorData {
 
   private final String feedId;
   private final Collection<Category> categories;

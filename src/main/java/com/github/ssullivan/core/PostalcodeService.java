@@ -44,8 +44,6 @@ public class PostalcodeService implements IPostalcodeService {
 
   @Override
   public void loadPostalCodes(URI uri) {
-    LoadZipCodesAndGeos loader = new LoadZipCodesAndGeos();
-
     // TODO: Implement this
   }
 }
