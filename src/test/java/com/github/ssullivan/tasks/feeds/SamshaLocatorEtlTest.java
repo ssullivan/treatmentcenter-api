@@ -11,6 +11,7 @@ import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.Resources;
 import io.dropwizard.testing.FixtureHelpers;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,15 +33,23 @@ public class SamshaLocatorEtlTest {
 
   private static MockWebServer mockWebServer = new MockWebServer();
 
+
   @BeforeAll
   public static void setup() throws IOException {
-    mockWebServer.start(8181);
+    mockWebServer.start(randomPort());
   }
 
   @AfterAll
   public static void teardown() throws IOException {
     mockWebServer.shutdown();
   }
+
+  public static int randomPort() throws IOException {
+    try (ServerSocket serverSocket = new ServerSocket(0)) {
+      return serverSocket.getLocalPort();
+    }
+  }
+
 
   @Test
   public void testFetchingData() throws IOException, InterruptedException {
@@ -55,7 +64,9 @@ public class SamshaLocatorEtlTest {
         .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
+    String s3Url = mockWebServer.url("").toString();
+
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,s3Url, "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
 
     final RecordedRequest robotsRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
@@ -74,11 +85,23 @@ public class SamshaLocatorEtlTest {
         .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
     );
     mockWebServer.enqueue(new MockResponse()
-        .setResponseCode(500)
-        .setHeader("Content-Type", "application/html")
+            .setResponseCode(500)
+            .setHeader("Content-Type", "application/html")
     );
-
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(500)
+            .setHeader("Content-Type", "application/html")
+    );
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(500)
+            .setHeader("Content-Type", "application/html")
+    );
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(500)
+            .setHeader("Content-Type", "application/html")
+    );
+    String s3Url = mockWebServer.url("").toString();
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,s3Url, "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }

@@ -6,7 +6,6 @@ import com.github.ssullivan.db.IndexFacility;
 import java.util.Collection;
 import java.util.Set;
 import javax.inject.Inject;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
