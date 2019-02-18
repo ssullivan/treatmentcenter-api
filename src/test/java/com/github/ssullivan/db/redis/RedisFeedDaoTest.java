@@ -1,5 +1,6 @@
 package com.github.ssullivan.db.redis;
 
+import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.utils.ShortUuid;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -15,13 +16,15 @@ public class RedisFeedDaoTest {
   @Test
   public void testSetCurrentFeedId() throws Exception {
     IRedisConnectionPool pool = Mockito.mock(IRedisConnectionPool.class);
-    StatefulRedisConnection<String, String> conn = Mockito.mock(StatefulRedisConnection.class);
-    RedisCommands<String, String> commands = Mockito.mock(RedisCommands.class);
+    StatefulRedisConnection<String, String> conn = (StatefulRedisConnection<String, String>) Mockito.mock(StatefulRedisConnection.class);
+    RedisCommands<String, String> commands = (RedisCommands<String, String>) Mockito.mock(RedisCommands.class);
 
     Mockito.when(pool.borrowConnection()).thenReturn(conn);
     Mockito.when(conn.sync()).thenReturn(commands);
     Mockito.when(commands.set(Mockito.anyString(), Mockito.anyString()))
         .thenReturn("OK");
+    Mockito.when(commands.sadd(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(1L);
 
     RedisFeedDao feedDao = new RedisFeedDao(pool);
     Optional<String> option = feedDao.setCurrentFeedId(ShortUuid.randomShortUuid());
