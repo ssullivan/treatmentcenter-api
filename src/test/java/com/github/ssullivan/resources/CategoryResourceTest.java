@@ -2,7 +2,6 @@ package com.github.ssullivan.resources;
 
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.model.Category;
-import com.github.ssullivan.resources.CategoryCodesResource;
 import com.google.common.collect.ImmutableSet;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
