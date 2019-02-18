@@ -69,6 +69,9 @@ public class RedisFacilityDaoTest {
 
   @BeforeEach()
   public void initEach() throws Exception {
+    RedisConfig redisConfig = new RedisConfig();
+    redisConfig.setTimeout(5L);
+
     redisPool = Mockito.mock(IRedisConnectionPool.class);
     redisConnection = (StatefulRedisConnection<String, String>) Mockito
         .mock(StatefulRedisConnection.class);
@@ -85,6 +88,7 @@ public class RedisFacilityDaoTest {
     injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        bind(RedisConfig.class).toInstance(redisConfig);
         bind(IRedisConnectionPool.class).toInstance(redisPool);
         bind(ObjectMapper.class).toInstance(ObjectMapper);
 

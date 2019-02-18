@@ -1,5 +1,6 @@
 package com.github.ssullivan.db.redis;
 
+import com.github.ssullivan.RedisConfig;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -15,10 +16,13 @@ public class RedisConnectionPoolTest {
   @Test
   public void testClosingPool() throws Exception {
 
+    final RedisConfig redisConfig = new RedisConfig();
+    redisConfig.setTimeout(5L);
     final Injector injector = Guice
         .createInjector(new AbstractModule() {
           @Override
           protected void configure() {
+            bind(RedisConfig.class).toInstance(redisConfig);
             bind(RedisClient.class).toInstance(Mockito.mock(RedisClient.class));
           }
         });

@@ -50,7 +50,7 @@ public class RedisFacilityFindTests {
   @BeforeAll
   private void setup() throws Exception {
     final RedisConfig redisConfig = new RedisConfig("127.0.0.1", 6379, 2);
-    redisConfig.setTimeout(50);
+    redisConfig.setTimeout(5L);
 
     final Injector injector = Guice
         .createInjector(new RedisClientModule(redisConfig));
@@ -102,7 +102,7 @@ public class RedisFacilityFindTests {
         .toCompletableFuture();
 
     Awaitility.await()
-        .atMost(1, TimeUnit.DAYS)
+        .atMost(250, TimeUnit.MILLISECONDS)
         .pollInterval(10, TimeUnit.MILLISECONDS)
         .until(promise::isDone);
 
@@ -126,7 +126,7 @@ public class RedisFacilityFindTests {
         .toCompletableFuture();
 
     Awaitility.await()
-        .atMost(1, TimeUnit.SECONDS)
+        .atMost(250, TimeUnit.MILLISECONDS)
         .pollInterval(10, TimeUnit.MILLISECONDS)
         .until(promise::isDone);
 
@@ -151,7 +151,7 @@ public class RedisFacilityFindTests {
         .toCompletableFuture();
 
     Awaitility.await()
-        .atMost(1, TimeUnit.SECONDS)
+        .atMost(250, TimeUnit.MILLISECONDS)
         .pollInterval(10, TimeUnit.MILLISECONDS)
         .until(promise::isDone);
 
@@ -173,7 +173,7 @@ public class RedisFacilityFindTests {
         .toCompletableFuture();
 
     Awaitility.await()
-        .atMost(1, TimeUnit.SECONDS)
+        .atMost(250, TimeUnit.MILLISECONDS)
         .pollInterval(10, TimeUnit.MILLISECONDS)
         .until(promise::isDone);
 

@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.Service;
 import com.google.inject.AbstractModule;
@@ -28,6 +29,8 @@ public class ServicesDaoMockitoTest {
 
   @BeforeEach()
   public void initEach() throws Exception {
+    RedisConfig redisConfig = new RedisConfig();
+    redisConfig.setTimeout(5L);
     redisPool = Mockito.mock(IRedisConnectionPool.class);
     redisConnection = (StatefulRedisConnection<String, String>) Mockito
         .mock(StatefulRedisConnection.class);
@@ -42,6 +45,7 @@ public class ServicesDaoMockitoTest {
       protected void configure() {
         bind(IRedisConnectionPool.class).toInstance(redisPool);
         bind(ObjectMapper.class).toInstance(ObjectMapper);
+        bind(RedisConfig.class).toInstance(redisConfig);
       }
     });
 
