@@ -9,7 +9,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
-import io.lettuce.core.protocol.RedisCommand;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,5 +61,25 @@ public class CategoryDaoMockitoTest {
 
     final boolean wasadded = dao.addCategory(category);
     MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
+  }
+
+  @Test
+  public void testGetCategory() throws Exception {
+    Category category = new Category();
+    category.setCode("TEST");
+    category.setName("A test category");
+    category.setServiceCodes(ImmutableSet.of("FOO"));
+
+    final String json = ObjectMapper.writeValueAsString(category);
+
+    Mockito.when(redisCommand.hget(Mockito.anyString(), Mockito.eq("TEST")))
+        .thenReturn(json);
+
+
+
+    final Category fromRedis = dao.get("TEST");
+    MatcherAssert.assertThat(fromRedis.getCode(), Matchers.equalTo(category.getCode()));
+    MatcherAssert.assertThat(fromRedis.getName(), Matchers.equalTo(category.getName()));
+    MatcherAssert.assertThat(fromRedis.getServiceCodes(), Matchers.containsInAnyOrder("FOO"));
   }
 }
