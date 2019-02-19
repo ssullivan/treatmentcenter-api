@@ -3,6 +3,7 @@ package com.github.ssullivan.db.redis.search;
 import static com.github.ssullivan.db.redis.RedisConstants.DEFAULT_EXPIRE_SECONDS;
 import static com.github.ssullivan.db.redis.RedisConstants.indexByGeoKey;
 
+import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IFindBySearchRequest;
@@ -46,16 +47,27 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
   @Inject
   public FindBySearchRequest(IRedisConnectionPool redis,
       IAsyncRedisConnectionPool asyncPool,
-      IFacilityDao facilityDao, IFeedDao feedDao) {
-    super(redis, asyncPool, facilityDao, feedDao);
+      IFacilityDao facilityDao,
+      IFeedDao feedDao,
+      IAvailableServiceController availableServiceController) {
+    super(redis, asyncPool, facilityDao, feedDao, availableServiceController);
   }
 
+  /**
+   * Finds location based on the provided search request.
+   *
+   * @param searchRequest
+   * @param page
+   * @return
+   * @throws Exception
+   */
   public CompletionStage<SearchResults<Facility>> find(SearchRequest searchRequest,
       Page page) throws Exception {
 
     Long totalResults = 0L;
     List<String> facilityIdentifiers = new ArrayList<>();
 
+    // Grab a connection from the pool
     try (StatefulRedisConnection<String, String> connection = syncPool.borrowConnection()) {
       RedisCommands<String, String> sync = connection.sync();
 
@@ -67,6 +79,11 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
 
       final String searchKey = "s:" + ShortUuid.randomShortUuid() + ":";
 
+      /*
+       * We support searches where you can have multiple sets of codes for the following cases:
+       * (1) a location must match every service code
+       * (2) a location must match at least one service code
+       */
       final Tuple2<Long, String> serviceCodeResults =
           findByServiceCodeConditions(sync, searchKey, searchRequest.getFinalSetOperation(),
               searchRequest.getConditions());
@@ -74,6 +91,9 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
       LOGGER.debug("Found {} matching locations for the service code conditions",
           serviceCodeResults.get_1());
 
+      /*
+       * Filter the results from the service code matches with the provided geo radius
+       */
       totalResults = serviceCodeResults.get_1();
       if (searchRequest.getGeoRadiusCondition() != null) {
         final Tuple2<Long, String> geoResult = findByGeoPoint(sync, searchFeedId,
@@ -109,6 +129,7 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
         applyToFacilityWithRadius(searchRequest);
 
     return this.facilityDao.fetchBatchAsync(facilityIdentifiers)
+        .thenApply(availableServiceController::applyList)
         .thenApply(toFacilityWithRadius)
         .thenApply(it -> SearchResults.searchResults(totalFound, it));
   }
@@ -244,20 +265,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
     }
 
     return totalFound;
-  }
-
-
-  private List<Facility> applyAvailableServicesAll(final List<Facility> facilities) {
-    for (Facility facility : facilities) {
-      applyAvailableServices(facility);
-    }
-    return facilities;
-  }
-
-  private Facility applyAvailableServices(final Facility facility) {
-    final AvailableServices availableServices = facilityDao.getAvailableServices(facility);
-    facility.setAvailableServices(availableServices);
-    return facility;
   }
 
   /**

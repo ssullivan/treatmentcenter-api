@@ -3,6 +3,7 @@ package com.github.ssullivan;
 import com.github.ssullivan.api.IPostalcodeService;
 import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.bundles.InjectorRegistry;
+import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.core.PostalcodeService;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
@@ -139,6 +140,9 @@ public class ApiApplication extends Application<AppConfig> {
 
 
     final Injector injector = InjectorRegistry.getInjector(this);
+
+    environment.lifecycle().manage(injector.getInstance(IAvailableServiceController.class));
+
     environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(),
         injector.getInstance(RedisHealthCheck.class));
     environment.healthChecks().runHealthChecks()

@@ -24,6 +24,13 @@ public class Category {
     this.services = new HashSet<>();
   }
 
+  public Category(final Category category) {
+    this.code = category.getCode();
+    this.name = category.getName();
+    this.serviceCodes = new HashSet<>(category.getServiceCodes());
+    this.services = new HashSet<>(category.getServices());
+  }
+
   public Category(final String code, final String name, final Set<String> serviceCodes) {
     this.code = code;
     this.name = name;

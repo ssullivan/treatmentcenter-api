@@ -21,16 +21,6 @@ public interface ICategoryCodesDao {
    */
   Category get(final String id) throws IOException;
 
-  Category get(final String id, final boolean fromCache) throws IOException;
-
-  default Category getFromCache(final String id) {
-    try {
-      return get(id, true);
-    } catch (IOException e) {
-      Holder.LOGGER.error("Failed to get category", e);
-    }
-    return null;
-  }
 
   boolean delete(final String id) throws IOException;
 

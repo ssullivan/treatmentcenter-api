@@ -9,6 +9,7 @@ import static com.github.ssullivan.db.redis.RedisConstants.isValidIdentifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
@@ -178,7 +179,12 @@ public class RedisFacilityDao implements IFacilityDao {
     return this.asyncPool
         .borrowConnection()
         .thenCompose(it -> fetchBatchAsync(it.async(), ids)
-            .whenComplete((s, error) -> asyncPool.relase(it)));
+            .whenComplete((s, error) -> {
+              if (error != null) {
+                LOGGER.error("fetchBatchAsync had error while fetch batch", error);
+              }
+              asyncPool.relase(it);
+            }));
   }
 
   private Facility getFacility(final StatefulRedisConnection<String, String> connection,
@@ -269,44 +275,6 @@ public class RedisFacilityDao implements IFacilityDao {
     }
   }
 
-  @Override
-  public AvailableServices getAvailableServices(final Facility facility) {
-    if (facility == null) {
-      return new AvailableServices();
-    }
-
-    final Map<String, Category> availableServicesByCategory = new HashMap<>();
-
-    for (final String categoryCode : facility.getCategoryCodes()) {
-      final Category availableCategory =
-          availableServicesByCategory
-              .getOrDefault(categoryCode, new Category(categoryCode, "", new HashSet<String>()));
-      availableServicesByCategory.putIfAbsent(categoryCode, availableCategory);
-
-      final Category category = this.categoryCodesDao.getFromCache(categoryCode);
-      if (category != null) {
-        availableCategory.setName(category.getName());
-        availableCategory.setCode(category.getCode());
-
-        category.getServiceCodes()
-            .stream()
-            .filter(service -> facility.getServiceCodes().contains(service))
-            .map(service -> {
-              try {
-                return serviceCodesDao.getFromCache(service);
-              } catch (IOException e) {
-                LOGGER.error("Failed to get service information for '{}'", service, e);
-              }
-              return null;
-            })
-            .filter(Objects::nonNull)
-            .forEach(availableCategory::addServiceCode);
-      }
-
-    }
-
-    return new AvailableServices(availableServicesByCategory.values());
-  }
 
   @Override
   public Set<String> getKeysForFeed(String feedId) throws IOException {

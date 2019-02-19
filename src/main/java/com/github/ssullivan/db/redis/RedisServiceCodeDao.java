@@ -33,17 +33,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   private IRedisConnectionPool redis;
   private ObjectReader serviceReader;
   private ObjectWriter serviceWriter;
-  private LoadingCache<String, Service> cache =
-      CacheBuilder.newBuilder()
-          .maximumSize(200)
-          .concurrencyLevel(8)
-          .expireAfterAccess(1, TimeUnit.DAYS)
-          .build(new CacheLoader<String, Service>() {
-            @Override
-            public Service load(final String key) throws Exception {
-              return get(key);
-            }
-          });
+
   private RedisCommands<String, String> sync;
 
   @Inject
@@ -69,23 +59,6 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
       return deserialize(json);
     } catch (Exception e) {
       throw new IOException("Failed to connect to REDIS", e);
-    }
-  }
-
-  @Override
-  public Service get(String id, boolean fromCache) throws IOException {
-    try {
-      if (fromCache) {
-        return this.cache.get(id);
-      } else {
-        return this.get(id);
-      }
-    } catch (InvalidCacheLoadException e) {
-      LOGGER.error("Failed to get service code '{}' from db", id, e);
-      throw new IOException("Failed to load service code", e);
-    } catch (ExecutionException e) {
-      LOGGER.error("Failed to get Category '{}' from in-memory cache", id, e);
-      throw new IOException(e);
     }
   }
 
