@@ -85,10 +85,10 @@ dependencies {
             'org.junit.jupiter:junit-jupiter-api:5.4.0'
     )
     testRuntimeOnly(
-            'org.junit.jupiter:junit-jupiter-engine:5.1.0'
+            'org.junit.jupiter:junit-jupiter-engine:5.4.0'
     )
     testCompile "org.hamcrest:hamcrest-junit:2.0.0.0"
-    testCompile 'org.junit.vintage:junit-vintage-engine:5.1.0'
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.4.0'
     testCompile 'org.awaitility:awaitility:3.1.6'
     testImplementation "com.squareup.okhttp3:mockwebserver:+"
 
