@@ -48,7 +48,7 @@ public class RedisFacilityFindTests {
   @BeforeAll
   private void setup() throws Exception {
     final RedisConfig redisConfig = new RedisConfig("127.0.0.1", 6379, 2);
-    redisConfig.setTimeout(5L);
+    redisConfig.setTimeout(250L);
 
     final Injector injector = Guice
         .createInjector(new RedisClientModule(redisConfig));
