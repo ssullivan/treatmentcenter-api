@@ -221,11 +221,11 @@ task codeCoverageReport(type: JacocoReport) {
 
 
     reports {
-        xml.enabled true
-        html.enabled true
-        csv.enabled false
-        xml.setDestination(file("${buildDir}/reports/jacoco/report.xml"))
-        html.setDestination(file("${buildDir}/reports/jacoco/report.html"))
+        xml.setEnabled(true)
+        html.setEnabled(true)
+        csv.setEnabled(true)
+        xml.setDestination(new File("${buildDir}/reports/jacoco/report.xml"))
+        html.setDestination(new File("${buildDir}/reports/jacoco/report.html"))
     }
 
     sourceSets sourceSets.main
