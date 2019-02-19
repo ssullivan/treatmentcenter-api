@@ -14,6 +14,12 @@ buildscript {
 plugins {
     id "net.ltgt.apt" version "0.19"
     id "com.github.spotbugs" version "1.6.10"
+    id 'jacoco'
+    id 'java'
+}
+
+jacoco {
+    toolVersion = "0.8.2"
 }
 
 
@@ -97,12 +103,11 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    // I think these might be breaking on travis
+//    // I think these might be breaking on travis
     exclude '**/SamshaLocatorEtlTest.class'
-    //exclude '**/RedisFacilityFindTests.class'
-    exclude '**/'
+    exclude '**/RedisFacilityFindTests.class'
 }
-
+test.finalizedBy jacocoTestReport
 spotbugs {
     ignoreFailures = true
 }
@@ -193,7 +198,6 @@ nebulaDocker {
     }
 
     afterEvaluate {
-        apply plugin: 'jacoco'
 
         task createBuildDir {
             doLast {
@@ -216,7 +220,8 @@ nebulaDocker {
 
 
 
-task codeCoverageReport(type: JacocoReport) {
+task codeCoverageReport(type: JacocoReport, dependsOn: jacocoTestReport) {
+    group = 'Verification'
     executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
 
