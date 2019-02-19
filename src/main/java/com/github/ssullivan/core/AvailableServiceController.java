@@ -115,7 +115,10 @@ public class AvailableServiceController implements IAvailableServiceController, 
 
     @Override
     public ListenableFuture<Category> reload(final String key, final Category oldValue) throws Exception {
-      return this.executorService.submit(() -> this.catsDao.get(key));
+      return this.executorService.submit(() -> {
+        LOGGER.info("Loading Category information for {}. Old Value was {}", key, oldValue);
+        return this.catsDao.get(key);
+      });
     }
   }
 }
