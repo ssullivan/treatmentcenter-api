@@ -25,10 +25,13 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class SamshaLocatorEtlTest {
 
   private static MockWebServer mockWebServer = new MockWebServer();

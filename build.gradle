@@ -104,7 +104,7 @@ dependencies {
 test {
     useJUnitPlatform()
 //    // I think these might be breaking on travis
-    exclude '**/SamshaLocatorEtlTest.class'
+    //exclude '**/SamshaLocatorEtlTest.class'
     exclude '**/RedisFacilityFindTests.class'
 }
 test.finalizedBy jacocoTestReport
