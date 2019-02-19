@@ -8,7 +8,6 @@ import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import java.security.acl.LastOwnerException;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
  * (primarilyu used for local dev with minio) + ec2 instance profiles
  */
 public class AwsS3ClientModule extends AbstractModule {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AwsS3ClientModule.class);
 
   private final AwsS3Settings awsS3Settings;

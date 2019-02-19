@@ -9,6 +9,7 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class CompositeScoreTest {
+
   @Test
   public void testScoring() {
     final Set<String> codes = ImmutableSet.of("METH");

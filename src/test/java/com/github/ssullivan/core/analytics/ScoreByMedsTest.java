@@ -7,9 +7,11 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class ScoreByMedsTest {
+
   @Test
   public void testScore() {
-    ScoreByMedAssistedTreatment s = new ScoreByMedAssistedTreatment(ImmutableSet.of("IMETH", "METH"));
+    ScoreByMedAssistedTreatment s = new ScoreByMedAssistedTreatment(
+        ImmutableSet.of("IMETH", "METH"));
     Facility facility = new Facility();
     facility.setServiceCodes(ImmutableSet.of("METH"));
 

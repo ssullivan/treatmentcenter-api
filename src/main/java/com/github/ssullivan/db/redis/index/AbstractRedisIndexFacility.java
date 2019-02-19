@@ -6,7 +6,6 @@ import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.model.Facility;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.ScanArgs;
-import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
@@ -50,8 +49,7 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
     if (e instanceof InterruptedException) {
       LOGGER.error("Interrupted while indexing", e);
       Thread.currentThread().interrupt();
-    }
-    else {
+    } else {
       LOGGER.error("Failed to index facility", e);
     }
     throw new IOException("Failed to index facility", e);

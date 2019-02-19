@@ -26,10 +26,8 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class RedisServiceCodeDao implements IServiceCodesDao {
 
+  public static final String KEY = "treatment:services";
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
-
-  private static final String KEY = "treatment:services";
-
   private IRedisConnectionPool redis;
   private ObjectReader serviceReader;
   private ObjectWriter serviceWriter;
@@ -45,8 +43,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
     try {
       this.sync = redisPool.borrowConnection().sync();
       LOGGER.info("[success] Got connection from pool");
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       LOGGER.error("Failed to borrow a connection from the redis pool!", e);
       throw new RuntimeException("Failed to connect to Redis", e);
     }

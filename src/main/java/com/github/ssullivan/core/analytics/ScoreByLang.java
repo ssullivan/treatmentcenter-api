@@ -59,20 +59,17 @@ public class ScoreByLang implements IScoreFacility {
       F92
   };
   private final Set<String> selectedLangs;
-  private Set<String> serviceCodes;
   private boolean isEnglishFirst;
   private Importance importance;
 
   public ScoreByLang(final Set<String> serviceCodes, final boolean isEnglishFirst,
       Importance importance) {
-    this.serviceCodes = serviceCodes;
     this.isEnglishFirst = isEnglishFirst;
     this.importance = importance;
     this.selectedLangs = langCodes(serviceCodes);
   }
 
   public ScoreByLang(final Set<String> serviceCodes) {
-    this.serviceCodes = serviceCodes;
     this.isEnglishFirst = serviceCodes
         .stream()
         .noneMatch(ScoreByLang::isLang);
@@ -84,7 +81,6 @@ public class ScoreByLang implements IScoreFacility {
   }
 
   public ScoreByLang(final Set<String> serviceCodes, final Importance importance) {
-    this.serviceCodes = serviceCodes;
     this.isEnglishFirst = serviceCodes
         .stream()
         .noneMatch(ScoreByLang::isLang);

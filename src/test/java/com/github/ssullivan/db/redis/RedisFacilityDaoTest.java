@@ -1,82 +1,79 @@
 package com.github.ssullivan.db.redis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.ICategoryCodesDao;
+import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
-import com.github.ssullivan.db.redis.IRedisConnectionPool;
-import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
-import com.github.ssullivan.db.redis.RedisFacilityDao;
-import com.github.ssullivan.db.redis.RedisFeedDao;
-import com.github.ssullivan.db.redis.RedisServiceCodeDao;
-import com.github.ssullivan.guice.RedisClientModule;
-import com.github.ssullivan.model.Category;
+import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.Facility;
-import com.github.ssullivan.model.FacilityWithRadius;
-import com.github.ssullivan.model.GeoPoint;
-import com.github.ssullivan.model.MatchOperator;
-import com.github.ssullivan.model.Page;
-import com.github.ssullivan.model.SearchRequest;
-import com.github.ssullivan.model.SearchResults;
-import com.github.ssullivan.model.Service;
-import com.github.ssullivan.model.ServicesCondition;
-import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
+import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.mockito.Mockito;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class RedisFacilityDaoTest {
+
   private static final String FeedId = ShortUuid.randomShortUuid();
   private static final String FirstId = ShortUuid.randomShortUuid();
-  private static final String SecondId = ShortUuid.randomShortUuid();
-  private static final String ThirdId = ShortUuid.randomShortUuid();
 
-  private RedisFacilityDao _dao;
-  private RedisCategoryCodesDao _categoryCodesDao;
-  private RedisServiceCodeDao _serviceCodesDao;
-  private IRedisConnectionPool _redisConnectionPool;
-
-  @BeforeAll
-  private void setup() throws IOException {
-    final Injector injector = Guice
-        .createInjector(new RedisClientModule(new RedisConfig("127.0.0.1", 6379, 1)));
-    _dao = injector.getInstance(RedisFacilityDao.class);
-    _categoryCodesDao = injector.getInstance(RedisCategoryCodesDao.class);
-    _serviceCodesDao = injector.getInstance(RedisServiceCodeDao.class);
-    _redisConnectionPool = injector.getInstance(IRedisConnectionPool.class);
+  private static final com.fasterxml.jackson.databind.ObjectMapper ObjectMapper = new ObjectMapper();
+  private IRedisConnectionPool redisPool;
+  private StatefulRedisConnection<String, String> redisConnection;
+  private RedisCommands<String, String> redisCommand;
+  private Injector injector;
+  private ICategoryCodesDao categoryCodesDao;
+  private IFeedDao feedDao;
+  private IServiceCodesDao serviceCodesDao;
+  private IFacilityDao dao;
 
 
-    IFeedDao feedDao = injector.getInstance(IFeedDao.class);
+  @BeforeEach()
+  public void initEach() throws Exception {
+    RedisConfig redisConfig = new RedisConfig();
+    redisConfig.setTimeout(5L);
 
-    final String nextFeedId = feedDao.nextFeedId().get();
+    redisPool = Mockito.mock(IRedisConnectionPool.class);
+    redisConnection = (StatefulRedisConnection<String, String>) Mockito
+        .mock(StatefulRedisConnection.class);
+    redisCommand = (RedisCommands<String, String>) Mockito.mock(RedisCommands.class);
 
-    feedDao.setCurrentFeedId(nextFeedId);
-    feedDao.setSearchFeedId(nextFeedId);
-  }
+    Mockito.when(redisConnection.sync()).thenReturn(redisCommand);
+    Mockito.when(redisPool.borrowConnection()).thenReturn(redisConnection);
+    Mockito.when(redisPool.borrowConnection(Mockito.anyLong())).thenReturn(redisConnection);
 
+    categoryCodesDao = Mockito.mock(ICategoryCodesDao.class);
+    serviceCodesDao = Mockito.mock(IServiceCodesDao.class);
+    feedDao = Mockito.mock(IFeedDao.class);
 
-  @AfterEach
-  private void flushDb() throws Exception {
-    _redisConnectionPool.borrowConnection().sync().flushdb();
-  }
+    injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(RedisConfig.class).toInstance(redisConfig);
+        bind(IRedisConnectionPool.class).toInstance(redisPool);
+        bind(ObjectMapper.class).toInstance(ObjectMapper);
 
-  @AfterAll
-  private void teardown() throws Exception {
-    _redisConnectionPool.close();
+        bind(ICategoryCodesDao.class).toInstance(categoryCodesDao);
+        bind(IServiceCodesDao.class).toInstance(serviceCodesDao);
+        bind(IFeedDao.class).toInstance(feedDao);
+      }
+    });
+
+    dao = injector.getInstance(IFacilityDao.class);
   }
 
 
@@ -93,9 +90,14 @@ public class RedisFacilityDaoTest {
     original.setWebsite("http://www.test.com");
     original.setZip("10001");
 
-    _dao.addFacility(FeedId, original);
+    final String json = ObjectMapper.writeValueAsString(original);
 
-    final Facility fromDb = _dao.getFacility(original.getId());
+    Mockito.when(redisCommand.hmget(Mockito.anyString(), Mockito.eq("_source")))
+        .thenReturn(Lists.newArrayList(KeyValue.just("_source", json)));
+
+    dao.addFacility(FeedId, original);
+
+    final Facility fromDb = dao.getFacility(original.getId());
     MatcherAssert.assertThat(fromDb, Matchers.notNullValue());
     MatcherAssert.assertThat(fromDb.getId(), Matchers.equalTo(original.getId()));
     MatcherAssert.assertThat(fromDb.getCategoryCodes(), Matchers.containsInAnyOrder("TEST"));

@@ -8,9 +8,10 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class ScoreByAgeTest {
-  private final LocalDate AdultDateOfBirth = LocalDate.now().minusYears(30);
-  private final LocalDate YouthDateOfBirth = LocalDate.now().minusYears(18);
-  private final LocalDate ChildDateOfBirth = LocalDate.now().minusYears(10);
+
+  private static final LocalDate AdultDateOfBirth = LocalDate.now().minusYears(30);
+  private static final LocalDate YouthDateOfBirth = LocalDate.now().minusYears(18);
+  private static final LocalDate ChildDateOfBirth = LocalDate.now().minusYears(10);
 
   @Test
   public void testAgeAdult() {

@@ -3,9 +3,10 @@ package com.github.ssullivan.core;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.SortDirection;
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class FacilityComparator<F extends Facility> implements Comparator<Facility> {
+public class FacilityComparator<F extends Facility> implements Comparator<Facility>, Serializable {
 
   private final String sortField;
   private final SortDirection sortDirection;

@@ -11,14 +11,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RobotsTxtParser {
-  private static final Pattern UserAgentPattern = Pattern.compile("^[Uu]ser-[Aa]gent:\\s+(.*?)\\s*(?:#.*)?$");
-  private static final Pattern DisAllowRulePattern = Pattern.compile("^[Dd]isallow:\\s+(.*?)\\s+(?:#.*)?$");
-  private static final Pattern AllowRulePattern = Pattern.compile("^[Aa]llow:\\s+(.*?)\\s*(?:#.*)?");
+
+  private static final Pattern UserAgentPattern = Pattern
+      .compile("^[Uu]ser-[Aa]gent:\\s+(.*?)\\s*(?:#.*)?$");
+  private static final Pattern DisAllowRulePattern = Pattern
+      .compile("^[Dd]isallow:\\s+(.*?)\\s+(?:#.*)?$");
+  private static final Pattern AllowRulePattern = Pattern
+      .compile("^[Aa]llow:\\s+(.*?)\\s*(?:#.*)?");
 
   public RobotsTxt parse(final InputStream inputStream) throws IOException {
     RobotsTxt robotsTxt = new RobotsTxt();
 
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
       RobotRules robotRules = new RobotRules();
       Optional<String> userAgent = Optional.empty();
 
@@ -39,11 +43,9 @@ public class RobotsTxtParser {
 
           userAgent = Optional.ofNullable(userAgentMatcher.group(1));
           robotsTxt.addRules(userAgentMatcher.group(1), robotRules);
-        }
-        else if (allowMatcher.matches()) {
+        } else if (allowMatcher.matches()) {
           robotRules.addDisallow(allowMatcher.group(1).trim());
-        }
-        else if (disallowMatcher.matches()) {
+        } else if (disallowMatcher.matches()) {
           robotRules.addDisallow(disallowMatcher.group(1).trim());
         }
       }
@@ -51,7 +53,6 @@ public class RobotsTxtParser {
         robotsTxt.addRules(userAgent.get().trim(), robotRules);
       }
     }
-
 
     return robotsTxt;
   }

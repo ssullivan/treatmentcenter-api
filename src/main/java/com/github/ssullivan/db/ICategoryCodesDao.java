@@ -3,7 +3,6 @@ package com.github.ssullivan.db;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.model.Category;
 import com.google.inject.ImplementedBy;
-import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.List;
 import org.slf4j.Logger;

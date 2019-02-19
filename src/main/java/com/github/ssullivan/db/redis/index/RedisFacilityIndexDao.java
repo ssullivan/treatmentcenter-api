@@ -1,6 +1,5 @@
 package com.github.ssullivan.db.redis.index;
 
-import com.amazonaws.annotation.SdkInternalApi;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacility;
 import com.github.ssullivan.db.IndexFacilityByCategoryCode;

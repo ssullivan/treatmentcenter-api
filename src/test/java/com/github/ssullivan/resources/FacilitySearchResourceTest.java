@@ -1,32 +1,24 @@
 package com.github.ssullivan.resources;
 
 import com.github.ssullivan.api.IPostalcodeService;
-import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.redis.search.FindBySearchRequest;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.GeoPoint;
-import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.SortDirection;
-import com.github.ssullivan.resources.FacilitySearchResource;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import org.assertj.core.util.Lists;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
@@ -41,52 +33,29 @@ import org.mockito.Mockito;
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class FacilitySearchResourceTest {
+
   private static final String FeedId = ShortUuid.encode(UUID.randomUUID());
   private static final String FirstId = ShortUuid.encode(UUID.randomUUID());
   private static final String SecondId = ShortUuid.encode(UUID.randomUUID());
 
   private static final GenericType<SearchResults<Facility>> SEARCH_RESULTS_GENERIC_TYPE =
-      new GenericType<SearchResults<Facility>>(){
+      new GenericType<SearchResults<Facility>>() {
 
       };
 
   private static final IFacilityDao dao = Mockito.mock(IFacilityDao.class);
-  private static final IPostalcodeService postalCodeService = Mockito.mock(IPostalcodeService.class);
+  private static final IPostalcodeService postalCodeService = Mockito
+      .mock(IPostalcodeService.class);
   private static final FindBySearchRequest find = Mockito.mock(FindBySearchRequest.class);
-  private static class FacilitySearchResults {
-    private long totalHits;
-    private List<FacilityWithRadius> hits;
-
-    public long getTotalHits() {
-      return totalHits;
-    }
-
-    public void setTotalHits(long totalHits) {
-      this.totalHits = totalHits;
-    }
-
-    public List<FacilityWithRadius> getHits() {
-      return hits;
-    }
-
-    public void setHits(List<FacilityWithRadius> hits) {
-      this.hits = hits;
-    }
-  }
-
   public static final ResourceExtension resources = ResourceExtension.builder()
       .addResource(new FacilitySearchResource(find, postalCodeService))
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
       .build();
-
-    private static final Facility facility = new Facility(FirstId, FeedId, "test",
+  private static final Facility facility = new Facility(FirstId, FeedId, "test",
       "test", "test", "1234", "test",
       "test", "test", "test", GeoPoint.geoPoint(30.0, 30.0),
       "test", "http://test.com",
       ImmutableSet.of("123"), ImmutableSet.of("FOO"), ImmutableSet.of("BAR"));
-
-
-
   private static final Facility facilit2y = new Facility(SecondId, FeedId,
       "test",
       "test", "test", "1234", "test",
@@ -102,7 +71,7 @@ public class FacilitySearchResourceTest {
             SearchResults.searchResults(1, ImmutableList.of(facility))
         ));
     Mockito.when(postalCodeService.fetchGeos(Mockito.anyString()))
-        .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33,33)));
+        .thenReturn(ImmutableList.of(GeoPoint.geoPoint(33, 33)));
   }
 
   @AfterAll
@@ -205,7 +174,6 @@ public class FacilitySearchResourceTest {
     MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(400));
   }
 
-
   @Test
   public void testSearchingByPostalCodeMustNot() {
     final FacilitySearchResults searchResults =
@@ -240,7 +208,7 @@ public class FacilitySearchResourceTest {
             .queryParam("serviceCode", "BAR")
             .queryParam("postalCode", "12345600000000000000000000000")
             .request()
-        .get();
+            .get();
     MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(400));
   }
 
@@ -290,7 +258,6 @@ public class FacilitySearchResourceTest {
             "score",
             SortDirection.ASC
         );
-
 
     FacilityWithRadius first = sortedByScore.hits().get(0);
     FacilityWithRadius second = sortedByScore.hits().get(1);
@@ -346,11 +313,32 @@ public class FacilitySearchResourceTest {
             SortDirection.DESC
         );
 
-
     FacilityWithRadius first = sortedByScore.hits().get(0);
     FacilityWithRadius second = sortedByScore.hits().get(1);
 
     MatcherAssert.assertThat(first.getScore(), Matchers.greaterThanOrEqualTo(2.0));
     MatcherAssert.assertThat(second.getScore(), Matchers.lessThanOrEqualTo(1.0));
+  }
+
+  private static class FacilitySearchResults {
+
+    private long totalHits;
+    private List<FacilityWithRadius> hits;
+
+    public long getTotalHits() {
+      return totalHits;
+    }
+
+    public void setTotalHits(long totalHits) {
+      this.totalHits = totalHits;
+    }
+
+    public List<FacilityWithRadius> getHits() {
+      return hits;
+    }
+
+    public void setHits(List<FacilityWithRadius> hits) {
+      this.hits = hits;
+    }
   }
 }

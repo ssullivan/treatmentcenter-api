@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 
 public class CompositeFacilityScore implements IScoreFacility {
 
@@ -102,8 +103,6 @@ public class CompositeFacilityScore implements IScoreFacility {
     private Importance milFamilySupport = Importance.NOT;
     private Importance milStatusSupport = Importance.NOT;
     private Importance smokingCessationImp = Importance.NOT;
-
-    private Importance medSupport = null;
     private Tuple2<Boolean, Set<TraumaTypes>> traumaSupport;
 
     public Builder withServiceCodes(final Set<String> serviceCodes) {
@@ -141,8 +140,8 @@ public class CompositeFacilityScore implements IScoreFacility {
 
     }
 
-    public Builder withTraumaSupport(final Set<TraumaTypes> traumas) {
-      this.traumaSupport = new Tuple2<>(traumas != null && !traumas.isEmpty(), traumas);
+    public Builder withTraumaSupport(@Nonnull final Set<TraumaTypes> traumas) {
+      this.traumaSupport = new Tuple2<>(!traumas.isEmpty(), traumas);
       return this;
     }
 

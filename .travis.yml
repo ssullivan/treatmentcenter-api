@@ -39,7 +39,7 @@ matrix:
             branch: master
         - skip_cleanup: true
           provider: script
-          script: ./graldew dockerTagImageDevLatest pushImageDevLatest
+          script: ./gradlew dockerTagImageDevLatest pushImageDevLatest
           on:
             branch: master
     - language: node_js

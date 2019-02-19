@@ -3,7 +3,6 @@ package com.github.ssullivan.tasks.feeds;
 import com.amazonaws.services.s3.AmazonS3;
 import com.github.ssullivan.AppConfig;
 import com.github.ssullivan.RedisConfig;
-import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.CrawlDelay;
 import com.github.ssullivan.guice.RedisClientModule;
@@ -11,15 +10,12 @@ import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import io.dropwizard.Configuration;
-import io.dropwizard.cli.Command;
 import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
@@ -109,7 +105,6 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
   }
 
 
-
   @Override
   protected void run(Bootstrap<AppConfig> bootstrap, Namespace namespace, AppConfig configuration)
       throws Exception {
@@ -117,17 +112,18 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       LOGGER.info("Started");
 
       final Runtime runtime = Runtime.getRuntime();
-      LOGGER.info("Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",runtime.totalMemory(),
-          runtime.freeMemory(),
-          runtime.maxMemory(),
-          runtime.availableProcessors());
+      LOGGER
+          .info("Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",
+              runtime.totalMemory(),
+              runtime.freeMemory(),
+              runtime.maxMemory(),
+              runtime.availableProcessors());
 
       RedisConfig redisConfig = new RedisConfig();
 
       redisConfig.setHost(namespace.getString("Host"));
       redisConfig.setPort(namespace.getInt("Port"));
       redisConfig.setDb(namespace.getInt("Database"));
-
 
       LOGGER.info("[redis] Host is {}", redisConfig.getHost());
       LOGGER.info("[redis] Port is {}", redisConfig.getPort());
@@ -142,7 +138,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
           awsBucket);
 
       final File spreadsheetFile = namespace.get("File");
-      final String  spreadheetUrl = namespace.get("Url");
+      final String spreadheetUrl = namespace.get("Url");
       String locatorUrl = "";
 
       if (spreadsheetFile != null) {
@@ -160,19 +156,20 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
               bindConstant().annotatedWith(CrawlDelay.class).to(4096L);
             }
           },
-      new AwsS3ClientModule(settings, locatorUrl));
+          new AwsS3ClientModule(settings, locatorUrl));
 
       // Verify that things are working
 
       // (1) Create an AmazonS3 client
       final AmazonS3 amazonS3 = this.injector.getInstance(AmazonS3.class);
+      LOGGER.info("Region is {}", amazonS3.getRegion());
 
       // (2) Check the redis db
       final RedisClient client = this.injector.getInstance(RedisClient.class);
 
       try (StatefulRedisConnection<String, String> conn = client.connect()) {
-          final String pingResponse = conn.sync().ping();
-          LOGGER.info("[redis] Ping response was {}", pingResponse);
+        final String pingResponse = conn.sync().ping();
+        LOGGER.info("[redis] Ping response was {}", pingResponse);
       }
 
       LOGGER.info("Successfully, connected to Elasticache/Redis {}", redisConfig.getHost());
@@ -183,8 +180,7 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
 
     } catch (IOException e) {
       LOGGER.error("Failed to fetch / transform / load SAMSHSA data", e);
-    }
-    finally {
+    } finally {
       if (this.injector != null) {
         try {
           this.injector.getInstance(RedisClient.class).shutdown();

@@ -9,7 +9,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
-import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.List;
@@ -30,7 +29,6 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   private static final String KEY = "treatment:categories";
 
-  private IRedisConnectionPool redis;
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
 
@@ -38,14 +36,12 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   @Inject
   public RedisCategoryCodesDao(IRedisConnectionPool redisPool, ObjectMapper objectMapper) {
-    this.redis = redisPool;
     this.objectReader = objectMapper.readerFor(Category.class);
     this.objectWriter = objectMapper.writerFor(Category.class);
 
     try {
       this.sync = redisPool.borrowConnection().sync();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       LOGGER.error("Failed to borrow a connection from the redis pool!", e);
       throw new RuntimeException("Failed to connect to Redis", e);
     }

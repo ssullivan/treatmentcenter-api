@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -99,8 +97,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
         final Tuple2<Long, String> geoResult = findByGeoPoint(sync, searchFeedId,
             searchKey, searchRequest.getGeoRadiusCondition());
 
-
-
         if (serviceCodeResults.get_1() > 0) {
           totalResults = sync.zinterstore(serviceCodeResults.get_2(), serviceCodeResults.get_2(),
               geoResult.get_2());
@@ -151,8 +147,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
             geoRadiusCondition.getRadius(), geoRadiusCondition.getGeoUnit().unit(),
             GeoRadiusStoreArgs.Builder
                 .withStoreDist(searchKey + "geo"));
-
-
 
     if (totalResults == null) {
       totalResults = 0L;

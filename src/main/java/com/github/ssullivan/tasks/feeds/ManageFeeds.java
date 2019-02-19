@@ -6,7 +6,6 @@ import com.github.ssullivan.db.IndexFacility;
 import java.util.Collection;
 import java.util.Set;
 import javax.inject.Inject;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +35,7 @@ public class ManageFeeds {
     final Collection<String> feedIds = this.feedDao.getFeedIds();
     if (feedIds.isEmpty()) {
       LOGGER.warn("There were no known feed ids to clear!");
-    }
-    else {
+    } else {
       for (final String feedId : feedIds) {
         if (!feedId.equalsIgnoreCase(currentFeedID)) {
           if (expireKeys(feedId)) {

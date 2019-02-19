@@ -2,7 +2,6 @@ package com.github.ssullivan.resources;
 
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.model.Service;
-import com.github.ssullivan.resources.ServiceCodesResource;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
 import java.io.IOException;

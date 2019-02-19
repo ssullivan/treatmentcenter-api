@@ -8,9 +8,11 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class ScoreByMilStatusTest {
+
   @Test
   public void testScoringByMilStatus() {
-    final ScoreByMilitaryStatus s = new ScoreByMilitaryStatus(ImmutableSet.of("IVET", "AD"), Importance.VERY);
+    final ScoreByMilitaryStatus s = new ScoreByMilitaryStatus(ImmutableSet.of("IVET", "AD"),
+        Importance.VERY);
     Facility facility = new FacilityWithRadius();
     facility.setServiceCodes(ImmutableSet.of("FOO"));
 

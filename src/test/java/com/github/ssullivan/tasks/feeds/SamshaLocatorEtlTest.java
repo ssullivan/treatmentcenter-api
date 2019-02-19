@@ -11,6 +11,7 @@ import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.Resources;
 import io.dropwizard.testing.FixtureHelpers;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,17 +25,21 @@ import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class SamshaLocatorEtlTest {
 
   private static MockWebServer mockWebServer = new MockWebServer();
 
+
   @BeforeAll
   public static void setup() throws IOException {
-    mockWebServer.start(8181);
+    mockWebServer.start(randomPort());
   }
 
   @AfterAll
@@ -42,20 +47,30 @@ public class SamshaLocatorEtlTest {
     mockWebServer.shutdown();
   }
 
+  public static int randomPort() throws IOException {
+    try (ServerSocket serverSocket = new ServerSocket(0)) {
+      return serverSocket.getLocalPort();
+    }
+  }
+
+
   @Test
   public void testFetchingData() throws IOException, InterruptedException {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
-      .setResponseCode(200)
+        .setResponseCode(200)
         .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
     );
     mockWebServer.enqueue(new MockResponse()
-      .setResponseCode(200)
+        .setResponseCode(200)
         .setHeader("Content-Type", "application/octet-stream")
-        .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
+        .setBody(Resources
+            .toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
+    String s3Url = mockWebServer.url("").toString();
+
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L, s3Url, "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
 
     final RecordedRequest robotsRequest = mockWebServer.takeRequest(30, TimeUnit.SECONDS);
@@ -77,8 +92,20 @@ public class SamshaLocatorEtlTest {
         .setResponseCode(500)
         .setHeader("Content-Type", "application/html")
     );
-
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
+    );
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
+    );
+    mockWebServer.enqueue(new MockResponse()
+        .setResponseCode(500)
+        .setHeader("Content-Type", "application/html")
+    );
+    String s3Url = mockWebServer.url("").toString();
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L, s3Url, "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }
@@ -100,10 +127,12 @@ public class SamshaLocatorEtlTest {
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(200)
         .setHeader("Content-Type", "application/octet-stream")
-        .setBody(Resources.toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
+        .setBody(Resources
+            .toString(Resources.getResource("fixtures/Locator.xlsx"), Charset.defaultCharset()))
     );
 
-    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L,"http://localhost:8181", "test", amazonS3);
+    FetchSamshaDataFeed fetchSamshaDataFeed = new FetchSamshaDataFeed(0L, "http://localhost:8181",
+        "test", amazonS3);
     Optional<Tuple2<String, String>> result = fetchSamshaDataFeed.get();
     MatcherAssert.assertThat(result.isPresent(), Matchers.equalTo(false));
   }
@@ -111,7 +140,9 @@ public class SamshaLocatorEtlTest {
   @Test
   public void testTransformLocatorSpreadheet() throws IOException {
     TransformLocatorSpreadsheet transformLocatorSpreadsheet = new TransformLocatorSpreadsheet();
-    Optional<SamshaLocatorData> data = transformLocatorSpreadsheet.apply(ShortUuid.randomShortUuid(), Resources.getResource("fixtures/Locator.xlsx").openStream());
+    Optional<SamshaLocatorData> data = transformLocatorSpreadsheet
+        .apply(ShortUuid.randomShortUuid(),
+            Resources.getResource("fixtures/Locator.xlsx").openStream());
 
     MatcherAssert.assertThat(data.isPresent(), Matchers.equalTo(true));
     MatcherAssert.assertThat(data.get().isGood(), Matchers.equalTo(true));
@@ -129,13 +160,13 @@ public class SamshaLocatorEtlTest {
     StoreSamshaLocatorData storeSamshaLocatorData = new StoreSamshaLocatorData(feedDao,
         categoryCodesDao, serviceCodesDao,
         facilityDao
-        );
+    );
 
     SamshaLocatorData samshaLocatorData = new SamshaLocatorData(ShortUuid.randomShortUuid(),
         new HashSet<>(),
         new HashSet<>(),
         new ArrayList<>()
-        );
+    );
 
     MatcherAssert.assertThat(storeSamshaLocatorData.apply(samshaLocatorData),
         Matchers.equalTo(true));

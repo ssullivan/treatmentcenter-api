@@ -56,8 +56,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
             bucketAndObjectKey.get().get_2());
         this.locatorBucket = Optional.of(bucketAndObjectKey.get().get_1());
         this.locatorObjectKey = Optional.of(bucketAndObjectKey.get().get_2());
-      }
-      else {
+      } else {
         LOGGER.error("Failed to donwnload SAMSHA locator to bucket!");
         throw new IOException("Failed to donwnload SAMSHA locator to bucket!");
       }

@@ -3,7 +3,6 @@ package com.github.ssullivan.core;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.FacilityWithRadius;
 import com.github.ssullivan.model.SortDirection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.hamcrest.Matchers;
@@ -21,8 +20,6 @@ public class FacilityComparatorTest {
   }
 
 
-
-
   @Test
   public void testSortingByScoreAsc() {
     List<FacilityWithRadius> items = testData();
@@ -38,7 +35,6 @@ public class FacilityComparatorTest {
     List<FacilityWithRadius> items = testData();
 
     items.sort(new FacilityComparator<>("score", SortDirection.DESC));
-
 
     MatcherAssert.assertThat(items.get(0).getScore(), Matchers.greaterThanOrEqualTo(5.0));
     MatcherAssert.assertThat(items.get(1).getScore(), Matchers.lessThanOrEqualTo(0.0));
@@ -60,7 +56,6 @@ public class FacilityComparatorTest {
 
     items.sort(new FacilityComparator<>("radius", SortDirection.DESC));
 
-
     MatcherAssert.assertThat(items.get(0).getRadius(), Matchers.greaterThanOrEqualTo(5.0));
     MatcherAssert.assertThat(items.get(1).getRadius(), Matchers.lessThanOrEqualTo(0.0));
   }
@@ -80,7 +75,6 @@ public class FacilityComparatorTest {
     List<FacilityWithRadius> items = testData();
 
     items.sort(new FacilityComparator<>("name1", SortDirection.DESC));
-
 
     MatcherAssert.assertThat(items.get(0).getName1(), Matchers.equalTo("bbb"));
     MatcherAssert.assertThat(items.get(1).getName1(), Matchers.equalTo("aaa"));

@@ -5,13 +5,11 @@ import java.util.Set;
 
 public class ScoreByMilitaryStatus implements IScoreFacility {
 
-  private boolean isMilitary;
   private boolean noMilitaryService;
   private Importance importance;
   private Set<String> serviceCodes;
 
   public ScoreByMilitaryStatus(final Set<String> serviceCodes, final Importance importance) {
-    this.isMilitary = Sets.anyMatch(serviceCodes, "AD", "GR", "IVET");
     this.noMilitaryService = Sets.anyMatch(serviceCodes, "NMS");
     this.importance = importance;
     this.serviceCodes = serviceCodes;
