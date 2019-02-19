@@ -124,6 +124,7 @@ public class AvailableServiceController implements IAvailableServiceController, 
 
   @Override
   public void stop() throws Exception {
+    this.serviceManager.stopAsync();
     this.pool.shutdown();
   }
 
