@@ -60,7 +60,8 @@ public class RedisFacilityFindTests {
     this.loadTreatmentFacilitiesFunctor = injector
         .getInstance(LoadTreatmentFacilitiesFunctor.class);
 
-    redisConnectionPool.borrowConnection().sync().flushdb();
+    redisConnectionPool.borrowConnection().async().flushdb()
+        .await(1, TimeUnit.SECONDS);
 
     IFeedDao feedDao = injector.getInstance(IFeedDao.class);
 
@@ -82,7 +83,7 @@ public class RedisFacilityFindTests {
 
   @AfterAll
   private void teardown() throws Exception {
-    redisConnectionPool.borrowConnection().sync().flushdb();
+    redisConnectionPool.borrowConnection().async().flushdb();
     redisConnectionPool.close();
   }
 
