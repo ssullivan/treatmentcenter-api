@@ -1,6 +1,7 @@
 package com.github.ssullivan.db.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.ssullivan.utils.ShortUuid;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public final class RedisConstants {
 
 
   public static boolean isValidIdentifier(final String id) {
-    return id != null && !id.isEmpty() && !id.matches("^\\s{1,}$");
+    return id != null && !id.isEmpty() && id.length() > 1 && ShortUuid.isValid(id);
   }
 
 

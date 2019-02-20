@@ -1,7 +1,5 @@
-package com.github.ssullivan.model.colletions;
+package com.github.ssullivan.model.collections;
 
-import com.github.ssullivan.model.collections.Tuple2;
-import com.github.ssullivan.model.collections.Tuple3;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
