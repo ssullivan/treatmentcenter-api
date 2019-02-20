@@ -122,13 +122,6 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
-
-  @Override
-  public boolean addService(String feedId, Service service) throws IOException {
-    // we aren't sharding the servicces/categories by feed which is why we just call the other add..
-    return addService(service);
-  }
-
   private String serialize(@Nonnull final Service service) throws IOException {
     return serviceWriter.writeValueAsString(service);
   }

@@ -44,7 +44,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
     int totalCats = 0;
     for (final Category category : samshaLocatorData.getCategories()) {
       try {
-        if (this.categoryCodesDao.addCategory(samshaLocatorData.getFeedId(), category)) {
+        if (this.categoryCodesDao.addCategory(category)) {
           totalCats++;
         }
         else {
@@ -59,8 +59,12 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
     int totalServices = 0;
     for (final Service service : samshaLocatorData.getServices()) {
       try {
-        this.serviceCodesDao.addService(samshaLocatorData.getFeedId(), service);
-        totalServices++;
+        if (this.serviceCodesDao.addService(service)) {
+          totalServices++;
+        }
+        else {
+          LOGGER.error("Failed to add service: {}", service);
+        }
       } catch (IOException e) {
         LOGGER.error("Failed to add service: {}", service, e);
       }
