@@ -106,7 +106,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   }
 
   @Override
-  public boolean addCategory(String feed, Category category) throws IOException {
+  public boolean addCategory(final Category category) throws IOException {
     try {
       return sync.hset(KEY, category.getCode(),
           serialize(category));

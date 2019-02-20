@@ -36,11 +36,7 @@ public interface ICategoryCodesDao {
 
   List<Category> listCategories() throws IOException;
 
-  boolean addCategory(final String feed, final Category category) throws IOException;
-
-  default boolean addCategory(final Category category) throws IOException {
-    return addCategory("", category);
-  }
+  boolean addCategory(final Category category) throws IOException;
 
   class Holder {
 

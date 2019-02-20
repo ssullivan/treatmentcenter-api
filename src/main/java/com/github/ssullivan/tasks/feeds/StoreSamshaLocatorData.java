@@ -44,8 +44,12 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
     int totalCats = 0;
     for (final Category category : samshaLocatorData.getCategories()) {
       try {
-        this.categoryCodesDao.addCategory(samshaLocatorData.getFeedId(), category);
-        totalCats++;
+        if (this.categoryCodesDao.addCategory(samshaLocatorData.getFeedId(), category)) {
+          totalCats++;
+        }
+        else {
+          LOGGER.error("Failed to store category: {}", category);
+        }
       } catch (IOException e) {
         LOGGER.error("Failed to add category: {}", category, e);
       }
