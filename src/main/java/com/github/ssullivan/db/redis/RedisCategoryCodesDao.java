@@ -109,7 +109,13 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
   public boolean addCategory(final Category category) throws IOException {
     try {
       final String categoryJson = serialize(category);
-      return sync.hset(KEY, category.getCode(), categoryJson);
+      if (sync.hset(KEY, category.getCode(), categoryJson)) {
+        LOGGER.info("{} is a new category code in {}", category.getCode(), KEY);
+      }
+      else {
+        LOGGER.info("{} already existed in {} and was updated {}", category.getCode(), KEY);
+      }
+      return true;
     } catch (Exception e) {
       LOGGER.error("Failed to store Category: {} in hset {}", category.getCode(), KEY);
       throw new IOException("Failed to connect to REDIS", e);

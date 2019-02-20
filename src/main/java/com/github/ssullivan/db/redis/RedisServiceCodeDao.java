@@ -116,9 +116,18 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
   @Override
   public boolean addService(final Service service) throws IOException {
     try {
-      return sync.hset(KEY, service.getCode(),
-          serialize(service));
+      if (sync.hset(KEY, service.getCode(), serialize(service))) {
+        LOGGER.info("{} service code is a new field in {}", service.getCode(), KEY);
+      }
+      else {
+        LOGGER.info("{} service code existed but was updated in {}", service.getCode(), KEY);
+      }
+      return true;
     } catch (Exception e) {
+      LOGGER.error("Failed to add service", e);
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
       throw new IOException("Failed to connect to REDIS", e);
     }
   }

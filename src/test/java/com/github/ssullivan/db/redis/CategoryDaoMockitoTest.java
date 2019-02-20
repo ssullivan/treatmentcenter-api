@@ -63,6 +63,7 @@ public class CategoryDaoMockitoTest {
     MatcherAssert.assertThat(wasadded, Matchers.equalTo(true));
   }
 
+
   @Test
   public void testGetCategory() throws Exception {
     Category category = new Category();
