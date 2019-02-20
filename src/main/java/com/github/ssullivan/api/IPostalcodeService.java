@@ -12,7 +12,7 @@ import java.net.URI;
 public interface IPostalcodeService {
 
   /**
-   * Fetch GeoPoints for the specified postalcode
+   * Fetch GeoPoints for the specified postalcode.
    *
    * @param postcalCode the postalcode
    * @return a non-null list of GeoPoints

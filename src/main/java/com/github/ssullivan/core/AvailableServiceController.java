@@ -32,6 +32,11 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Caches Categories and Services from redis locally. This will asynchronously refresh cache entries
+ * every 30 minutes after write. Additionally, it will pull in new categories and services every
+ * 10 minutes.
+ */
 @Singleton
 public class AvailableServiceController implements IAvailableServiceController, Managed {
   private static final Logger LOGGER = LoggerFactory.getLogger(AvailableServiceController.class);
@@ -41,6 +46,11 @@ public class AvailableServiceController implements IAvailableServiceController, 
   private final LoadingCache<String, Category> cache;
   private ServiceManager serviceManager;
 
+  /**
+   * Creates a new instance of {@link AvailableServiceController}.
+   *
+   * @param categoryCodesDao the DAO to use for fetching categories
+   */
   @Inject
   public AvailableServiceController(final ICategoryCodesDao categoryCodesDao) {
     this.categoryCodesDao = categoryCodesDao;
@@ -79,6 +89,15 @@ public class AvailableServiceController implements IAvailableServiceController, 
   public Facility apply(final Facility facility) {
     if (facility == null) return null;
 
+    // This prevents us from exploding when the cache doesn't contain the categories.
+    // It has a couple side effects:
+    // (1) We might not get any results (unlikely but possible)
+    // (2) We don't force the cache to refresh the cache for this category
+    // (3) There is a big performance gain here by not having to reach out to redis
+    //     to get the categories. Previously we were having some slowness / deadlocks
+    //     with the previous implementation.
+    // (4) We mitigate (1), and (2) via a Guava service that refreshes the
+    //     cache in bulk every 10 minutes.
     final ImmutableMap<String, Category> cats = this.cache.getAllPresent(facility.getCategoryCodes());
 
     if (cats == null || cats.isEmpty()) {
@@ -119,6 +138,8 @@ public class AvailableServiceController implements IAvailableServiceController, 
   @Override
   public void start() throws Exception {
     this.serviceManager.startAsync();
+
+    
     refreshAll();
   }
 

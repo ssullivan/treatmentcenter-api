@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Model object for returned detailed information for the categories and services
+ * that a location/facility has.
+ */
 @ApiModel
 public class AvailableServices {
 

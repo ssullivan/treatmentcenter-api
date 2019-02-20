@@ -35,6 +35,11 @@ public class Facility {
 
   }
 
+  /**
+   * Copy constructor for {@link Facility}.
+   *
+   * @param facility another instance of Facility
+   */
   public Facility(Facility facility) {
     this.id = facility.getId();
     this.feedId = facility.getFeedId();
@@ -104,6 +109,12 @@ public class Facility {
     this.serviceCodes = serviceCodes;
   }
 
+  /**
+   * This is the uniq identifier for the locator spreadsheet that was downloaded via
+   * {@link com.github.ssullivan.tasks.feeds.SamshaLocatorEtl}
+   *
+   * @return the feed id
+   */
   public String getFeedId() {
     return feedId;
   }
@@ -112,6 +123,11 @@ public class Facility {
     this.feedId = feedId;
   }
 
+  /**
+   * This is the county that the location is in.
+   *
+   * @return the county
+   */
   public String getCounty() {
     return county;
   }
@@ -120,6 +136,11 @@ public class Facility {
     this.county = county;
   }
 
+  /**
+   * This is the street that the location is on.
+   *
+   * @return the street
+   */
   public String getStreet() {
     return street;
   }
@@ -249,6 +270,12 @@ public class Facility {
     this.score = score;
   }
 
+  /**
+   * Checks if the facility has the specified service code.
+   *
+   * @param serviceCode a service code
+   * @return true if the facility has the service code, false otherwise
+   */
   @JsonIgnore
   public boolean hasService(final String serviceCode) {
     if (null == serviceCode || serviceCode.isEmpty()) {
@@ -257,6 +284,12 @@ public class Facility {
     return this.getServiceCodes().contains(serviceCode);
   }
 
+  /**
+   * Checks if the facility has all of the provided service codes.
+   *
+   * @param services 1 or more service codes
+   * @return true if the facility has all of the service codes, false otherwise
+   */
   @JsonIgnore
   public boolean hasAllOf(final String... services) {
     if (null == services || services.length <= 0) {
@@ -285,9 +318,12 @@ public class Facility {
 
   @Override
   public String toString() {
-    return "Facility{" +
-        "id=" + id +
-        ", name1='" + name1 + '\'' +
-        '}';
+    return "Facility{"
+        + "id="
+        + id
+        + ", name1='"
+        + name1
+        + '\''
+        + '}';
   }
 }

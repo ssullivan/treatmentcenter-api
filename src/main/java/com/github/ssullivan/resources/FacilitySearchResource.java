@@ -113,10 +113,12 @@ public class FacilitySearchResource {
   @Path("/searchWithScore")
   @ManagedAsync
   public void findFacilitiesByServiceCodesV2WithScore(final @Suspended AsyncResponse asyncResponse,
-      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence", allowMultiple = false)
+      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+          allowMultiple = false)
       @QueryParam("postalCode") final String postalCode,
 
-      @ApiParam(value = "A comma separated list of service codes. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
+      @ApiParam(value = "A comma separated list of service codes. "
+          + "service code prefixed with a single bang '!' will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
       @ApiParam(value = "A comma separated list of service codes.", allowMultiple = true)
@@ -131,7 +133,8 @@ public class FacilitySearchResource {
       @ApiParam(value = "the radius distance") @DefaultValue("15")
       @QueryParam("distance") final Double distance,
 
-      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)", allowableValues = "m,km,ft,mi")
+      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)",
+          allowableValues = "m,km,ft,mi")
       @Pattern(regexp = "m|km|ft|mi", message = "Invalid distance unit")
       @DefaultValue("mi")
       @QueryParam("distanceUnit") final String distanceUnit,
@@ -142,7 +145,8 @@ public class FacilitySearchResource {
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
       @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
 
-      @ApiParam(value = "When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
+      @ApiParam(value = "When multiple serviceCode, and matchAny sets are specified this controls "
+          + "how the final results are combined"
           , allowableValues = "AND,OR", defaultValue = "AND")
       @Pattern(regexp = "AND|OR", message = "Invalid boolean operator")
       @DefaultValue("AND")
@@ -150,31 +154,38 @@ public class FacilitySearchResource {
 
       // Params for scoring
 
-      @ApiParam(value = "The users date of birth in YYYY-MM-DD format [used for scoring]", example = "1980-01-16", allowEmptyValue = true)
+      @ApiParam(value = "The users date of birth in YYYY-MM-DD format [used for scoring]",
+          example = "1980-01-16", allowEmptyValue = true)
       @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Invalid date of birth")
       @QueryParam("dob") final String dateOfBirth,
 
-      @ApiParam(value = "How important it is that a facility provides hearing support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @ApiParam(value = "How important it is that a facility provides hearing support services",
+          allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("hearingSupportImp") final Importance hearingSupportImportance,
 
-      @ApiParam(value = "How important it is that a facility provides language support services", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @ApiParam(value = "How important it is that a facility provides language support services",
+          allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("langSupportImp") final Importance langSupportImp,
 
-      @ApiParam(value = "Indicates how important military support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @ApiParam(value = "Indicates how important military support is",
+          allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("militaryImp") final Importance militaryImp,
 
-      @ApiParam(value = "Indicates how import military family support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @ApiParam(value = "Indicates how import military family support is",
+          allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("militaryFamilyImp") final Importance militaryFamilyImp,
 
-      @ApiParam(value = "Indicates how important smoking cessation support is", allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
+      @ApiParam(value = "Indicates how important smoking cessation support is",
+          allowableValues = VERY_SOMEWHAT_NOT, allowEmptyValue = true)
       @DefaultValue("NOT")
       @QueryParam("smokingCessationImp") final Importance smokingCessationImp,
 
-      @ApiParam(value = "Indicates type of trauma support needed/wanted", allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
+      @ApiParam(value = "Indicates type of trauma support needed/wanted",
+          allowableValues = TRAUMA_DOMESTIC_SEXUAL_NONE, allowEmptyValue = true, allowMultiple = true)
       @DefaultValue("NONE")
       @QueryParam("trauma") final Set<TraumaTypes> traumaTypes,
 
@@ -288,10 +299,12 @@ public class FacilitySearchResource {
   @Path("/v2/search")
   @ManagedAsync
   public void findFacilitiesByServiceCodesV2(final @Suspended AsyncResponse asyncResponse,
-      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence", allowMultiple = false)
+      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+          allowMultiple = false)
       @QueryParam("postalCode") final String postalCode,
 
-      @ApiParam(value = "A comma separated list of service codes. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
+      @ApiParam(value = "A comma separated list of service codes. "
+          + "service code prefixed with a single bang '!' will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
       @ApiParam(value = "A comma separated list of service codes.", allowMultiple = true)
@@ -306,7 +319,8 @@ public class FacilitySearchResource {
       @ApiParam(value = "the radius distance") @DefaultValue("15")
       @QueryParam("distance") final Double distance,
 
-      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)", allowableValues = "m,km,ft,mi")
+      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)",
+          allowableValues = "m,km,ft,mi")
       @Pattern(regexp = "m|km|ft|mi", message = "Invalid distance unit")
       @DefaultValue("mi")
       @QueryParam("distanceUnit") final String distanceUnit,
@@ -317,13 +331,15 @@ public class FacilitySearchResource {
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
       @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
 
-      @ApiParam(value = "When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
+      @ApiParam(value = "When multiple serviceCode, and matchAny sets are "
+          + "specified this controls how the final results are combined"
           , allowableValues = "AND,OR", defaultValue = "AND")
       @Pattern(regexp = "AND|OR", message = "Invalid boolean operator")
       @DefaultValue("AND")
       @QueryParam("operation") final String op,
 
-      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned")
+      @ApiParam(value = "Indicates the field to sort by. "
+          + "This only sorts the current results being returned")
       @DefaultValue("score")
       @QueryParam("sort") final String sortField,
 
@@ -425,10 +441,12 @@ public class FacilitySearchResource {
   @Path("/search")
   @ManagedAsync
   public void findFacilitiesByServiceCodes(final @Suspended AsyncResponse asyncResponse,
-      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence", allowMultiple = false)
+      @ApiParam(value = "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+          allowMultiple = false)
       @QueryParam("postalCode") final String postalCode,
 
-      @ApiParam(value = "The SAMSHA service code. service code prefixed with a single bang '!' will be negated", allowMultiple = true)
+      @ApiParam(value = "The SAMSHA service code. service code prefixed with a single bang '!'"
+          + " will be negated", allowMultiple = true)
       @QueryParam("serviceCode") final List<String> serviceCodes,
 
       @QueryParam("matchAny") @DefaultValue("false") final Boolean matchAny,
@@ -442,7 +460,8 @@ public class FacilitySearchResource {
       @ApiParam(value = "the radius distance") @DefaultValue("15")
       @QueryParam("distance") final Double distance,
 
-      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)", allowableValues = "m,km,ft,mi")
+      @ApiParam(value = "the unit of the radius distance. (meters, kilometers, feet, miles)",
+          allowableValues = "m,km,ft,mi")
       @Pattern(regexp = "m|km|ft|mi")
       @DefaultValue("mi")
       @QueryParam("distanceUnit") final String distanceUnit,
@@ -453,13 +472,15 @@ public class FacilitySearchResource {
       @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
       @Min(0) @Max(9999) @DefaultValue("10") @QueryParam("size") final int size,
 
-      @ApiParam(value = "When multiple serviceCode, and matchAny sets are specified this controls how the final results are combined"
+      @ApiParam(value = "When multiple serviceCode, and matchAny sets are specified this "
+          + "controls how the final results are combined"
           , allowableValues = "AND,OR", defaultValue = "AND")
       @Pattern(regexp = "AND|OR")
       @DefaultValue("AND")
       @QueryParam("operation") final String op,
 
-      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results being returned", allowEmptyValue = true, allowableValues = "score,radius,name1,name2,city,zip")
+      @ApiParam(value = "Indicates the field to sort by. This only sorts the current results "
+          + "being returned", allowEmptyValue = true, allowableValues = "score,radius,name1,name2,city,zip")
       @DefaultValue("score")
       @QueryParam("sort") final String sortFields,
 

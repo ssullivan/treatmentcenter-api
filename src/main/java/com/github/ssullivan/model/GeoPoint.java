@@ -85,11 +85,11 @@ public abstract class GeoPoint {
     final double deltaLonRadians =
         Math.abs(Math.toRadians(rhs.lon() - lon()));
 
-    double temp = Math.sin(deltaLatRadians / 2) *
-        Math.sin(deltaLatRadians / 2) +
-        Math.cos(lat1Radians) * Math.cos(lat2Radians)
-            * Math.sin(deltaLonRadians / 2) *
-            Math.sin(deltaLonRadians / 2);
+    double temp = Math.sin(deltaLatRadians / 2)
+        * Math.sin(deltaLatRadians / 2)
+        + Math.cos(lat1Radians) * Math.cos(lat2Radians)
+            * Math.sin(deltaLonRadians / 2)
+            * Math.sin(deltaLonRadians / 2);
 
     return 2 * Math.atan2(Math.sqrt(temp), Math.sqrt(1 - temp));
   }

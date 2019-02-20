@@ -2,6 +2,9 @@ package com.github.ssullivan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * This model object is used for configuring instance of {@link io.lettuce.core.RedisClient}.
+ */
 public class RedisConfig {
 
   private String host;
@@ -9,6 +12,10 @@ public class RedisConfig {
   private int db;
   private long timeout;
 
+  /**
+   * Creates a new instance of {@link RedisConfig}.
+   * The hostname is localhost, the port is 6379 and the database is 0
+   */
   public RedisConfig() {
     this("localhost", 6379, 0);
   }

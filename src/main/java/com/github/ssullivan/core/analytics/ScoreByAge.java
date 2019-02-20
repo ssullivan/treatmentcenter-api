@@ -30,11 +30,11 @@ public class ScoreByAge implements IScoreFacility {
     boolean isYoungAdult = isYoungAdult(ageYears, ageMonths);
     boolean isChild = isChild(ageYears, ageMonths);
 
-    if ((ageYears >= 25 && facility.hasService(ADULT)) ||
-        (isYoungAdult && facility.hasAllOf(YOUNG_ADULTS, ADULT)) ||
-        (isYoungAdult && facility.hasAllOf(YOUNG_ADULTS)) ||
-        (isChild && facility.hasAllOf(CHILD, YOUNG_ADULTS)) ||
-        (isChild && facility.hasAllOf(CHILD))) {
+    if ((ageYears >= 25 && facility.hasService(ADULT))
+        || (isYoungAdult && facility.hasAllOf(YOUNG_ADULTS, ADULT))
+        || (isYoungAdult && facility.hasAllOf(YOUNG_ADULTS))
+        || (isChild && facility.hasAllOf(CHILD, YOUNG_ADULTS))
+        || (isChild && facility.hasAllOf(CHILD))) {
       return 1.1;
     }
 
