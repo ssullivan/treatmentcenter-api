@@ -10,15 +10,62 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import io.lettuce.core.RedisClient;
+import java.io.IOException;
 import java.util.List;
+import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 public class FacilitExpireIntegrationTest {
   private static final String FeedId = "tvkT3WN7nBbnpPHredaHb2";
+
   @Test
-  public void testExpire() throws Exception {
+  public void testBatching() throws IOException {
+    final RedisConfig redisConfig = new RedisConfig("localhost", 6379, 6);
+    redisConfig.setTimeout(250);
+
+    final Injector injector = Guice
+        .createInjector(new RedisClientModule(redisConfig));
+
+    final RedisClient client = injector.getInstance(RedisClient.class);
+    client.connect().sync().flushdb();
+
+    final Facility facility1 = new Facility();
+    facility1.setFeedId(FeedId);
+    facility1.setId("ExjcnoDU9W5hWSsVVYxh2Y");
+    facility1.setName1("TEST");
+    facility1.setName2("TEST");
+    facility1.setCategoryCodes(ImmutableSet.of("TEST"));
+    facility1.setServiceCodes(ImmutableSet.of("TEST"));
+
+    final Facility facility2 = new Facility();
+    facility2.setFeedId(FeedId);
+    facility2.setId("Xy5wA2uC687wuL4L2d9A8Q");
+    facility2.setName1("TEST");
+    facility2.setName2("TEST");
+    facility2.setCategoryCodes(ImmutableSet.of("TEST"));
+    facility2.setServiceCodes(ImmutableSet.of("TEST"));
+
+    IFacilityDao facilityDao = injector.getInstance(IFacilityDao.class);
+    facilityDao.addFacility(FeedId, Lists.newArrayList(facility1, facility2));
+
+    final List<Facility> batch =
+        facilityDao.fetchBatch(Lists.newArrayList(facility1.getId(), facility2.getId()));
+
+    MatcherAssert.assertThat(batch, Matchers.notNullValue());
+    MatcherAssert.assertThat(batch, Matchers.hasSize(2));
+
+    final Facility first = batch.get(0);
+
+    final Facility second = batch.get(1);
+
+    MatcherAssert.assertThat(first.getId(), Matchers.equalTo(facility1.getId()));
+    MatcherAssert.assertThat(second.getId(), Matchers.equalTo(facility2.getId()));
+  }
+
+  @Test
+  public void testExpireKeys() throws Exception {
     final RedisConfig redisConfig = new RedisConfig("localhost", 6379, 5);
     redisConfig.setTimeout(250);
 

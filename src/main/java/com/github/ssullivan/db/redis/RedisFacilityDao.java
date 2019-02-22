@@ -31,9 +31,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -155,10 +157,9 @@ public class RedisFacilityDao implements IFacilityDao {
   @Override
   public List<Facility> fetchBatch(final Collection<String> ids) {
     try {
-      this.asyncPool
-          .runAsync(async -> fetchBatch(async, ids))
+      return this.fetchBatchAsync(ids)
           .toCompletableFuture()
-          .get(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT);
+          .get(250, TimeUnit.MILLISECONDS);
     } catch (TimeoutException e) {
       LOGGER.error("Timeout waiting for locations", e);
     } catch (InterruptedException e) {
@@ -216,7 +217,7 @@ public class RedisFacilityDao implements IFacilityDao {
       return CompletableFuture.completedFuture(new ArrayList<>(0));
     }
 
-    final Set<String> distinctIdentifiers = new HashSet<>(ids);
+    final Set<String> distinctIdentifiers = new TreeSet<>(new HashSet<>(ids));
     final List<CompletionStage<Facility>> facilityFutures =
         distinctIdentifiers.stream()
             .map(id -> getFacilityAsync(asyncCommands, id))
