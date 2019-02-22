@@ -62,10 +62,11 @@ public class RedisFacilityIndexDao implements IndexFacility {
   }
 
   @Override
-  public void expire(String feed, long seconds) throws Exception {
+  public void expire(String feed, long seconds, boolean overwrite) throws Exception {
     LOGGER.info("expire indices for feed {} after {} seconds", feed, seconds);
-    this.byGeo.expire(feed, seconds);
-    this.byServiceCode.expire(feed, seconds);
-    this.byCategoryCode.expire(feed, seconds);
+    this.byGeo.expire(feed, seconds, overwrite);
+    this.byServiceCode.expire(feed, seconds, overwrite);
+    this.byCategoryCode.expire(feed, seconds, overwrite);
   }
+
 }

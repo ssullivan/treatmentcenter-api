@@ -63,9 +63,20 @@ public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility imp
   }
 
   @Override
-  public void expire(String feed, long seconds) throws Exception {
+  public void expire(String feed, long seconds, final boolean overwrite) throws Exception {
     try (final StatefulRedisConnection<String, String> connection = this.pool.borrowConnection()) {
-      connection.sync().expire(indexByGeoKey(feed), seconds);
+      RedisCommands<String, String> sync = connection.sync();
+      final Long ttl = sync.ttl(indexByGeoKey(feed));
+      if (!overwrite && ttl == null || ttl < 0) {
+        if (connection.sync().expire(indexByGeoKey(feed), seconds)) {
+          LOGGER.debug("expire {}, {}", indexByGeoKey(feed), seconds);
+        }
+      }
+      else {
+        if (connection.sync().expire(indexByGeoKey(feed), seconds)) {
+          LOGGER.debug("expire {}, {}", indexByGeoKey(feed), seconds);
+        }
+      }
     }
   }
 

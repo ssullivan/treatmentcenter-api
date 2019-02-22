@@ -67,7 +67,7 @@ public class RedisIndexFacilityByServiceCode extends AbstractRedisIndexFacility 
   }
 
   @Override
-  public void expire(String feed, long seconds) throws IOException {
-    expireMatching(INDEX_BY_CATEGORIES + ":" + feed + ":", seconds);
+  public void expire(String feed, long seconds, boolean overwrite) throws IOException {
+    expireMatching(INDEX_BY_SERVICES + ":" + feed + ":", seconds, overwrite);
   }
 }

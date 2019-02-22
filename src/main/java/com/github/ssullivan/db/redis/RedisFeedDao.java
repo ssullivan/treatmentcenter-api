@@ -65,6 +65,15 @@ public class RedisFeedDao implements IFeedDao {
   }
 
   @Override
+  public void removeFeedId(String feedId) throws IOException {
+    try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
+      redis.sync().srem(FEED_IDS_KEY, feedId);
+    } catch (Exception e) {
+      handleException(e);
+    }
+  }
+
+  @Override
   public Optional<String> currentFeedId() throws IOException {
     return fetchkey(CURRENT_FEED_KEY);
   }

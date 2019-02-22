@@ -5,6 +5,7 @@ import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacility;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ public class ManageFeeds {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ManageFeeds.class);
 
-  private static final long DefaultExpireSeconds = 86400;
+  private static final long DefaultExpireSeconds = TimeUnit.HOURS.toSeconds(12);
 
   private final IFeedDao feedDao;
   private final IFacilityDao facilityDao;
@@ -50,11 +51,13 @@ public class ManageFeeds {
 
   private boolean expireKeys(final String feedId) {
     try {
-      final Set<String> facilityIds = this.facilityDao.getKeysForFeed(feedId);
-      for (final String id : facilityIds) {
-        this.facilityDao.expire(id, DefaultExpireSeconds);
-      }
-      this.indexDao.expire(feedId, DefaultExpireSeconds);
+      // This will set a TTL for every location that was loaded for this feed id
+      // If there is an existing TTL it will not overwrite it
+      this.facilityDao.expire(feedId, DefaultExpireSeconds, false);
+
+      // This
+      this.indexDao.expire(feedId, DefaultExpireSeconds, false);
+      this.feedDao.removeFeedId(feedId);
       return true;
     } catch (Exception e) {
       LOGGER.error("Failed to expire keys for feed {}", feedId, e);

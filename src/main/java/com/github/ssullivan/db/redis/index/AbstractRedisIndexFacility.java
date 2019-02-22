@@ -58,7 +58,7 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
   abstract protected void index(final RedisCommands<String, String> sync, final String feed,
       final Facility facility);
 
-  void expireMatching(final String pattern, final long seconds) throws IOException {
+  void expireMatching(final String pattern, final long seconds, final boolean overwrite) throws IOException {
     Objects.requireNonNull(pattern, "Key pattern must not be null");
     if (pattern.isEmpty()) {
       throw new IllegalArgumentException("Key pattern must not be empty");
@@ -66,13 +66,15 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
 
     try (final StatefulRedisConnection<String, String> connection = this.pool.borrowConnection()) {
       KeyScanCursor<String> cursor = connection.sync().scan(
-          ScanArgs.Builder.matches(pattern));
-      while (!cursor.isFinished()) {
-        for (final String key : cursor.getKeys()) {
-          connection.sync().expire(key, seconds);
-        }
-        cursor = connection.sync().scan(cursor);
-      }
+          ScanArgs.Builder
+              .matches(pattern + "*").limit(10));
+        do {
+          expireKeysForCursor(connection.sync(), cursor, seconds, overwrite);
+          if (!cursor.isFinished())
+            cursor = connection.sync().scan(cursor);
+        } while (!cursor.isFinished());
+
+        expireKeysForCursor(connection.sync(), cursor, seconds, overwrite);
 
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
@@ -80,6 +82,22 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
         Thread.currentThread().interrupt();
       }
       throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  private void expireKeysForCursor(final RedisCommands<String, String> sync, final KeyScanCursor<String> cursor,
+      final long seconds, final boolean overwrite) {
+    for (final String key : cursor.getKeys()) {
+      final Long ttl = sync.ttl(key);
+      if (!overwrite && ttl == null || ttl < 0) {
+        if (sync.expire(key, seconds)) {
+          LOGGER.debug("expire {}, {}", key, seconds);
+        }
+      } else {
+        if (sync.expire(key, seconds)) {
+          LOGGER.debug("expire {}, {}", key, seconds);
+        }
+      }
     }
   }
 }

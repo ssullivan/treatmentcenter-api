@@ -15,5 +15,5 @@ public interface IndexFacility {
 
   void index(final Facility facility) throws IOException;
 
-  void expire(final String feed, final long seconds) throws Exception;
+  void expire(final String feed, final long seconds, boolean overwrite) throws Exception;
 }

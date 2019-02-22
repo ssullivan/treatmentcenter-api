@@ -9,14 +9,11 @@ import static com.github.ssullivan.db.redis.RedisConstants.isValidIdentifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.db.IndexFacility;
-import com.github.ssullivan.model.AvailableServices;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.utils.ShortUuid;
@@ -29,7 +26,6 @@ import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +143,7 @@ public class RedisFacilityDao implements IFacilityDao {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
       return getFacility(connection, pk);
     } catch (Exception e) {
+      LOGGER.error("Failed to fetch facility", e);
       if (e instanceof InterruptedException) {
         LOGGER.error("Interrupted while fetching facility {}", pk);
         Thread.currentThread().interrupt();
@@ -200,7 +197,14 @@ public class RedisFacilityDao implements IFacilityDao {
 
   private Facility toFacility(final List<KeyValue<String, String>> fields) {
     if (fields != null && !fields.isEmpty()) {
-      return deserialize(fields.get(0).getValue(), null);
+      return fields.get(0).map(it -> {
+        try {
+          return deserialize(it);
+        } catch (IOException e) {
+          LOGGER.error("Failed to deserialize JSON", e);
+        }
+        return null;
+      }).getValueOrElse(null);
     }
     return null;
   }
@@ -288,13 +292,53 @@ public class RedisFacilityDao implements IFacilityDao {
   }
 
   @Override
-  public void expire(String id, long seconds) throws IOException {
+  public Boolean expire(String id, long seconds) throws IOException {
     try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
-      connection.sync().expire(facilityKey(id), seconds);
+      return connection.sync().expire(facilityKey(id), seconds);
 
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
         LOGGER.error("Interrupted while fetching facility {}", id);
+        Thread.currentThread().interrupt();
+      }
+      throw new IOException("Failed to get connection to REDIS", e);
+    }
+  }
+
+  @Override
+  public Boolean expire(String feed, long seconds, boolean overwrite) throws IOException {
+    try (final StatefulRedisConnection<String, String> connection = this.redis.borrowConnection()) {
+      final RedisCommands<String, String> sync = connection.sync();
+
+      final Set<String> facilityIds = getKeysForFeed(feed);
+      for (final String id : facilityIds) {
+        final String keyToExpire = facilityKey(id);
+
+        if (overwrite) {
+          sync.expire(keyToExpire, seconds);
+        }
+        else {
+          final Long ttl = sync.ttl(keyToExpire);
+          if (ttl == null || ttl < 0) {
+            sync.expire(keyToExpire, seconds);
+          }
+        }
+      }
+
+      if (overwrite) {
+        sync.expire(TREATMENT_FACILITIES_IDS + feed, seconds);
+      }
+      else {
+        final Long ttl = sync.ttl(TREATMENT_FACILITIES_IDS + feed);
+        if (ttl == null || ttl < 0) {
+          sync.expire(TREATMENT_FACILITIES_IDS + feed, seconds);
+        }
+      }
+
+      return true;
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        LOGGER.error("Interrupted while fetching facility", e);
         Thread.currentThread().interrupt();
       }
       throw new IOException("Failed to get connection to REDIS", e);
