@@ -139,7 +139,7 @@ public class AvailableServiceController implements IAvailableServiceController, 
   public void start() throws Exception {
     this.serviceManager.startAsync();
 
-    
+
     refreshAll();
   }
 
