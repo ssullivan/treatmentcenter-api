@@ -1,7 +1,7 @@
 # treatmentcenter-api OpenAPI Specification
 [![Build Status](https://travis-ci.org/ssullivan/treatmentcenter-api.svg?branch=master)](https://travis-ci.org/ssullivan/treatmentcenter-api)
 [![codecov](https://codecov.io/gh/ssullivan/treatmentcenter-api/branch/master/graph/badge.svg)](https://codecov.io/gh/ssullivan/treatmentcenter-api)
-
+[![Maintainability](https://api.codeclimate.com/v1/badges/e81c336e10d82fa22662/maintainability)](https://codeclimate.com/github/ssullivan/treatmentcenter-api/maintainability)
 ## Links
 
 - Documentation(ReDoc): https://docs.centerlocator.org/
