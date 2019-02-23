@@ -37,8 +37,11 @@ public class ManageFeeds {
     this.redisConnectionPool = pool;
   }
 
-
   public void expireOldFeeds(final String currentFeedID) throws Exception {
+    expireOldFeeds(currentFeedID, DefaultExpireSeconds);
+  }
+
+  public void expireOldFeeds(final String currentFeedID, final long expireSeconds) throws Exception {
     this.feedDao.setSearchFeedId(currentFeedID);
     this.feedDao.setCurrentFeedId(currentFeedID);
 
@@ -49,7 +52,7 @@ public class ManageFeeds {
       try {
         for (final String feedId : feedIds) {
           if (!feedId.equalsIgnoreCase(currentFeedID)) {
-            if (expireKeys(feedId)) {
+            if (expireKeys(feedId, expireSeconds)) {
               LOGGER.info("Set expiration for all keys for feed {}", feedId);
             } else {
               LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
@@ -71,14 +74,14 @@ public class ManageFeeds {
     }
   }
 
-  private boolean expireKeys(final String feedId) {
+  private boolean expireKeys(final String feedId, final long expireSeconds) {
     try {
       // This will set a TTL for every location that was loaded for this feed id
       // If there is an existing TTL it will not overwrite it
-      this.facilityDao.expire(feedId, DefaultExpireSeconds, false);
+      this.facilityDao.expire(feedId, expireSeconds, false);
 
       // This
-      this.indexDao.expire(feedId, DefaultExpireSeconds, false);
+      this.indexDao.expire(feedId, expireSeconds, false);
       this.feedDao.removeFeedId(feedId);
       return true;
     } catch (Exception e) {
