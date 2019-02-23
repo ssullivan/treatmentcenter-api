@@ -17,9 +17,9 @@ public class RedisFeedDao implements IFeedDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFeedDao.class);
 
-  private static final String CURRENT_FEED_KEY = "curr_feed";
-  private static final String SEARCH_FEED_KEY = "search_feed";
-  private static final String FEED_IDS_KEY = "feed_ids";
+  public static final String CURRENT_FEED_KEY = "curr_feed";
+  public static final String SEARCH_FEED_KEY = "search_feed";
+  public static final String FEED_IDS_KEY = "feed_ids";
   private IRedisConnectionPool pool;
 
   @Inject

@@ -1,10 +1,14 @@
 package com.github.ssullivan.db.redis;
 
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.db.IndexFacility;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.Service;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
@@ -76,6 +80,19 @@ public class FacilitExpireIntegrationTest {
     final RedisClient client = injector.getInstance(RedisClient.class);
     client.connect().sync().flushdb();
 
+    final ICategoryCodesDao categoryCodesDao = injector.getInstance(ICategoryCodesDao.class);
+    final Category category = new Category();
+    category.setCode("TEST");
+
+    categoryCodesDao.addCategory(category);
+
+    final IServiceCodesDao serviceCodesDao = injector.getInstance(IServiceCodesDao.class);
+    final Service service = new Service();
+    service.setCategoryCode("TEST");
+    service.setCode("TEST");
+    serviceCodesDao.addService(service);
+
+
 
 
     final IFacilityDao facilityDao = injector.getInstance(IFacilityDao.class);
@@ -104,7 +121,7 @@ public class FacilitExpireIntegrationTest {
     int retries = 0;
     do {
       List<String> keys = client.connect().sync().keys("*");
-      if (keys == null || keys.size() <= 0) {
+      if (keys == null || keys.size() <= 2) {
         break;
       }
       Thread.sleep(150 + (retries * 5));
@@ -112,7 +129,7 @@ public class FacilitExpireIntegrationTest {
 
 
     List<String> keys = client.connect().sync().keys("*");
-    MatcherAssert.assertThat(keys.size(), Matchers.lessThanOrEqualTo(0));
+    MatcherAssert.assertThat(keys.size(), Matchers.lessThanOrEqualTo(2));
 
     final Facility fromRedisAfterExpire = facilityDao.getFacility(facility.getId());
     MatcherAssert.assertThat(fromRedisAfterExpire, Matchers.nullValue());
