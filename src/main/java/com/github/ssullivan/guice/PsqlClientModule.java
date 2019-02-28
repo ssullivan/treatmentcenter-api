@@ -8,6 +8,11 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+
+import javax.inject.Inject;
 
 public class PsqlClientModule extends AbstractModule {
     private final DatabaseConfig psqlConfig;
@@ -19,6 +24,12 @@ public class PsqlClientModule extends AbstractModule {
     @Override
     protected void configure() {
 
+    }
+
+    @Provides
+    @Inject
+    DSLContext providesDSLContext(final HikariDataSource hikariDataSource) {
+        return DSL.using(hikariDataSource, SQLDialect.POSTGRES_10);
     }
 
     @Provides

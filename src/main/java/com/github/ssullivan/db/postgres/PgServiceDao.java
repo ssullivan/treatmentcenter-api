@@ -3,34 +3,40 @@ package com.github.ssullivan.db.postgres;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.github.ssullivan.db.ICategoryCodesDao;
+import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.db.psql.Tables;
-import com.github.ssullivan.db.psql.tables.daos.CategoryDao;
-import com.github.ssullivan.model.Category;
+import com.github.ssullivan.model.Service;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class PgServiceDao implements ICategoryCodesDao {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PgServiceDao.class);
-    private final CategoryDao categoryDao;
+public class PgServiceDao implements IServiceCodesDao {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PgCategoryDao.class);
     private final ObjectReader objectReader;
     private final ObjectWriter objectWriter;
+    private DSLContext dsl;
 
-    public PgServiceDao(final IJooqDaoFactory factory, final ObjectMapper objectMapper) {
-        this.objectReader = objectMapper.readerFor(Category.class);
-        this.objectWriter = objectMapper.writerFor(Category.class);
-        this.categoryDao = factory.categoryDao();
+    @Inject
+    public PgServiceDao(final DSLContext dslContext, final ObjectMapper objectMapper) {
+        this.dsl = dslContext;
+        this.objectReader = objectMapper.readerFor(Service.class);
+        this.objectWriter = objectMapper.writerFor(Service.class);
     }
 
     @Override
-    public Category get(String id) throws IOException {
-        final com.github.ssullivan.db.psql.tables.pojos.Category cat = this.categoryDao.fetchOneByCode(id);
-        return objectReader.readValue(cat.getJson());
+    public Service get(String id) throws IOException {
+        final String json = this.dsl.select(Tables.SERVICE.JSON)
+                .from(Tables.SERVICE)
+                .fetchOne(Tables.SERVICE.JSON);
+
+        return objectReader.readValue(json);
     }
 
     @Override
@@ -39,23 +45,16 @@ public class PgServiceDao implements ICategoryCodesDao {
     }
 
     @Override
-    public Category getByCategoryCode(String categoryCode) throws IOException {
-        return get(categoryCode);
+    public Service getByServiceCode(String serviceCode) throws IOException {
+        return get(serviceCode);
     }
 
     @Override
-    public List<String> listCategoryCodes() throws IOException {
-        return this.categoryDao.configuration().dsl()
-                .selectDistinct(Tables.CATEGORY.CODE)
-                .fetch(Tables.CATEGORY.CODE);
-    }
-
-    @Override
-    public List<Category> listCategories() throws IOException {
-        return this.categoryDao.configuration().dsl()
-                .select(Tables.CATEGORY.JSON)
-                .from(Tables.CATEGORY)
-                .fetch(Tables.CATEGORY.JSON)
+    public List<Service> listServices() throws IOException {
+        return this.dsl
+                .select(Tables.SERVICE.JSON)
+                .from(Tables.SERVICE)
+                .fetch(Tables.SERVICE.JSON)
                 .stream()
                 .map(json -> {
                     try {
@@ -67,15 +66,50 @@ public class PgServiceDao implements ICategoryCodesDao {
                 })
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(it -> (Category) it)
+                .map(it -> (Service) it)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public boolean addCategory(Category category) throws IOException {
-        final String json = objectWriter.writeValueAsString(category);
-        com.github.ssullivan.db.psql.tables.pojos.Category cat = new com.github.ssullivan.db.psql.tables.pojos.Category(null, category.getCode(), json);
-        this.categoryDao.insert(cat);
+    public List<String> listServiceCodes() throws IOException {
+        return this.dsl
+                .selectDistinct(Tables.SERVICE.CODE)
+                .fetch(Tables.SERVICE.CODE);
+    }
+
+    @Override
+    public List<String> listServiceCodesInCategory(String category) throws IOException {
+        return this.dsl
+                .selectDistinct(Tables.SERVICE.CODE)
+                .where(Tables.SERVICE.CATEGORY_CODE.eq(category))
+                .fetch(Tables.SERVICE.CODE);
+
+    }
+
+    @Override
+    public boolean addService(Service service) throws IOException {
+        final String json = objectWriter.writeValueAsString(service);
+        this.dsl.transaction(configuration -> {
+            final DSLContext dsl = DSL.using(configuration);
+
+            final Optional<Integer> pkOptional = dsl.select(Tables.SERVICE.ID)
+                    .from(Tables.SERVICE)
+                    .where(Tables.SERVICE.CODE.equalIgnoreCase(service.getCode()))
+                    .fetchOptional(Tables.SERVICE.ID);
+
+            if (pkOptional.isPresent()) {
+                dsl.update(Tables.SERVICE)
+                        .set(Tables.SERVICE.JSON, json)
+                        .where(Tables.SERVICE.ID.eq(pkOptional.get()));
+            }
+            else {
+                dsl.insertInto(Tables.SERVICE)
+                        .set(Tables.SERVICE.CODE, service.getCode())
+                        .set(Tables.SERVICE.CATEGORY_CODE, service.getCategoryCode())
+                        .set(Tables.SERVICE.JSON, json)
+                        .execute();
+            }
+        });
 
         return true;
     }
