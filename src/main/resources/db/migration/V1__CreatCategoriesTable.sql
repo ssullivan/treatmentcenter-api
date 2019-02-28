@@ -74,7 +74,7 @@ create table location (
   street text,
   lat float,
   lon float,
-  geog geography(POINT),
+  geog GEOMETRY(POINT),
   cats int[],
   services int[]
 );

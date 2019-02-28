@@ -278,18 +278,10 @@ jooq {
                 excludes = ''
                 forcedTypes {
                     forcedType {
-                        name='geography'
                         userType = 'org.postgis.Geometry'
                         expression = 'geog'
                         types = '.*'
-                        converter = 'com.github.ssullivan.db.postgres.PostGisGeometryConverter'
-                    }
-                    forcedType {
-                        name='geography(POINT)'
-                        userType = 'org.postgis.Geometry'
-                        expression = 'geog'
-                        types = '.*'
-                        converter = 'com.github.ssullivan.db.postgres.PostGisGeometryConverter'
+                        binding = 'com.github.ssullivan.db.postgres.PostGisGeometryBinding'
                     }
                 }
             }

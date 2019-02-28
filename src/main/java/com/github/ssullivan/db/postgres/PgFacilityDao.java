@@ -5,17 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.core.UncheckedJsonProcessingException;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.psql.Tables;
-import com.github.ssullivan.db.psql.tables.daos.CategoryDao;
-import com.github.ssullivan.db.psql.tables.daos.LocationDao;
-import com.github.ssullivan.db.psql.tables.daos.ServiceDao;
 import com.github.ssullivan.db.psql.tables.records.LocationRecord;
-import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.utils.ShortUuid;
-import com.zaxxer.hikari.HikariDataSource;
-import io.swagger.models.auth.In;
 import org.jooq.DSLContext;
-import org.jooq.TableField;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
@@ -78,7 +71,6 @@ public class PgFacilityDao implements IFacilityDao {
                     .set(Tables.LOCATION.LAT, facility.getLocation() != null ? facility.getLocation().lat() : null)
                     .set(Tables.LOCATION.LON, facility.getLocation() != null ? facility.getLocation().lon() : null)
                     .set(Tables.LOCATION.ID, ShortUuid.decode(facility.getId()))
-
                     .execute();
         });
     }

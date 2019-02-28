@@ -37,16 +37,16 @@ public class PostGisGeometryBinding implements Binding<Object, Geometry> {
 
     @Override
     public void get(BindingGetResultSetContext<Geometry> ctx) throws SQLException {
-
+        ctx.convert(converter()).value(ctx.resultSet().getString(ctx.index()));
     }
 
     @Override
     public void get(BindingGetStatementContext<Geometry> ctx) throws SQLException {
-
+        ctx.convert(converter()).value(ctx.statement().getString(ctx.index()));
     }
 
     @Override
     public void get(BindingGetSQLInputContext<Geometry> ctx) throws SQLException {
-
+        throw new SQLFeatureNotSupportedException();
     }
 }
