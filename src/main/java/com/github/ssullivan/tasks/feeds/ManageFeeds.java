@@ -100,6 +100,7 @@ public class ManageFeeds {
   }
 
   public void expireOldFeeds(final String currentFeedID, final long expireSeconds) throws Exception {
+    LOGGER.info("expireOldFeeds currentFeedId is {}, {}", currentFeedID, expireSeconds);
     Stopwatch stopwatch = Stopwatch.createStarted();
 
     // This is the id of the feed that the API is currently searching
@@ -116,6 +117,9 @@ public class ManageFeeds {
       persistCriticalIds();
 
       return;
+    }
+    else {
+      LOGGER.info("Set search feed id to {} [this is our new data]", currentFeedID);
     }
 
     this.feedDao.setCurrentFeedId(currentFeedID);
