@@ -27,7 +27,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
 
-  private static final String KEY = "treatment:categories";
+  public static final String KEY = "treatment:categories";
 
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;

@@ -74,25 +74,18 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
     int totalLocations = 0;
 
     AtomicInteger totalLoaded = new AtomicInteger(0);
-    Lists.partition(samshaLocatorData.getFacilities(), 5)
-        .forEach(partition -> {
-          try {
-            facilityDao.addFacility(samshaLocatorData.getFeedId(), partition);
-            totalLoaded.addAndGet(partition.size());
-          } catch (IOException e) {
-            LOGGER.error("Failed to store facilities batch: {}", partition);
-          }
 
-          LOGGER
-              .info("Loaded {} of {}", totalLoaded.get(), samshaLocatorData.getFacilities().size());
-        });
     for (final Facility facility : samshaLocatorData.getFacilities()) {
-      try {
-        facilityDao.addFacility(samshaLocatorData.getFeedId(), facility);
-        totalLocations++;
-      } catch (IOException e) {
-        LOGGER.error("Failed to add facility: {}", facility, e);
-      }
+      int retries = 3;
+      do {
+        try {
+          facilityDao.addFacility(samshaLocatorData.getFeedId(), facility);
+          totalLocations++;
+          break;
+        } catch (IOException e) {
+          LOGGER.error("Failed to add facility: {}", facility, e);
+        }
+      } while (retries-- >= 0);
     }
     LOGGER.info("Loaded {} of {} locations", totalLocations,
         samshaLocatorData.getFacilities().size());

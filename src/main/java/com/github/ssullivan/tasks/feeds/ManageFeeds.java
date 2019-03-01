@@ -3,6 +3,7 @@ package com.github.ssullivan.tasks.feeds;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacility;
+import com.google.common.base.Stopwatch;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +15,7 @@ public class ManageFeeds {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ManageFeeds.class);
 
-  private static final long DefaultExpireSeconds = TimeUnit.HOURS.toSeconds(12);
+  private static final long DefaultExpireSeconds = TimeUnit.DAYS.toSeconds(2);
 
   private final IFeedDao feedDao;
   private final IFacilityDao facilityDao;
@@ -30,22 +31,28 @@ public class ManageFeeds {
 
 
   public void expireOldFeeds(final String currentFeedID) throws Exception {
-    this.feedDao.setSearchFeedId(currentFeedID);
-    this.feedDao.setCurrentFeedId(currentFeedID);
+    Stopwatch stopwatch = Stopwatch.createStarted();
+    try {
+      this.feedDao.setSearchFeedId(currentFeedID);
+      this.feedDao.setCurrentFeedId(currentFeedID);
 
-    final Collection<String> feedIds = this.feedDao.getFeedIds();
-    if (feedIds.isEmpty()) {
-      LOGGER.warn("There were no known feed ids to clear!");
-    } else {
-      for (final String feedId : feedIds) {
-        if (!feedId.equalsIgnoreCase(currentFeedID)) {
-          if (expireKeys(feedId)) {
-            LOGGER.info("Set expiration for all keys for feed {}", feedId);
-          } else {
-            LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
+      final Collection<String> feedIds = this.feedDao.getFeedIds();
+      if (feedIds.isEmpty()) {
+        LOGGER.warn("There were no known feed ids to clear!");
+      } else {
+        for (final String feedId : feedIds) {
+          if (!feedId.equalsIgnoreCase(currentFeedID)) {
+            if (expireKeys(feedId)) {
+              LOGGER.info("Set expiration for all keys for feed {}", feedId);
+            } else {
+              LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
+            }
           }
         }
       }
+    }
+    finally {
+      LOGGER.info("Finished expiring old feeds after {}", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
   }
 

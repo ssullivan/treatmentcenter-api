@@ -6,6 +6,7 @@ import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
+import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -89,6 +90,7 @@ public class TransformLocatorSpreadsheet implements
   private static Facility asFacility(final ImmutableMap<String, String> location,
       final ImmutableList<ImmutableMap<String, String>> serviceCodes) {
     final Facility facility = new Facility();
+    facility.setId(ShortUuid.randomShortUuid());
     facility.setName1(location.get("name1"));
     facility.setName2(location.get("name2"));
     facility.setStreet(getStreet(location));
