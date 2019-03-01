@@ -96,7 +96,7 @@ public class ApiApplication extends Application<AppConfig> {
       protected void configure() {
         if (getConfiguration().getRedisConfig() != null) {
           install(new RedisClientModule(getConfiguration().getRedisConfig()));
-          LOGGER.info("Configuring application to connect to Redis/ElatiCache");
+          LOGGER.info("Configuring application to connect to Redis/ElastiCache");
         } else {
           LOGGER.info("No configuration provided for Redis/ElastiCache");
         }

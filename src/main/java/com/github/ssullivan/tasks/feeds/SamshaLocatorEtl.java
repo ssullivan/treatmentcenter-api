@@ -115,6 +115,9 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
           } catch (Exception e) {
             LOGGER.error("Failed to expire old keys", e);
           }
+          finally {
+
+          }
         }
       } else {
         LOGGER.warn("The data feed {} @ {}/{} has bad/invalid data!", feedId,

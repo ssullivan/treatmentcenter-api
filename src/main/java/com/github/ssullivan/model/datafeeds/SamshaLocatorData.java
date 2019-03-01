@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Immutable object representing all of the data from the SAMSHA locator spreadsheet.
@@ -44,6 +46,10 @@ public class SamshaLocatorData {
 
   public String getFeedId() {
     return feedId;
+  }
+
+  public Set<String> facilityIds() {
+    return getFacilities().stream().map(Facility::getId).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   /**

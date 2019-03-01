@@ -17,9 +17,9 @@ public class RedisFeedDao implements IFeedDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisFeedDao.class);
 
-  private static final String CURRENT_FEED_KEY = "curr_feed";
-  private static final String SEARCH_FEED_KEY = "search_feed";
-  private static final String FEED_IDS_KEY = "feed_ids";
+  public static final String CURRENT_FEED_KEY = "curr_feed";
+  public static final String SEARCH_FEED_KEY = "search_feed";
+  public static final String FEED_IDS_KEY = "feed_ids";
   private IRedisConnectionPool pool;
 
   @Inject
@@ -34,6 +34,7 @@ public class RedisFeedDao implements IFeedDao {
 
   @Override
   public Optional<String> setCurrentFeedId(String id) throws IOException {
+    LOGGER.info("SET {} to {}", CURRENT_FEED_KEY, id);
     try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
       Optional<String> result = Optional.ofNullable(redis.sync().set(CURRENT_FEED_KEY, id));
       redis.sync().sadd(FEED_IDS_KEY, id);
@@ -46,8 +47,16 @@ public class RedisFeedDao implements IFeedDao {
 
   @Override
   public Optional<String> setSearchFeedId(String id) throws IOException {
+    LOGGER.info("SET {} to {}", SEARCH_FEED_KEY, id);
     try (StatefulRedisConnection<String, String> redis = pool.borrowConnection()) {
-      return Optional.ofNullable(redis.sync().set(SEARCH_FEED_KEY, id));
+      int retries = 3;
+      do {
+        try {
+          return Optional.ofNullable(redis.sync().set(SEARCH_FEED_KEY, id));
+        } catch (Exception e) {
+          LOGGER.error("Failed to set search feed id {}", id, e);
+        }
+      } while (retries-- > 0);
     } catch (Exception e) {
       handleException(e);
     }

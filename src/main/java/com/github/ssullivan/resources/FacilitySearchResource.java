@@ -17,6 +17,7 @@ import com.github.ssullivan.model.ServicesCondition;
 import com.github.ssullivan.model.ServicesConditionFactory;
 import com.github.ssullivan.model.SetOperation;
 import com.github.ssullivan.model.SortDirection;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
@@ -98,6 +99,34 @@ public class FacilitySearchResource {
     }
 
     return searchResults;
+  }
+
+  @VisibleForTesting
+  private Optional<GeoRadiusCondition> toGeoRadiusCondition(final Double lat, final Double lon,
+      final Double distance,
+      final String distanceUnit,
+      final String postalCode) throws IllegalArgumentException {
+
+
+    if (distance == null || distanceUnit == null || distanceUnit.isEmpty()) {
+      return Optional.empty();
+    }
+
+    if (lat != null && lon != null && GeoPoint.isValidLatLong(lat, lon)) {
+      return Optional.of(new GeoRadiusCondition(GeoPoint.geoPoint(lat, lon), distance, distanceUnit));
+    }
+    else if (postalCode != null && !postalCode.isEmpty()) {
+      ImmutableList<GeoPoint> geoPoints = postalcodeService.fetchGeos(postalCode);
+      if (geoPoints == null || geoPoints.size() <= 0) {
+        LOGGER.error("Failed to find GeoPoints for PostCode", postalCode);
+        return Optional.empty();
+      } else {
+        return Optional.of(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
+      }
+    }
+    else {
+      return Optional.empty();
+    }
   }
 
   @ApiOperation(value = "Find treatment facilities by their services and location. When multiple serviceCode, and matchAny sets are specified those results will be unified together",
@@ -206,6 +235,7 @@ public class FacilitySearchResource {
         );
       }
 
+
       final SearchRequest searchRequest = new SearchRequest();
       searchRequest.setSortDirection(sortDirection);
       searchRequest.setSortField(sortFields);
@@ -243,26 +273,9 @@ public class FacilitySearchResource {
           .withSmokingCessationImportance(smokingCessationImp)
           .withTraumaSupport(traumaTypes);
 
-      if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
-        asyncResponse.resume(
-            Response.status(400)
-                .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
-      } else if (lat != null && lon != null) {
-        searchRequest.setGeoRadiusCondition(
-            new GeoRadiusCondition(GeoPoint.geoPoint(lat, lon), distance, distanceUnit));
-      } else if (postalCode != null) {
-        ImmutableList<GeoPoint> geoPoints = postalcodeService.fetchGeos(postalCode);
-        if (geoPoints == null || geoPoints.size() <= 0) {
-          LOGGER.error("Failed to find GeoPoints for PostCode", postalCode);
-          asyncResponse.resume(Response.status(400)
-              .entity(ImmutableMap.of("message", "Failed to Geo locate postal code"))
-              .build()
-          );
-        } else {
-          searchRequest.setGeoRadiusCondition(
-              new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
-        }
-      }
+      toGeoRadiusCondition(lat, lon, distance, distanceUnit, postalCode)
+          .ifPresent(searchRequest::setGeoRadiusCondition);
+
       this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
             if (error != null) {
@@ -384,26 +397,8 @@ public class FacilitySearchResource {
         return;
       }
 
-      if (lat != null && lon != null && !GeoPoint.isValidLatLong(lat, lon) && postalCode == null) {
-        asyncResponse.resume(
-            Response.status(400)
-                .entity(ImmutableMap.of("message", "Invalid lat, lon coordinate")));
-      } else if (lat != null && lon != null) {
-        searchRequest.setGeoRadiusCondition(
-            new GeoRadiusCondition(GeoPoint.geoPoint(lat, lon), distance, distanceUnit));
-      } else if (postalCode != null) {
-        ImmutableList<GeoPoint> geoPoints = postalcodeService.fetchGeos(postalCode);
-        if (geoPoints == null || geoPoints.size() <= 0) {
-          LOGGER.error("Failed to find GeoPoints for PostCode", postalCode);
-          asyncResponse.resume(Response.status(400)
-              .entity(ImmutableMap.of("message", "Failed to Geo locate postal code"))
-              .build()
-          );
-        } else {
-          searchRequest.setGeoRadiusCondition(
-              new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
-        }
-      }
+      toGeoRadiusCondition(lat, lon, distance, distanceUnit, postalCode)
+          .ifPresent(searchRequest::setGeoRadiusCondition);
 
       this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {

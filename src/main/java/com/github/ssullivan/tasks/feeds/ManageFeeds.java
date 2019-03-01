@@ -3,8 +3,19 @@ package com.github.ssullivan.tasks.feeds;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IndexFacility;
+import com.github.ssullivan.db.redis.IRedisConnectionPool;
+import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
+import com.github.ssullivan.db.redis.RedisConstants;
+import com.github.ssullivan.db.redis.RedisFacilityDao;
+import com.github.ssullivan.db.redis.RedisFeedDao;
+import com.github.ssullivan.db.redis.RedisServiceCodeDao;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import com.google.common.base.Stopwatch;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
@@ -20,29 +31,101 @@ public class ManageFeeds {
   private final IFeedDao feedDao;
   private final IFacilityDao facilityDao;
   private IndexFacility indexDao;
+  private IRedisConnectionPool redisConnectionPool;
 
   @Inject
   public ManageFeeds(final IFeedDao feedDao, IFacilityDao facilityDao,
-      IndexFacility indexFacility) {
+      IndexFacility indexFacility,
+      IRedisConnectionPool pool) {
     this.feedDao = feedDao;
     this.facilityDao = facilityDao;
     this.indexDao = indexFacility;
+    this.redisConnectionPool = pool;
   }
 
+  public void persistCriticalIds() {
+    // ensure the following keys dont have a TTL set
+    try (StatefulRedisConnection<String, String> conn = redisConnectionPool.borrowConnection()) {
+      final RedisCommands<String, String> sync = conn.sync();
+      sync.persist(RedisCategoryCodesDao.KEY);
+      sync.persist(RedisServiceCodeDao.KEY);
+      sync.persist(RedisFeedDao.CURRENT_FEED_KEY);
+      sync.persist(RedisFeedDao.FEED_IDS_KEY);
+      sync.persist(RedisFeedDao.SEARCH_FEED_KEY);
+    } catch (Exception e) {
+      LOGGER.error("Failed to persist crit ids", e);
+    }
+  }
+
+  public void persistFacilityIds(Set<String> facilityIds) {
+    // ensure the following keys dont have a TTL set
+    try (StatefulRedisConnection<String, String> conn = redisConnectionPool.borrowConnection()) {
+      final RedisCommands<String, String> sync = conn.sync();
+
+      for (final String facilityId : facilityIds) {
+        int retries = 3;
+        do {
+          try {
+            sync.persist(RedisConstants.TREATMENT_FACILITIES + ":" + facilityId);
+            LOGGER.info("PERSIST {}:{}", RedisConstants.TREATMENT_FACILITIES, facilityId);
+            break;
+          }
+          catch (Exception e) {
+            LOGGER.error("Failed to persist {}", facilityId, e);
+          }
+        } while (retries-- > 0);
+      }
+
+    } catch (Exception e) {
+      LOGGER.error("Failed to persist all facility ids", e);
+    }
+  }
 
   public void expireOldFeeds(final String currentFeedID) throws Exception {
-    Stopwatch stopwatch = Stopwatch.createStarted();
-    try {
-      this.feedDao.setSearchFeedId(currentFeedID);
-      this.feedDao.setCurrentFeedId(currentFeedID);
+    expireOldFeeds(currentFeedID, DefaultExpireSeconds);
+  }
 
-      final Collection<String> feedIds = this.feedDao.getFeedIds();
-      if (feedIds.isEmpty()) {
-        LOGGER.warn("There were no known feed ids to clear!");
-      } else {
+  public void expireOldFeeds(final String currentFeedID, final long expireSeconds) throws Exception {
+    Stopwatch stopwatch = Stopwatch.createStarted();
+
+    // This is the id of the feed that the API is currently searching
+    Optional<String> originalSearchFeedId = this.feedDao.searchFeedId();
+    originalSearchFeedId.ifPresent(s -> LOGGER.info("Original Search Feed is {}", s));
+
+    // Try and point the API to the new data we just loaded
+    Optional<String> searchFeedIdOption = this.feedDao.setSearchFeedId(currentFeedID);
+
+    // If we failed to update the pointer then we don't want to expire the old data (if possible)
+    if (!searchFeedIdOption.isPresent()) {
+      LOGGER.error("Failed to set search feed id to {}", currentFeedID);
+      Set<String> originalFeedIds = originalSearchFeedId.map(id -> {
+        try {
+          return facilityDao.getKeysForFeed(id);
+        } catch (IOException e) {
+          LOGGER.error("Failed to get keys for {}", id, e);
+        }
+        return new HashSet<String>();
+      }).orElse(new HashSet<>());
+
+      LOGGER.info("Attempting to persist old feed data");
+      if (originalFeedIds.size() > 0) {
+        persistFacilityIds(originalFeedIds);
+      }
+      persistCriticalIds();
+
+      return;
+    }
+
+    this.feedDao.setCurrentFeedId(currentFeedID);
+
+    final Collection<String> feedIds = this.feedDao.getFeedIds();
+    if (feedIds.isEmpty()) {
+      LOGGER.warn("There were no known feed ids to clear!");
+    } else {
+      try {
         for (final String feedId : feedIds) {
           if (!feedId.equalsIgnoreCase(currentFeedID)) {
-            if (expireKeys(feedId)) {
+            if (expireKeys(feedId, expireSeconds)) {
               LOGGER.info("Set expiration for all keys for feed {}", feedId);
             } else {
               LOGGER.info("Set expiration for all some or all keys for feed {} failed!", feedId);
@@ -50,20 +133,22 @@ public class ManageFeeds {
           }
         }
       }
-    }
-    finally {
+      finally {
+        persistCriticalIds();
+        this.feedDao.setSearchFeedId(currentFeedID);
+      }
       LOGGER.info("Finished expiring old feeds after {}", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
   }
 
-  private boolean expireKeys(final String feedId) {
+  private boolean expireKeys(final String feedId, final long expireSeconds) {
     try {
       // This will set a TTL for every location that was loaded for this feed id
       // If there is an existing TTL it will not overwrite it
-      this.facilityDao.expire(feedId, DefaultExpireSeconds, false);
+      this.facilityDao.expire(feedId, expireSeconds, false);
 
       // This
-      this.indexDao.expire(feedId, DefaultExpireSeconds, false);
+      this.indexDao.expire(feedId, expireSeconds, false);
       this.feedDao.removeFeedId(feedId);
       return true;
     } catch (Exception e) {
