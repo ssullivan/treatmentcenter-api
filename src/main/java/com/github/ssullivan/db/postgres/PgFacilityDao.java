@@ -122,7 +122,8 @@ public class PgFacilityDao implements IFacilityDao {
                     }
                 }).collect(Collectors.toList());
 
-                innerDsl.batchInsert(records);
+                innerDsl.batchInsert(records)
+                        .execute();
             });
         }
         catch (UncheckedJsonProcessingException e) {
