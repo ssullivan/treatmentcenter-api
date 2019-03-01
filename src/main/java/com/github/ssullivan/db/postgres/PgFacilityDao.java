@@ -8,6 +8,7 @@ import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.db.psql.tables.records.LocationRecord;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.utils.ShortUuid;
+import java.util.concurrent.CompletableFuture;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.postgis.Point;
@@ -17,8 +18,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PgFacilityDao implements IFacilityDao {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PgFacilityDao.class);
+
     private final DSLContext dsl;
     private ObjectMapper objectMapper;
 
@@ -125,33 +130,63 @@ public class PgFacilityDao implements IFacilityDao {
         }
     }
 
+    private Facility deserialize(final String json) {
+        try {
+            return objectMapper.readValue(json, Facility.class);
+        } catch (IOException e) {
+            LOGGER.info("Failed to deserialize JSON for {}", json, e);
+        }
+        return null;
+    }
+
     @Override
     public Facility getFacility(String id) throws IOException {
-        return null;
+        return this.dsl.select(Tables.LOCATION.JSON)
+            .from(Tables.LOCATION)
+            .where(Tables.LOCATION.ID.eq(ShortUuid.decode(id)))
+            .fetchOptional(Tables.LOCATION.JSON)
+            .map(this::deserialize)
+            .orElse(null);
+
     }
 
     @Override
     public List<Facility> fetchBatch(Collection<String> ids) {
-        return null;
+        return this.dsl.select(Tables.LOCATION.JSON)
+            .from(Tables.LOCATION)
+            .where(Tables.LOCATION.ID.in(ids.stream().map(ShortUuid::decode).collect(Collectors.toSet())))
+            .fetch(Tables.LOCATION.JSON)
+            .stream()
+            .map(this::deserialize)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     @Override
     public CompletionStage<List<Facility>> fetchBatchAsync(Collection<String> ids) {
-        return null;
+        return CompletableFuture.completedFuture(fetchBatch(ids));
     }
 
     @Override
     public Set<String> getKeysForFeed(String feedId) throws IOException {
-        return null;
+        return this.dsl.select(Tables.LOCATION.ID)
+                .from(Tables.LOCATION)
+                .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)))
+                .fetch(Tables.LOCATION.ID)
+                .stream()
+                .map(ShortUuid::encode)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Boolean expire(String id, long seconds) throws IOException {
+        LOGGER.warn("NOT IMPLEMENTED FOR POSTGRES");
         return null;
     }
 
     @Override
     public Boolean expire(String feed, long seconds, boolean overwrite) throws IOException {
+        LOGGER.warn("NOT IMPLEMENTED FOR POSTGRES");
         return null;
     }
 }
