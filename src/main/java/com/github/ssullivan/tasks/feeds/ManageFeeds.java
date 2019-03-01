@@ -57,6 +57,20 @@ public class ManageFeeds {
     }
   }
 
+  public void bumpExpirationOnSearchFeed() {
+
+    try {
+      this.feedDao.searchFeedId()
+          .ifPresent(id -> {
+            LOGGER.info("Attempting to bump expiration for keys associated with: {}", id);
+            expireKeys(id, DefaultExpireSeconds);
+          });
+    } catch (IOException e) {
+      LOGGER.error("Failed to bump expiration on keys for current/original search feed", e);
+    }
+
+  }
+
   public void persistFacilityIds(Set<String> facilityIds) {
     // ensure the following keys dont have a TTL set
     try (StatefulRedisConnection<String, String> conn = redisConnectionPool.borrowConnection()) {
@@ -98,19 +112,7 @@ public class ManageFeeds {
     // If we failed to update the pointer then we don't want to expire the old data (if possible)
     if (!searchFeedIdOption.isPresent()) {
       LOGGER.error("Failed to set search feed id to {}", currentFeedID);
-      Set<String> originalFeedIds = originalSearchFeedId.map(id -> {
-        try {
-          return facilityDao.getKeysForFeed(id);
-        } catch (IOException e) {
-          LOGGER.error("Failed to get keys for {}", id, e);
-        }
-        return new HashSet<String>();
-      }).orElse(new HashSet<>());
-
-      LOGGER.info("Attempting to persist old feed data");
-      if (originalFeedIds.size() > 0) {
-        persistFacilityIds(originalFeedIds);
-      }
+      originalSearchFeedId.ifPresent(it -> expireKeys(it, DefaultExpireSeconds));
       persistCriticalIds();
 
       return;
@@ -141,7 +143,7 @@ public class ManageFeeds {
     }
   }
 
-  private boolean expireKeys(final String feedId, final long expireSeconds) {
+  public boolean expireKeys(final String feedId, final long expireSeconds) {
     try {
       // This will set a TTL for every location that was loaded for this feed id
       // If there is an existing TTL it will not overwrite it

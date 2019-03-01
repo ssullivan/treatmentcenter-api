@@ -99,9 +99,12 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
 
   @Override
   public void load() throws IOException {
+    this.samshaLocatorData.ifPresent(data -> LOGGER.info("NEW DATA FEED ID is {}", data.getFeedId()));
+
     final Stopwatch stopwatch = Stopwatch.createStarted();
     try {
       if (!this.samshaLocatorData.isPresent()) {
+        this.manageFeeds.bumpExpirationOnSearchFeed();
         throw new IOException(
             "No data to transform [no parsed locator data available]! Did you run extract, and transform?");
       }
@@ -116,7 +119,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
             LOGGER.error("Failed to expire old keys", e);
           }
           finally {
-
+            this.manageFeeds.persistFacilityIds(samshaLocatorData.get().facilityIds());
           }
         }
       } else {
