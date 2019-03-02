@@ -21,8 +21,12 @@ import javax.inject.Inject;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PsqlClientModule extends AbstractModule {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PsqlClientModule.class);
     private final DatabaseConfig psqlConfig;
 
     public PsqlClientModule(final DatabaseConfig psqlConfig) {
@@ -46,12 +50,13 @@ public class PsqlClientModule extends AbstractModule {
 
     @Provides
     HikariConfig providesHikariConfig() {
+        PGSimpleDataSource a;
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
         hikariConfig.setUsername(psqlConfig.getUsername());
-        hikariConfig.addDataSourceProperty("dataSource.user", this.psqlConfig.getUsername());
-        hikariConfig.addDataSourceProperty("dataSource.password", this.psqlConfig.getPassword());
-        hikariConfig.addDataSourceProperty("dataSource.databaseName", this.psqlConfig.getDatabaseName());
+        hikariConfig.addDataSourceProperty("user", this.psqlConfig.getUsername());
+        hikariConfig.addDataSourceProperty("password", this.psqlConfig.getPassword());
+        hikariConfig.addDataSourceProperty("databaseName", this.psqlConfig.getDatabaseName());
         hikariConfig.setPoolName("api-postgres-pool");
         return hikariConfig;
     }
@@ -60,8 +65,13 @@ public class PsqlClientModule extends AbstractModule {
     @Singleton
     HikariDataSource provideDataSource(final HikariConfig hikariConfig) {
         final HikariDataSource hikariDataSource = new HikariDataSource(hikariConfig);
-        hikariDataSource.setHealthCheckRegistry(SharedHealthCheckRegistries.getDefault());
-        hikariDataSource.setMetricRegistry(SharedHealthCheckRegistries.getDefault());
+
+        try {
+            hikariDataSource.setHealthCheckRegistry(SharedHealthCheckRegistries.getDefault());
+            hikariDataSource.setMetricRegistry(SharedHealthCheckRegistries.getDefault());
+        } catch (IllegalStateException e) {
+            LOGGER.error("Failed to setup health/metrics integration!", e);
+        }
 
         return hikariDataSource;
     }

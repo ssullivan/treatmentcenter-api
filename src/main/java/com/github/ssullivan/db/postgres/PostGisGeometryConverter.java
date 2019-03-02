@@ -1,46 +1,49 @@
 package com.github.ssullivan.db.postgres;
 
-import com.github.ssullivan.core.UncheckedSqlException;
+import com.github.ssullivan.model.GeoPoint;
+import java.sql.SQLException;
 import org.jooq.Converter;
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
-import org.postgresql.util.PGobject;
+import org.postgis.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-
-public class PostGisGeometryConverter implements Converter<Object, Geometry> {
+public class PostGisGeometryConverter implements Converter<Object, GeoPoint> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostGisGeometryConverter.class);
 
     @Override
-    public Geometry from(Object databaseObject) {
+    public GeoPoint from(Object databaseObject) {
+        if (databaseObject == null) {
+            return null;
+        }
+
+        Geometry geometry = null;
+
         try {
-            if (databaseObject == null) return null;
-            else return PGgeometry.geomFromString(databaseObject.toString());
+            geometry = PGgeometry.geomFromString(databaseObject.toString());
         }
         catch (SQLException e) {
-            LOGGER.error("Failed to convert value to Geometry", e);
-            throw new UncheckedSqlException(e);
+            throw new IllegalArgumentException(e);
         }
+
+        if (!(geometry instanceof Point)) {
+            throw new IllegalArgumentException("Geometry is not a org.postgis.Point.");
+        }
+
+        Point point = (Point) geometry;
+        return GeoPoint.geoPoint(point.getX(), point.getY());
     }
 
     @Override
-    public Object to(Geometry userObject) {
-        try {
-            if (null == userObject) return null;
-            else {
-                PGobject pGobject = new PGobject();
-                pGobject.setType(userObject.getTypeString());
-                pGobject.setValue(userObject.getValue());
+    public Object to(GeoPoint geoPoint) {
+        if (geoPoint == null) {
+            return null;
+        }
 
-                return pGobject;
-            }
-        }
-        catch (SQLException e) {
-            LOGGER.error("Failed to convert value to PGobject", e);
-            throw new UncheckedSqlException(e);
-        }
+        Point p = new Point(geoPoint.lat(), geoPoint.lon());
+
+        return new PGgeometry(p);
     }
 
     @Override
@@ -49,8 +52,8 @@ public class PostGisGeometryConverter implements Converter<Object, Geometry> {
     }
 
     @Override
-    public Class<Geometry> toType() {
-        return Geometry.class;
+    public Class<GeoPoint> toType() {
+        return GeoPoint.class;
     }
 
 

@@ -15,15 +15,13 @@ import org.slf4j.LoggerFactory;
 
 public class PgFeedDao implements IFeedDao {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PgFacilityDao.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PgFeedDao.class);
 
   private final DSLContext dsl;
-  private ObjectMapper objectMapper;
 
   @Inject
-  public PgFeedDao(final DSLContext dslContext, final ObjectMapper objectMapper) {
+  public PgFeedDao(final DSLContext dslContext) {
     this.dsl = dslContext;
-    this.objectMapper = objectMapper;
   }
 
   @Override

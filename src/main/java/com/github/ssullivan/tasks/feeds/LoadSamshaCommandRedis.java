@@ -6,6 +6,7 @@ import com.github.ssullivan.RedisConfig;
 import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.CrawlDelay;
 import com.github.ssullivan.guice.RedisClientModule;
+import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -156,14 +157,17 @@ public class LoadSamshaCommandRedis extends ConfiguredCommand<AppConfig> {
 
       LOGGER.info("[samsha] Downloading locator.xlsx from {}", locatorUrl);
 
+      final String locatorUri = locatorUrl;
+
       this.injector = Guice.createInjector(new RedisClientModule(redisConfig),
           new AbstractModule() {
             @Override
             protected void configure() {
               bindConstant().annotatedWith(CrawlDelay.class).to(4096L);
+              bindConstant().annotatedWith(SamshaUrl.class).to(locatorUri);
             }
           },
-          new AwsS3ClientModule(settings, locatorUrl));
+          new AwsS3ClientModule(settings));
 
       // Verify that things are working
 

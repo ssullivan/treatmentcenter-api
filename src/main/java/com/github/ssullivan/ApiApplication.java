@@ -11,6 +11,7 @@ import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.healthchecks.RedisHealthCheck;
 import com.github.ssullivan.tasks.LoadCategoriesAndServicesTask;
 import com.github.ssullivan.tasks.LoadTreatmentFacilitiesTask;
+import com.github.ssullivan.tasks.feeds.LoadSamshaCommandPostgres;
 import com.github.ssullivan.tasks.feeds.LoadSamshaCommandRedis;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -55,6 +56,7 @@ public class ApiApplication extends Application<AppConfig> {
   public void initialize(Bootstrap<AppConfig> bootstrap) {
 
     bootstrap.addCommand(new LoadSamshaCommandRedis());
+    bootstrap.addCommand(new LoadSamshaCommandPostgres());
     bootstrap.addCommand(new LoadCategoriesAndServicesTask());
     bootstrap.addCommand(new LoadTreatmentFacilitiesTask());
 

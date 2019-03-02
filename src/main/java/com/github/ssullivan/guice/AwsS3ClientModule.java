@@ -22,26 +22,25 @@ public class AwsS3ClientModule extends AbstractModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(AwsS3ClientModule.class);
 
   private final AwsS3Settings awsS3Settings;
-  private final String locatorUrl;
+
 
   /**
    * Creates a new instance of {@link AwsS3ClientModule}. This module will setup
    * Guice so that i can inject a configured instance of {@link AmazonS3} client.
    *
    * @param awsS3Settings the settings to configure the AmazonS3 client with
-   * @param url the URL to download the SAMSHA locator from (This should probably be moved somewhere else)
+   *
    */
-  public AwsS3ClientModule(final AwsS3Settings awsS3Settings, final String url) {
+  public AwsS3ClientModule(final AwsS3Settings awsS3Settings) {
     Objects.requireNonNull(awsS3Settings, "AWS settings must not be empty/null");
-    Objects.requireNonNull(url, "SAMSHA locator URL must not be empty/null");
+
     this.awsS3Settings = awsS3Settings;
-    this.locatorUrl = url;
+
   }
 
   @Override
   protected void configure() {
     bindConstant().annotatedWith(BucketName.class).to(this.awsS3Settings.getBucket());
-    bindConstant().annotatedWith(SamshaUrl.class).to(this.locatorUrl);
 
     LOGGER.info("[aws] Default bucket is {}", this.awsS3Settings.getBucket());
     LOGGER.info("[aws] Default region is {}", this.awsS3Settings.getRegion());

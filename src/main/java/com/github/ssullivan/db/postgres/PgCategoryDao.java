@@ -27,8 +27,8 @@ public class PgCategoryDao implements ICategoryCodesDao {
     @Inject
     public PgCategoryDao(final DSLContext dslContext, final ObjectMapper objectMapper) {
         this.dsl = dslContext;
-        this.objectReader = objectMapper.readerFor(Service.class);
-        this.objectWriter = objectMapper.writerFor(Service.class);
+        this.objectReader = objectMapper.readerFor(Category.class);
+        this.objectWriter = objectMapper.writerFor(Category.class);
     }
 
     @Override

@@ -77,7 +77,7 @@ public class PgFacilityDao implements IFacilityDao {
                     .set(Tables.LOCATION.LAT, facility.getLocation() != null ? facility.getLocation().lat() : null)
                     .set(Tables.LOCATION.LON, facility.getLocation() != null ? facility.getLocation().lon() : null)
                     .set(Tables.LOCATION.ID, ShortUuid.decode(facility.getId()))
-                    .set(Tables.LOCATION.GEOG, facility.getLocation() != null ? new Point(facility.getLocation().lon(), facility.getLocation().lat(), 0) : null)
+                    .set(Tables.LOCATION.GEOG, facility.getLocation())
                     .execute();
         });
     }

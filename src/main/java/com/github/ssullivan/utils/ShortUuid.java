@@ -1,12 +1,15 @@
 package com.github.ssullivan.utils;
 
+import io.github.novacrypto.base58.Base58;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ShortUuid {
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(ShortUuid.class);
   public static final Pattern ShortUuidValidator = Pattern
       .compile("^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{1,128}$");
   private static final BigInteger MIN_128_INV = BigInteger.ONE.shiftLeft(127);
@@ -23,11 +26,27 @@ public class ShortUuid {
   }
 
   public static String encode(final UUID uuid) {
-    return encode(new BigInteger(asBytes(uuid)));
+    byte[] uuidBytes = asBytes(uuid);
+    return Base58.base58Encode(uuidBytes);
   }
 
   public static UUID decode(final String encoded) {
-    return toUUID(decode(encoded.toCharArray()).toByteArray());
+    byte[] buf = Base58.base58Decode(encoded);
+    return toUUID(buf);
+  }
+
+  public static UUID _decode(final String encoded) {
+    byte[] original = decode(encoded.toCharArray()).toByteArray();
+    byte[] padded = new byte[16];
+    int delta = 16 - original.length;
+    byte zero = 0x00;
+    for (int i = 0; i < delta; ++i)
+      padded[i] = 0;
+
+    for (int i = 0; i < original.length; ++i)
+      padded[i + delta] = original[i];
+
+    return toUUID(padded);
   }
 
   public static byte[] asBytes(final UUID uuid) {
@@ -72,25 +91,33 @@ public class ShortUuid {
   }
 
   private static UUID toUUID(final byte[] data) {
-    long lsb = 0;
-    long msb = 0;
-    long highInt = 0;
-    long midShort = 0;
-    long lowShort = 0;
-    for (int i = 3; i >= 0; i--) {
-      highInt = highInt << 8 | data[i] & 0xff;
+    assert data.length == 16 : "data must be 16 bytes in length";
+    try {
+
+      long lsb = 0;
+      long msb = 0;
+      long highInt = 0;
+      long midShort = 0;
+      long lowShort = 0;
+      for (int i = 3; i >= 0; i--) {
+        highInt = highInt << 8 | data[i] & 0xff;
+      }
+      for (int i = 5; i >= 4; i--) {
+        midShort = midShort << 8 | data[i] & 0xff;
+      }
+      for (int i = 7; i >= 6; i--) {
+        lowShort = lowShort << 8 | data[i] & 0xff;
+      }
+      msb = highInt << 32 | midShort << 16 | lowShort;
+      for (int i = 8; i < 16; i++) {
+        lsb = lsb << 8 | data[i] & 0xff;
+      }
+      return new UUID(msb, lsb);
     }
-    for (int i = 5; i >= 4; i--) {
-      midShort = midShort << 8 | data[i] & 0xff;
+    catch (ArrayIndexOutOfBoundsException e) {
+      LOGGER.error("Failed to convert toUUID {}", data, e);
+      throw e;
     }
-    for (int i = 7; i >= 6; i--) {
-      lowShort = lowShort << 8 | data[i] & 0xff;
-    }
-    msb = highInt << 32 | midShort << 16 | lowShort;
-    for (int i = 8; i < 16; i++) {
-      lsb = lsb << 8 | data[i] & 0xff;
-    }
-    return new UUID(msb, lsb);
   }
 
 }

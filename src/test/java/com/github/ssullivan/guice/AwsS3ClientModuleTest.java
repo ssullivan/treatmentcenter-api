@@ -4,6 +4,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.ContainerCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.github.ssullivan.model.aws.AwsS3Settings;
+import com.github.ssullivan.tasks.feeds.SamshaLocatorEtl;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.hamcrest.Matchers;
@@ -15,7 +17,12 @@ public class AwsS3ClientModuleTest {
   public void testCreatingAwsS3Client() {
     final AwsS3Settings awsS3Settings = new AwsS3Settings("test", "test");
     final Injector injector = Guice
-        .createInjector(new AwsS3ClientModule(awsS3Settings, "localhost"));
+        .createInjector(new AwsS3ClientModule(awsS3Settings), new AbstractModule() {
+          @Override
+          protected void configure() {
+            bindConstant().annotatedWith(SamshaUrl.class).to("localhost");
+          }
+        });
     final AmazonS3 amazonS3 = injector.getInstance(AmazonS3.class);
 
     final AWSCredentialsProvider credentialProvider = awsS3Settings.getAWSCredentialsProvider();
