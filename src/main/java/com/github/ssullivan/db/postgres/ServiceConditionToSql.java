@@ -1,11 +1,12 @@
 package com.github.ssullivan.db.postgres;
 
-import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.model.MatchOperator;
 import com.github.ssullivan.model.ServicesCondition;
 import com.github.ssullivan.model.SetOperation;
 import com.google.common.base.Strings;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.Record;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ public class ServiceConditionToSql implements IServiceConditionToSql {
         if (rawSql == null || rawSql.isEmpty()) {
             return DSL.condition(true);
         }
+        //https://www.postgresql.org/docs/9.1/intarray.html
         return DSL.condition(field.getName() + " @@ " + rawSql + "::query_int");
     }
 
@@ -81,7 +83,7 @@ public class ServiceConditionToSql implements IServiceConditionToSql {
             case SHOULD:
                 return "(" + String.join(OR, asStrings) + ")";
             case MUST_NOT:
-                return "!(" + String.join(OR, asStrings) + ")";
+                return "(" + String.join(AND, asStrings.stream().map(s -> "!" + s).collect(Collectors.toList())) + ")";
             case MUST:
             default:
                 return "(" + String.join(AND, asStrings) + ")";

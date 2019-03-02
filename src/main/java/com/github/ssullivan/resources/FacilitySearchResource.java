@@ -483,6 +483,7 @@ public class FacilitySearchResource {
       @ApiParam(value = "Indicates the direction of the sort", allowableValues = "ASC,DESC")
       @DefaultValue("DESC")
       @QueryParam("sortDir") final SortDirection sortDirection) {
+
     findFacilitiesByServiceCodesV2(asyncResponse, postalCode,
         serviceCodes,
         ImmutableList.of(),
