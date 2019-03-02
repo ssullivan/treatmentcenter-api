@@ -17,8 +17,11 @@ import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.crawler.RobotsTxt;
 import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
+import com.google.common.io.ByteStreams;
+import com.google.common.primitives.Bytes;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,6 +70,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
   private AmazonS3 amazonS3;
   private Client client;
   private long crawlDelay;
+  private boolean cacheInMemory;
+  private byte[] cachedBytes;
 
 
   @Inject
@@ -91,6 +96,16 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
           clientRequestContext.getHeaders().add("Upgrade-Insecure-Requests", "1");
 
         });
+    this.cacheInMemory = false;
+    this.cachedBytes = new byte[]{};
+  }
+
+  public InputStream newInputStream() {
+    return new ByteArrayInputStream(cachedBytes);
+  }
+
+  public void setCacheInMemory(boolean cacheInMemory) {
+    this.cacheInMemory = cacheInMemory;
   }
 
   public Optional<RobotsTxt> fetchRobotsTxt() {
@@ -122,7 +137,14 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
           BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream,
               DefaultBufferSize)
       ) {
-        return Optional.of(handleStream(file.length(), bufferedInputStream));
+        if (this.cacheInMemory) {
+          final ByteArrayOutputStream inMemBuffer = new ByteArrayOutputStream(8192 * 3);
+          ByteStreams.copy(bufferedInputStream, inMemBuffer);
+          return Optional.of(new Tuple2<>(bucket,  createObjectKey()));
+        }
+        else {
+          return Optional.of(handleStream(file.length(), bufferedInputStream));
+        }
       } catch (IOException e) {
         LOGGER.error("Failed to load: " + this.url, e);
       }

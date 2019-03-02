@@ -1,18 +1,26 @@
 package com.github.ssullivan.guice;
 
-import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.health.SharedHealthCheckRegistries;
 import com.github.ssullivan.DatabaseConfig;
+import com.github.ssullivan.db.ICategoryCodesDao;
+import com.github.ssullivan.db.IFacilityDao;
+import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.db.IServiceCodesDao;
+import com.github.ssullivan.db.IndexFacility;
+import com.github.ssullivan.db.postgres.NoOpIndexFacility;
+import com.github.ssullivan.db.postgres.PgCategoryDao;
+import com.github.ssullivan.db.postgres.PgFacilityDao;
+import com.github.ssullivan.db.postgres.PgFeedDao;
+import com.github.ssullivan.db.postgres.PgServiceDao;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import javax.inject.Inject;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
-
-import javax.inject.Inject;
 
 public class PsqlClientModule extends AbstractModule {
     private final DatabaseConfig psqlConfig;
@@ -23,7 +31,11 @@ public class PsqlClientModule extends AbstractModule {
 
     @Override
     protected void configure() {
-
+        bind(IFacilityDao.class).to(PgFacilityDao.class);
+        bind(ICategoryCodesDao.class).to(PgCategoryDao.class);
+        bind(IServiceCodesDao.class).to(PgServiceDao.class);
+        bind(IndexFacility.class).to(NoOpIndexFacility.class);
+        bind(IFeedDao.class).to(PgFeedDao.class);
     }
 
     @Provides

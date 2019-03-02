@@ -17,7 +17,7 @@ public class RdsClientModule extends PsqlClientModule {
 
     @Override
     protected void configure() {
-
+        super.configure();
     }
 
     @Provides

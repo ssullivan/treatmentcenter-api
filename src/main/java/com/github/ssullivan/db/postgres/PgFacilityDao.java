@@ -98,7 +98,7 @@ public class PgFacilityDao implements IFacilityDao {
                         final Integer[] serviceCodeIds = convertToInts(serviceLookup, facility.getServiceCodes());
                         final Integer[] categoryCodeIds = convertToInts(categoryLookup, facility.getCategoryCodes());
 
-                        LocationRecord locationRecord = new LocationRecord()
+                        final LocationRecord locationRecord = new LocationRecord()
                                 .setId(ShortUuid.decode(facility.getId()))
                                 .setCats(categoryCodeIds)
                                 .setServices(serviceCodeIds)

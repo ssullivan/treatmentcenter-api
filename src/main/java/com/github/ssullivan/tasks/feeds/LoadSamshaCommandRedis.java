@@ -21,12 +21,12 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
+public class LoadSamshaCommandRedis extends ConfiguredCommand<AppConfig> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LoadSamshaCommand.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LoadSamshaCommandRedis.class);
   private Injector injector;
 
-  public LoadSamshaCommand() {
+  public LoadSamshaCommandRedis() {
     super("load-samsha", "Loads treatment center details into the database");
   }
 
@@ -102,6 +102,13 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
         .setDefault(0)
         .type(Integer.class)
         .help("The redis database to store the data into (default 0)");
+
+
+    subparser.addArgument("-skipS3")
+        .dest("SkipS3")
+        .required(false)
+        .setDefault(false)
+        .type(Boolean.class);
   }
 
 
@@ -173,10 +180,20 @@ public class LoadSamshaCommand extends ConfiguredCommand<AppConfig> {
       }
 
       LOGGER.info("Successfully, connected to Elasticache/Redis {}", redisConfig.getHost());
-      final ISamshaEtlJob samshaEtlJob = injector.getInstance(ISamshaEtlJob.class);
-      samshaEtlJob.extract();
-      samshaEtlJob.transform();
-      samshaEtlJob.load();
+      if (namespace.get("SkipS3")) {
+        final ISamshaEtlJob samshaEtlJob = injector.getInstance(ISamshaEtlJob.class);
+
+        samshaEtlJob.extract();
+        samshaEtlJob.transform();
+        samshaEtlJob.load();
+      }
+      else {
+        final ISamshaEtlJob samshaEtlJob = injector.getInstance(InMemorySamshaLocalEtl.class);
+
+        samshaEtlJob.extract();
+        samshaEtlJob.transform();
+        samshaEtlJob.load();
+      }
 
     } catch (IOException e) {
       LOGGER.error("Failed to fetch / transform / load SAMSHSA data", e);
