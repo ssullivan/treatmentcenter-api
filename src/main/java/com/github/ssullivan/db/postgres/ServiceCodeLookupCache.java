@@ -1,45 +1,75 @@
 package com.github.ssullivan.db.postgres;
 
-import com.github.ssullivan.core.AvailableServiceController.CategoryCacheLoader;
-import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.psql.Tables;
-import com.github.ssullivan.model.Category;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import io.dropwizard.lifecycle.Managed;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+@Singleton
 public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCodeLookupCache.class);
 
   private final ExecutorService pool = Executors.newSingleThreadExecutor();
   private final LoadingCache<String, Integer> cache;
+  private final DSLContext dsl;
 
   @Inject
   public ServiceCodeLookupCache(final DSLContext dslContext) {
+    this.dsl = dslContext;
     this.cache =  CacheBuilder.newBuilder()
         .concurrencyLevel(8)
-        .maximumSize(256)
+        .maximumSize(512)
         .refreshAfterWrite(30, TimeUnit.MINUTES)
         .expireAfterWrite(3, TimeUnit.DAYS)
         .build(new ServiceIdCacheLoader(pool, dslContext));
   }
 
+  public Integer lookup(final String serviceCode) throws ExecutionException {
+    Objects.requireNonNull(serviceCode, "Service code must not be null");
+    try {
+      return this.cache.get(serviceCode);
+    } catch (ExecutionException | UncheckedExecutionException | ExecutionError e) {
+      LOGGER.error("Failed to load value from cache for key '{}'", serviceCode, e);
+      throw e;
+    }
+  }
+
+  @Override
+  public Set<Integer> lookupSet(Collection<String> serviceCodes) {
+    return serviceCodes.stream().map(it -> {
+      try {
+        return lookup(it);
+      }
+      catch (ExecutionException | UncheckedExecutionException | ExecutionError e) {
+        LOGGER.error("Failed to lookup service code '{}'", it, e);
+      }
+      return null;
+    }).filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+  }
+
 
   @Override
   public void start() throws Exception {
-
+    this.cache.putAll(this.dsl.select(Tables.SERVICE.CODE, Tables.SERVICE.ID)
+            .from(Tables.SERVICE)
+            .fetchMap(Tables.SERVICE.CODE, Tables.SERVICE.ID));
   }
 
   @Override

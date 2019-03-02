@@ -6,6 +6,7 @@ import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.core.analytics.CompositeFacilityScore.Builder;
 import com.github.ssullivan.core.analytics.Importance;
 import com.github.ssullivan.core.analytics.TraumaTypes;
+import com.github.ssullivan.db.IFindBySearchRequest;
 import com.github.ssullivan.db.redis.search.FindBySearchRequest;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
@@ -59,11 +60,11 @@ public class FacilitySearchResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(FacilitySearchResource.class);
   private static final java.util.regex.Pattern RE_VALID_SAMSHA_SERVICE_CODE = java.util.regex.Pattern
       .compile("^!{0,1}[a-zA-Z0-9]{1,31}");
-  private final FindBySearchRequest facilitySearch;
+  private final IFindBySearchRequest facilitySearch;
   private final IPostalcodeService postalcodeService;
 
   @Inject
-  public FacilitySearchResource(final FindBySearchRequest facilitySearch,
+  public FacilitySearchResource(final IFindBySearchRequest facilitySearch,
       final IPostalcodeService postalcodeService) {
     this.facilitySearch = facilitySearch;
     this.postalcodeService = postalcodeService;
