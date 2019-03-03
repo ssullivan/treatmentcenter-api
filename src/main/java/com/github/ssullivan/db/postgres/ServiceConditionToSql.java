@@ -30,7 +30,7 @@ public class ServiceConditionToSql implements IServiceConditionToSql {
                                                     final List<ServicesCondition> conditions) {
         final String rawSql = toSql(setOperation, conditions);
         if (rawSql == null || rawSql.isEmpty()) {
-            return DSL.condition(true);
+            return DSL.trueCondition();
         }
         //https://www.postgresql.org/docs/9.1/intarray.html
         return DSL.condition(field.getName() + " @@ " + rawSql + "::query_int");

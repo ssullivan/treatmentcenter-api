@@ -7,8 +7,12 @@ import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.db.psql.tables.records.LocationRecord;
 import com.github.ssullivan.model.Facility;
+import com.github.ssullivan.model.GeoPoint;
+import com.github.ssullivan.model.GeoUnit;
 import com.github.ssullivan.utils.ShortUuid;
 import java.util.concurrent.CompletableFuture;
+import javax.ws.rs.QueryParam;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.postgis.Point;
@@ -31,6 +35,12 @@ public class PgFacilityDao implements IFacilityDao {
     public PgFacilityDao(final DSLContext dslContext, final ObjectMapper objectMapper) {
         this.dsl = dslContext;
         this.objectMapper = objectMapper;
+    }
+
+    private static Condition ST_DWithin(final GeoPoint geoPoint, final long radius, final GeoUnit unit) {
+        return DSL.condition("ST_DWithin(location.geog, 'POINT({0} {1})', {2})", geoPoint.lat(),
+            geoPoint.lon(),
+            unit.convertTo(GeoUnit.METER, radius));
     }
 
     private Map<String, Integer> createCategoryCodeLookupTable(final DSLContext dsl) {
@@ -78,6 +88,7 @@ public class PgFacilityDao implements IFacilityDao {
                     .set(Tables.LOCATION.LON, facility.getLocation() != null ? facility.getLocation().lon() : null)
                     .set(Tables.LOCATION.ID, ShortUuid.decode(facility.getId()))
                     .set(Tables.LOCATION.GEOG, facility.getLocation())
+                    .set(Tables.LOCATION.JSON, json)
                     .execute();
         });
     }
