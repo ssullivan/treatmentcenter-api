@@ -74,4 +74,6 @@ public class PgFeedDao implements IFeedDao {
         .fetchOptional(Tables.FEED_DETAIL.ID)
         .map(ShortUuid::encode);
   }
+
+
 }

@@ -7,6 +7,7 @@ import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.core.PostalcodeService;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
+import com.github.ssullivan.guice.PsqlClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.healthchecks.RedisHealthCheck;
 import com.github.ssullivan.tasks.LoadCategoriesAndServicesTask;
@@ -97,14 +98,19 @@ public class ApiApplication extends Application<AppConfig> {
       @Override
       protected void configure() {
         if (getConfiguration().getRedisConfig() != null) {
-          install(new RedisClientModule(getConfiguration().getRedisConfig()));
           LOGGER.info("Configuring application to connect to Redis/ElastiCache");
+          install(new RedisClientModule(getConfiguration().getRedisConfig()));
+
         } else {
-          LOGGER.info("No configuration provided for Redis/ElastiCache");
+          LOGGER.warn("No configuration provided for Redis/ElastiCache");
         }
 
-        LOGGER.info("Attempting to get config from S3");
-
+        if (getConfiguration().getDatabaseConfig() != null) {
+          LOGGER.info("Configuring application to connect to Postgres/RDS");
+          install(new PsqlClientModule(getConfiguration().getDatabaseConfig()));
+        } else {
+          LOGGER.warn("No configuration provided for Postgres/RDS");
+        }
       }
     };
 

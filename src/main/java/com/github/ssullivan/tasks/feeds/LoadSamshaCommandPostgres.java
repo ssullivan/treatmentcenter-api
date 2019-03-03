@@ -7,7 +7,6 @@ import com.github.ssullivan.guice.AwsS3ClientModule;
 import com.github.ssullivan.guice.BucketName;
 import com.github.ssullivan.guice.CrawlDelay;
 import com.github.ssullivan.guice.PsqlClientModule;
-import com.github.ssullivan.guice.RdsClientModule;
 import com.github.ssullivan.guice.SamshaUrl;
 import com.github.ssullivan.model.aws.AwsS3Settings;
 import com.google.inject.AbstractModule;
@@ -187,7 +186,7 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
           // If we selected IAM we are running in AWS
           if (namespace.get("UseIAM")) {
             LOGGER.info("Configuring application for RDS");
-            install(new RdsClientModule(rdsConfig));
+            install(new PsqlClientModule(rdsConfig));
           }
           else {
             LOGGER.info("Configuring application for POSTGRES");

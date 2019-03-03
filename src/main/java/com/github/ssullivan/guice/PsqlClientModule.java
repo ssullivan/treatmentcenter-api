@@ -1,16 +1,22 @@
 package com.github.ssullivan.guice;
 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
+import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.codahale.metrics.health.SharedHealthCheckRegistries;
 import com.github.ssullivan.DatabaseConfig;
+import com.github.ssullivan.RdsConfig;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.db.IFindBySearchRequest;
 import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.db.IndexFacility;
 import com.github.ssullivan.db.postgres.NoOpIndexFacility;
 import com.github.ssullivan.db.postgres.PgCategoryDao;
 import com.github.ssullivan.db.postgres.PgFacilityDao;
 import com.github.ssullivan.db.postgres.PgFeedDao;
+import com.github.ssullivan.db.postgres.PgFindBySearchRequest;
 import com.github.ssullivan.db.postgres.PgServiceDao;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -40,6 +46,7 @@ public class PsqlClientModule extends AbstractModule {
         bind(IServiceCodesDao.class).to(PgServiceDao.class);
         bind(IndexFacility.class).to(NoOpIndexFacility.class);
         bind(IFeedDao.class).to(PgFeedDao.class);
+        bind(IFindBySearchRequest.class).to(PgFindBySearchRequest.class);
     }
 
     @Provides
@@ -50,13 +57,17 @@ public class PsqlClientModule extends AbstractModule {
 
     @Provides
     HikariConfig providesHikariConfig() {
-        PGSimpleDataSource a;
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
         hikariConfig.setUsername(psqlConfig.getUsername());
         hikariConfig.addDataSourceProperty("user", this.psqlConfig.getUsername());
-        hikariConfig.addDataSourceProperty("password", this.psqlConfig.getPassword());
+        hikariConfig.addDataSourceProperty("password", this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
         hikariConfig.addDataSourceProperty("databaseName", this.psqlConfig.getDatabaseName());
+
+        if (psqlConfig instanceof RdsConfig && ((RdsConfig) psqlConfig).isIamAuth()) {
+            hikariConfig.addDataSourceProperty("password", generateAuthToken((RdsConfig) psqlConfig));
+        }
+
         hikariConfig.setPoolName("api-postgres-pool");
         return hikariConfig;
     }
@@ -74,5 +85,26 @@ public class PsqlClientModule extends AbstractModule {
         }
 
         return hikariDataSource;
+    }
+
+    static String generateAuthToken(RdsConfig rdsConfig) {
+        return generateAuthToken(rdsConfig.getRegion(), rdsConfig.getHost(), rdsConfig.getPort(), rdsConfig.getUsername());
+    }
+
+    static String generateAuthToken(String region, String hostName, int port, String username) {
+
+        final RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
+            .credentials(new DefaultAWSCredentialsProviderChain())
+            .region(region)
+            .build();
+
+        final String authToken = generator.getAuthToken(
+            GetIamAuthTokenRequest.builder()
+                .hostname(hostName)
+                .port(port)
+                .userName(username)
+                .build());
+
+        return authToken;
     }
 }

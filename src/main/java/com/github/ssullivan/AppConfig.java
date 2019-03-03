@@ -11,6 +11,8 @@ public class AppConfig extends Configuration {
 
   private RedisConfig redisConfig;
   private SwaggerBundleConfiguration swaggerBundleConfiguration;
+  private RdsConfig rdsConfig;
+
 
   public AppConfig() {
 
@@ -36,5 +38,15 @@ public class AppConfig extends Configuration {
 
   public void setRedisConfig(RedisConfig redisConfig) {
     this.redisConfig = redisConfig;
+  }
+
+  @JsonProperty("postgres")
+  @Nullable
+  public RdsConfig getDatabaseConfig() {
+    return rdsConfig;
+  }
+
+  public void setDatabaseConfig(RdsConfig databaseConfig) {
+    this.rdsConfig = databaseConfig;
   }
 }

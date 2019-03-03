@@ -14,7 +14,7 @@ public class DatabaseConfig {
 
 
     public DatabaseConfig() {
-
+        this.password = "";
     }
 
     public String getDatabaseName() {

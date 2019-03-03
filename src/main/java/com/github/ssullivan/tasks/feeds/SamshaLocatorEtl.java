@@ -3,6 +3,7 @@ package com.github.ssullivan.tasks.feeds;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.google.common.base.Stopwatch;
@@ -21,6 +22,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
   private FetchSamshaDataFeed fetchSamshaDataFeed;
   private TransformLocatorSpreadsheet transformLocatorSpreadsheet;
   private StoreSamshaLocatorData storeSamshaLocatorData;
+
 
   private Optional<String> locatorBucket = Optional.empty();
   private Optional<String> locatorObjectKey = Optional.empty();
@@ -110,6 +112,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
       }
 
       if (samshaLocatorData.get().isGood()) {
+
         if (!this.storeSamshaLocatorData.apply(samshaLocatorData.get())) {
           LOGGER.warn("Failed to store SAMSHA locator data!");
         } else {
