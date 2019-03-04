@@ -21,11 +21,7 @@ addons:
 env:
   global:
     - PGPORT=5433
-    -
-before_script:
-  - psql -c "CREATE DATABASE app_dev;" -U postgres
-  - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD 'password'"
-  - sudo -u postgres psql -c "ALTER ROLE appuser SUPERUSER"
+    
 
 matrix:
   include:
@@ -33,6 +29,9 @@ matrix:
       before_script:
         - chmod +x ./gradlew
         - docker --version  # document the version travis is using
+        - psql -c "CREATE DATABASE app_dev;" -U postgres
+        - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD 'password'"
+        - sudo -u postgres psql -c "ALTER ROLE appuser SUPERUSER"
       script:
         - ./gradlew assemble
         - ./gradlew check
