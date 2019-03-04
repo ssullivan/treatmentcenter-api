@@ -1,6 +1,8 @@
 package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.github.ssullivan.db.IManageFeeds;
+import com.github.ssullivan.db.redis.RedisFeedManager;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.github.ssullivan.utils.ShortUuid;
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class InMemorySamshaLocalEtl implements ISamshaEtlJob {
   private Optional<String> locatorBucket = Optional.empty();
   private Optional<String> locatorObjectKey = Optional.empty();
   private Optional<SamshaLocatorData> samshaLocatorData = Optional.empty();
-  private ManageFeeds manageFeeds;
+  private IManageFeeds manageFeeds;
 
   private String feedId;
   private AmazonS3 amazonS3;
@@ -28,10 +30,12 @@ public class InMemorySamshaLocalEtl implements ISamshaEtlJob {
   @Inject
   public InMemorySamshaLocalEtl(FetchSamshaDataFeed fetchSamshaDataFeed,
       final TransformLocatorSpreadsheet transformLocatorSpreadsheet,
-      final StoreSamshaLocatorData storeSamshaLocatorData) {
+      final StoreSamshaLocatorData storeSamshaLocatorData,
+                                IManageFeeds manageFeeds) {
     this.fetchSamshaDataFeed = fetchSamshaDataFeed;
     this.transformLocatorSpreadsheet = transformLocatorSpreadsheet;
     this.storeSamshaLocatorData = storeSamshaLocatorData;
+    this.manageFeeds = manageFeeds;
   }
 
   @Override
@@ -47,6 +51,14 @@ public class InMemorySamshaLocalEtl implements ISamshaEtlJob {
 
   @Override
   public void load() throws IOException {
-    samshaLocatorData.ifPresent(data -> this.storeSamshaLocatorData.apply(data));
+    samshaLocatorData.ifPresent(data -> {
+      if (this.storeSamshaLocatorData.apply(data)) {
+        try {
+          this.manageFeeds.expireOldFeeds(data.getFeedId());
+        } catch (Exception e) {
+          LOGGER.error("Failed to expire old feeds", e);
+        }
+      }
+    });
   }
 }

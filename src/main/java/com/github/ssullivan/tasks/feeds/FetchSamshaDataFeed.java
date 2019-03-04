@@ -129,7 +129,7 @@ public class FetchSamshaDataFeed implements ILoadSamshaSpreadsheet, Supplier<Opt
   }
 
   private Optional<Tuple2<String, String>> loadFile() {
-    final File file = new File(this.url.replaceFirst("file:/", ""));
+    final File file = new File(this.url.replaceFirst("file:", ""));
     try (FileInputStream fileInputStream = new FileInputStream(file);
         BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream,
             DefaultBufferSize)

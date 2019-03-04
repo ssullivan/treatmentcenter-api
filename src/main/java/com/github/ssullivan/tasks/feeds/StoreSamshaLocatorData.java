@@ -90,6 +90,12 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
     LOGGER.info("Loaded {} of {} locations", totalLocations,
         samshaLocatorData.getFacilities().size());
 
+    try {
+      this.feedDao.setSearchFeedId(samshaLocatorData.getFeedId());
+    } catch (IOException e) {
+      LOGGER.error("Failed to set search feed id to {}", samshaLocatorData.getFeedId());
+    }
+
     return true;
   }
 }

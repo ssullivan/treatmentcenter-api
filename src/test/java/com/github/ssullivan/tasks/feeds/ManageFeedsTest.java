@@ -5,7 +5,7 @@ import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IServiceCodesDao;
-import com.github.ssullivan.db.IndexFacility;
+import com.github.ssullivan.db.redis.RedisFeedManager;
 import com.github.ssullivan.db.redis.RedisCategoryCodesDao;
 import com.github.ssullivan.db.redis.RedisServiceCodeDao;
 import com.github.ssullivan.guice.RedisClientModule;
@@ -73,7 +73,7 @@ public class ManageFeedsTest {
     feedDao.setCurrentFeedId(FeedId);
     feedDao.setSearchFeedId(FeedId);
 
-    ManageFeeds manageFeeds = injector.getInstance(ManageFeeds.class);
+    RedisFeedManager manageFeeds = injector.getInstance(RedisFeedManager.class);
 
     manageFeeds.expireOldFeeds(ShortUuid.randomShortUuid(), 1L);
 

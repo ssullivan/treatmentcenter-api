@@ -3,7 +3,8 @@ package com.github.ssullivan.tasks.feeds;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.github.ssullivan.db.IFeedDao;
+import com.github.ssullivan.db.IManageFeeds;
+import com.github.ssullivan.db.redis.RedisFeedManager;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.google.common.base.Stopwatch;
@@ -27,7 +28,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
   private Optional<String> locatorBucket = Optional.empty();
   private Optional<String> locatorObjectKey = Optional.empty();
   private Optional<SamshaLocatorData> samshaLocatorData = Optional.empty();
-  private ManageFeeds manageFeeds;
+  private IManageFeeds manageFeeds;
 
   private String feedId;
   private AmazonS3 amazonS3;
@@ -37,7 +38,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
   public SamshaLocatorEtl(final FetchSamshaDataFeed fetchSamshaDataFeed,
       final TransformLocatorSpreadsheet transformLocatorSpreadsheet,
       final StoreSamshaLocatorData storeSamshaLocatorData,
-      final ManageFeeds manageFeeds,
+      final IManageFeeds manageFeeds,
       final AmazonS3 amazonS3) {
 
     this.fetchSamshaDataFeed = fetchSamshaDataFeed;

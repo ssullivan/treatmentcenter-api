@@ -6,8 +6,6 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE feed_detail (
   id UUID primary key NOT NULL,
   is_search_feed boolean NOT NULL default false,
-  bucket text NOT NULL,
-  resource text NOT NULL,
   created TIMESTAMP WITH TIME ZONE NOT NULL default (now())
 );
 
@@ -66,6 +64,8 @@ create table postalcode (
 create table location (
   id UUID primary key not null,
   feed_id UUID not null,
+  name1 text,
+  name2 text,
   json text NOT NULL default '{}',
   state text,
   city text,

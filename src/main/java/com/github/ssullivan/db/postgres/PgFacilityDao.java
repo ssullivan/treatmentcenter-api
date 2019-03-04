@@ -76,6 +76,8 @@ public class PgFacilityDao implements IFacilityDao {
             final Integer[] categoryCodeIds = convertToInts(categoryLookup, facility.getCategoryCodes());
 
             innerDsl.insertInto(Tables.LOCATION)
+                    .set(Tables.LOCATION.NAME1, facility.getName1())
+                    .set(Tables.LOCATION.NAME2, facility.getName2())
                     .set(Tables.LOCATION.CATS, categoryCodeIds)
                     .set(Tables.LOCATION.SERVICES, serviceCodeIds)
                     .set(Tables.LOCATION.CITY, facility.getCity())
@@ -111,6 +113,8 @@ public class PgFacilityDao implements IFacilityDao {
 
                         final LocationRecord locationRecord = new LocationRecord()
                                 .setId(ShortUuid.decode(facility.getId()))
+                                .setName1(facility.getName1())
+                                .setName2(facility.getName2())
                                 .setCats(categoryCodeIds)
                                 .setServices(serviceCodeIds)
                                 .setJson(json)

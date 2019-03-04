@@ -6,18 +6,8 @@ import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.codahale.metrics.health.SharedHealthCheckRegistries;
 import com.github.ssullivan.DatabaseConfig;
 import com.github.ssullivan.RdsConfig;
-import com.github.ssullivan.db.ICategoryCodesDao;
-import com.github.ssullivan.db.IFacilityDao;
-import com.github.ssullivan.db.IFeedDao;
-import com.github.ssullivan.db.IFindBySearchRequest;
-import com.github.ssullivan.db.IServiceCodesDao;
-import com.github.ssullivan.db.IndexFacility;
-import com.github.ssullivan.db.postgres.NoOpIndexFacility;
-import com.github.ssullivan.db.postgres.PgCategoryDao;
-import com.github.ssullivan.db.postgres.PgFacilityDao;
-import com.github.ssullivan.db.postgres.PgFeedDao;
-import com.github.ssullivan.db.postgres.PgFindBySearchRequest;
-import com.github.ssullivan.db.postgres.PgServiceDao;
+import com.github.ssullivan.db.*;
+import com.github.ssullivan.db.postgres.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -47,6 +37,7 @@ public class PsqlClientModule extends AbstractModule {
         bind(IndexFacility.class).to(NoOpIndexFacility.class);
         bind(IFeedDao.class).to(PgFeedDao.class);
         bind(IFindBySearchRequest.class).to(PgFindBySearchRequest.class);
+        bind(IManageFeeds.class).to(PgFeedManager.class);
     }
 
     @Provides

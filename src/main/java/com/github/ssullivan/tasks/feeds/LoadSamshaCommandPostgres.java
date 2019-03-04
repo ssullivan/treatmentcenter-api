@@ -71,7 +71,7 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
 
     subparser.addArgument("-r", "--region")
         .dest("Region")
-        .required(true)
+        .required(false)
         .setDefault("us-east-1")
         .type(String.class)
         .help("The AWS region that the bucket lives");

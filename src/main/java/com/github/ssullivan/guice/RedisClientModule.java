@@ -1,8 +1,11 @@
 package com.github.ssullivan.guice;
 
 import com.github.ssullivan.RedisConfig;
+import com.github.ssullivan.db.IManageFeeds;
+import com.github.ssullivan.db.postgres.PgFeedManager;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisConnectionPool;
+import com.github.ssullivan.db.redis.RedisFeedManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import io.lettuce.core.RedisClient;
@@ -20,8 +23,7 @@ public class RedisClientModule extends AbstractModule {
   protected void configure() {
     bind(RedisConfig.class).toInstance(redisConfig);
     bind(RedisClient.class).toProvider(RedisClientProvider.class).in(Singleton.class);
-    bind(IRedisConnectionPool.class).to(RedisConnectionPool.class).in(Singleton.class);
+    bind(IManageFeeds.class).to(RedisFeedManager.class);
   }
-
 
 }
