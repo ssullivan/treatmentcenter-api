@@ -17,13 +17,12 @@ addons:
     packages:
       - postgresql-10-postgis-2.4
 
-#env:
-#  global:
-#    - PGPORT=5433
+env:
+  global:
+    - PGPORT=5432
 
 before_script:
-  - psql -U postgres -c "create extension postgis"
-
+  - psql -c "CREATE DATABASE app_dev;" -U postgres
 
 matrix:
   include:

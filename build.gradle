@@ -255,10 +255,10 @@ nebulaDocker {
 }
 
 flyway {
-    url = "jdbc:postgresql://localhost:5432/postgres"
+    url = "jdbc:postgresql://localhost:5432/app_dev"
     user = 'postgres'
     password = ''
-    schemas = ['app']
+    schemas = ['public']
 }
 
 jooq {
@@ -266,18 +266,18 @@ jooq {
     app(sourceSets.main) {
         jdbc {
             driver = 'org.postgresql.Driver'
-            url = "jdbc:postgresql://localhost:5432/postgres"
+            url = "jdbc:postgresql://localhost:5432/app_dev"
 
             user = 'postgres'
             password = ''
-            schema = 'app'
+            schema = 'public'
         }
         generator {
             name = 'org.jooq.codegen.DefaultGenerator'
 
             database {
                 name = 'org.jooq.meta.postgres.PostgresDatabase'
-                inputSchema = 'app'
+                inputSchema = 'public'
                 includes = '.*'
                 excludes = ''
                 forcedTypes {
