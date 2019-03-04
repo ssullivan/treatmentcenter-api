@@ -20,7 +20,7 @@ addons:
       - postgresql-10-postgis-2.4
 env:
   global:
-    - PGPORT=5432
+    - PGPORT=5433
 before_script:
   - psql -c "CREATE DATABASE app_dev;" -U postgres
 

@@ -254,19 +254,25 @@ nebulaDocker {
     }
 }
 
+ext {
+    postgresPortEnv = System.getenv("PGPORT")
+    postgresPort = postgresPortEnv == null || postgresPortEnv.isEmpty() ? 5432 : Integer.parseInt(postgresPortEnv)
+}
+
 flyway {
-    url = "jdbc:postgresql://localhost:5432/app_dev"
+    url = "jdbc:postgresql://localhost:$postgresPort/app_dev"
     user = 'postgres'
     password = ''
     schemas = ['public']
 }
+
 
 jooq {
     version = '3.11.9'
     app(sourceSets.main) {
         jdbc {
             driver = 'org.postgresql.Driver'
-            url = "jdbc:postgresql://localhost:5432/app_dev"
+            url = "jdbc:postgresql://localhost:$postgresPort/app_dev"
 
             user = 'postgres'
             password = ''
