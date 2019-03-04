@@ -15,14 +15,17 @@ addons:
   postgresql: "10"
   apt:
     packages:
-      - postgresql-10
-      - postgresql-client-10
       - postgresql-10-postgis-2.4
+      - postgresql-client-10
+      - postgresql-10-postgis-2.4-scripts
 env:
   global:
     - PGPORT=5433
+    -
 before_script:
   - psql -c "CREATE DATABASE app_dev;" -U postgres
+  - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD 'password'"
+  - sudo -u postgres psql -c "ALTER ROLE appuser SUPERUSER"
 
 matrix:
   include:
