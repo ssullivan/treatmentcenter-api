@@ -14,7 +14,6 @@ services:
 env:
   global:
     - PGPORT=5433
-    - PGUSER=travis
     - PGHOST="0.0.0.0"
 
 
@@ -35,13 +34,13 @@ matrix:
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
         - sudo service postgresql restart
         - sleep 1
+        - sudo -u postgres psql -c 'CREATE DATABASE travis_ci_test'
+        - sudo -u postgres psql -c "CREATE USER travis WITH PASSWORD ''"
+        - sudo -u postgres psql -c 'ALTER ROLE travis SUPERUSER'
+        - sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON DATABASE "travis_ci_test"'
       before_script:
         - chmod +x ./gradlew
         - docker --version  # document the version travis is using
-        - sudo -u postgres psql -c 'CREATE DATABASE travis_ci_test'
-        - sudo -u postgres psql -c "CREATE USER travis WITH PASSWORD 'password'"
-        - sudo -u postgres psql -c 'ALTER ROLE travis SUPERUSER'
-        - sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON DATABASE "travis_ci_test"'
       script:
         - ./gradlew assemble
         - ./gradlew check
