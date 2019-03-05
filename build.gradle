@@ -263,7 +263,7 @@ def postgresDb = "app_dev"
 
 if (System.getenv("TRAVIS")) {
     postgresUser = "travis"
-    postgresPassword = ""
+    postgresPassword = "travis"
     postgresHost = "localhost"
     postgresDb = "travis_ci_test"
 }
