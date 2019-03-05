@@ -1,3 +1,10 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+CREATE EXTENSION IF NOT EXISTS intarray;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 CREATE TABLE feed_detail (
   id UUID primary key NOT NULL,
   is_search_feed boolean NOT NULL default false,
