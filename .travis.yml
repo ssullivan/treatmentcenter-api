@@ -22,6 +22,8 @@ matrix:
     - language: java
       services:
         - postgresql
+        - docker # required, but travis uses older version of docker
+        - redis-server
       addons:
         postgresql: "10"
         apt:

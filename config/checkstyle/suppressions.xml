@@ -7,4 +7,5 @@
 <suppressions>
   <suppress files=".*generated-src.*" checks="[a-zA-Z0-9]*"/>
   <suppress files=".*Auto.*" checks="[a-zA-Z0-9]*"/>
+  <suppress files=".*" checks="Javadoc.*" />
 </suppressions>
