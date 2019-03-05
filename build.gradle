@@ -295,7 +295,8 @@ jooq {
                 name = 'org.jooq.meta.postgres.PostgresDatabase'
                 inputSchema = 'public'
                 includes = '.*'
-                excludes = ''
+                // https://github.com/jOOQ/jOOQ/issues/4055 ;-(
+                excludes = '_?St_.*'
                 forcedTypes {
                     forcedType {
                         userType = 'com.github.ssullivan.model.GeoPoint'
