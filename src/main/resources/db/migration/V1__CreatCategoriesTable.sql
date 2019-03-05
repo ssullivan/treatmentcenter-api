@@ -1,6 +1,3 @@
-
-
-
 CREATE TABLE feed_detail (
   id UUID primary key NOT NULL,
   is_search_feed boolean NOT NULL default false,
