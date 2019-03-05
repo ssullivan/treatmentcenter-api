@@ -4,4 +4,6 @@ public enum MatchOperator {
   MUST,
   SHOULD,
   MUST_NOT;
+
+
 }
