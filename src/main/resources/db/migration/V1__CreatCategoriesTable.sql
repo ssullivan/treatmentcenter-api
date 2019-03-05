@@ -1,7 +1,7 @@
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS postgis_topology;
-CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS postgis_topology WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder WITH SCHEMA pg_catalog;
 CREATE EXTENSION IF NOT EXISTS intarray;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
@@ -59,7 +59,7 @@ create table postalcode (
   latitude float,
   longitude float,
   accuracy int default 1,
-  geog GEOMETRY(POINT)
+  geog GEOMETRY(POINT,4326)
 );
 
 
@@ -76,7 +76,7 @@ create table location (
   street text,
   lat float,
   lon float,
-  geog GEOMETRY(POINT),
+  geog GEOMETRY(POINT,4326),
   cats int[],
   services int[]
 );

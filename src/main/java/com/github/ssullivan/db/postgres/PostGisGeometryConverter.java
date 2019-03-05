@@ -31,8 +31,10 @@ public class PostGisGeometryConverter implements Converter<Object, GeoPoint> {
             throw new IllegalArgumentException("Geometry is not a org.postgis.Point.");
         }
 
+        //https://postgis.net/2013/08/18/tip_lon_lat/
+        //x = longitude, y = latitude
         Point point = (Point) geometry;
-        return GeoPoint.geoPoint(point.getX(), point.getY());
+        return GeoPoint.geoPoint(point.getY(), point.getX());
     }
 
     @Override
@@ -40,8 +42,10 @@ public class PostGisGeometryConverter implements Converter<Object, GeoPoint> {
         if (geoPoint == null) {
             return null;
         }
-
-        Point p = new Point(geoPoint.lat(), geoPoint.lon());
+        //https://postgis.net/2013/08/18/tip_lon_lat/
+        //x = longitude, y = latitude
+        Point p = new Point(geoPoint.lon(), geoPoint.lat());
+        p.setSrid(4326);
 
         return new PGgeometry(p);
     }

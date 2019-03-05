@@ -54,9 +54,7 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
   }
 
   public static Condition _ST_DWithin(final GeoPoint geoPoint, final double radius, final GeoUnit unit) {
-    return DSL.condition("ST_DWithin(location.geog, 'POINT({0} {1})', {2})", geoPoint.lat(),
-        geoPoint.lon(),
-        unit.convertTo(GeoUnit.METER, radius));
+    return DSL.condition("ST_DWithin(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat() + ")', ?)", unit.convertTo(GeoUnit.METER, radius));
   }
 
   @Override

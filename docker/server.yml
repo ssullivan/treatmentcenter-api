@@ -29,7 +29,7 @@ postgres:
   port: ${PG_PORT:-5432}
   username: ${PG_USER:-postgres}
   password: ${PG_PASSWORD:-}
-  databaseName: ${PG_DB:-postgres}
+  databaseName: ${PG_DB:-app_dev}
   authIAM: ${PG_IAM_AUTH:-false}
 
 
