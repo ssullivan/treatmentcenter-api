@@ -258,15 +258,19 @@ def postgresPortEnv = System.getenv("PGPORT")
 def postgresPort = postgresPortEnv == null || postgresPortEnv.isEmpty() ? 5432 : Integer.parseInt(postgresPortEnv)
 def postgresUser = "postgres"
 def postgresPassword = ""
+def postgresHost = "localhost"
+def postgresDb = "app_dev"
 
 if (System.getenv("TRAVIS")) {
-    postgresUser = "appuser"
+    postgresUser = "travis"
     postgresPassword = "password"
+    postgresHost = System.getenv("PGHOST")
+    postgresDb = "travis_ci_test"
 }
 
 
 flyway {
-    url = "jdbc:postgresql://localhost:$postgresPort/app_dev"
+    url = "jdbc:postgresql://$postgresHost:$postgresPort/$postgresDb"
     user = postgresUser
     password = postgresPassword
     schemas = ['public']
@@ -278,7 +282,7 @@ jooq {
     app(sourceSets.main) {
         jdbc {
             driver = 'org.postgresql.Driver'
-            url = "jdbc:postgresql://localhost:$postgresPort/app_dev"
+            url = "jdbc:postgresql://$postgresHost:$postgresPort/$postgresDb"
 
             user = postgresUser
             password = postgresPassword

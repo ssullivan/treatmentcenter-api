@@ -35,9 +35,9 @@ matrix:
       before_script:
         - chmod +x ./gradlew
         - docker --version  # document the version travis is using
-        - psql -c "CREATE DATABASE app_dev;" -U postgres
-        - sudo -u postgres psql -c "CREATE USER appuser WITH PASSWORD 'password'"
-        - sudo -u postgres psql -c "ALTER ROLE appuser SUPERUSER"
+        - psql -c "CREATE DATABASE travis_ci_test;" -U postgres
+        - sudo -u postgres psql -c "CREATE USER travis WITH PASSWORD 'password'"
+        - sudo -u postgres psql -c "ALTER ROLE travis SUPERUSER"
       script:
         - ./gradlew assemble
         - ./gradlew check
