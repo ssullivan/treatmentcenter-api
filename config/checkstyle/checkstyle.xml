@@ -19,6 +19,7 @@
   <module name="SuppressionFilter">
     <property name="file" value="${config_loc}/suppressions.xml"/>
   </module>
+  <module name="SuppressionCommentFilter"/>
   <property name="charset" value="UTF-8"/>
 
   <property name="severity" value="warning"/>
