@@ -152,7 +152,7 @@ checkstyle {
     toolVersion = "8.9"
 }
 
-/checkstyleMain.exclude '.*generated-src.*'
+checkstyleMain.exclude '.*generated-src.*'
 
 ext.AWS_ACCOUNT_ID = System.getenv("AWS_ACCOUNT_ID")
 ext.AWS_DEFAULT_REGION = System.getenv("AWS_DEFAULT_REGION")
