@@ -9,23 +9,29 @@ jdk:
 services:
   - docker # required, but travis uses older version of docker
   - redis-server
-  - postgresql
 
-addons:
-  postgresql: "10"
-  apt:
-    packages:
-      - postgresql-10-postgis-2.4
-      - postgresql-client-10
-      - postgresql-10-postgis-2.4-scripts
+
 env:
   global:
     - PGPORT=5433
-    
+    - PGUSER=postgres
+    - PGHOST="0.0.0.0"
+
 
 matrix:
   include:
     - language: java
+      services:
+        - postgresql
+      addons:
+        postgresql: "10"
+        apt:
+          packages:
+            - postgresql-10-postgis-2.4
+            - postgresql-client-10
+            - postgresql-10-postgis-2.4-scripts
+            - postgresql-contrib-10
+
       before_script:
         - chmod +x ./gradlew
         - docker --version  # document the version travis is using
