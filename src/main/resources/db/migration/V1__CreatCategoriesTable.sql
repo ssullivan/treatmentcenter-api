@@ -52,7 +52,7 @@ create table postalcode (
   latitude float,
   longitude float,
   accuracy int default 1,
-  geog geography(POINT)
+  geog GEOMETRY(POINT)
 );
 
 
