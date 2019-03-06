@@ -1,6 +1,8 @@
 package com.github.ssullivan.bundles;
 
 import com.github.ssullivan.guice.DropwizardAwareModule;
+import com.github.ssullivan.guice.IHealthcheckProvider;
+import com.github.ssullivan.guice.IManagedProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -52,6 +54,17 @@ public class DropwizardGuiceBundle<T extends Configuration> implements Configure
     // Create our injector for use by the application
     InjectorRegistry.registerInjector(this.application,
         createInjector(configuration, environment));
+
+    InjectorRegistry.getInjector(this.application)
+            .getInstance(IManagedProvider.class)
+            .get()
+            .forEach(managed -> environment.lifecycle().manage(managed));
+
+    InjectorRegistry.getInjector(this.application)
+            .getInstance(IHealthcheckProvider.class)
+            .get()
+            .forEach(healthCheck -> environment.healthChecks().register(healthCheck.getClass().getName(), healthCheck));
+
   }
 
   /**
@@ -61,7 +74,7 @@ public class DropwizardGuiceBundle<T extends Configuration> implements Configure
    * @param environment the environment for the dropwizard application
    * @return the injector
    */
-  private Injector createInjector(final T configuration, Environment environment) {
+  private Injector createInjector(final T configuration, final Environment environment) {
 
     for (Module module : modules) {
       if (module instanceof DropwizardAwareModule) {
@@ -78,7 +91,7 @@ public class DropwizardGuiceBundle<T extends Configuration> implements Configure
   }
 
   @Override
-  public void initialize(Bootstrap<?> bootstrap) {
+  public void initialize(final Bootstrap<?> bootstrap) {
     application = bootstrap.getApplication();
   }
 }

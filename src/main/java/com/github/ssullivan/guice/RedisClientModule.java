@@ -6,10 +6,14 @@ import com.github.ssullivan.db.postgres.PgFeedManager;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisConnectionPool;
 import com.github.ssullivan.db.redis.RedisFeedManager;
+import com.github.ssullivan.healthchecks.RedisHealthCheck;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import io.lettuce.core.RedisClient;
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 
 public class RedisClientModule extends AbstractModule {
 
@@ -26,4 +30,9 @@ public class RedisClientModule extends AbstractModule {
     bind(IManageFeeds.class).to(RedisFeedManager.class);
   }
 
+  @Provides
+  @Inject
+  IHealthcheckProvider providesDropwizardHealthChecks(final RedisHealthCheck redisHealthCheck) {
+    return () -> ImmutableList.of(redisHealthCheck);
+  }
 }

@@ -148,8 +148,6 @@ public class ApiApplication extends Application<AppConfig> {
 
     environment.lifecycle().manage(injector.getInstance(IAvailableServiceController.class));
 
-    environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(),
-        injector.getInstance(RedisHealthCheck.class));
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {

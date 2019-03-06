@@ -1,19 +1,24 @@
 package com.github.ssullivan.guice;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
 import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.codahale.metrics.health.SharedHealthCheckRegistries;
+import com.github.ssullivan.AppConfig;
 import com.github.ssullivan.DatabaseConfig;
 import com.github.ssullivan.RdsConfig;
 import com.github.ssullivan.db.*;
 import com.github.ssullivan.db.postgres.*;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.inject.Inject;
+
+import io.dropwizard.lifecycle.Managed;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
@@ -21,7 +26,9 @@ import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PsqlClientModule extends AbstractModule {
+import java.util.List;
+
+public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PsqlClientModule.class);
     private final DatabaseConfig psqlConfig;
 
@@ -38,6 +45,12 @@ public class PsqlClientModule extends AbstractModule {
         bind(IFeedDao.class).to(PgFeedDao.class);
         bind(IFindBySearchRequest.class).to(PgFindBySearchRequest.class);
         bind(IManageFeeds.class).to(PgFeedManager.class);
+
+        if (psqlConfig instanceof RdsConfig) {
+            bind(RdsConfig.class).toInstance((RdsConfig) psqlConfig);
+            bind(IAMRdsAuthTokenRefresh.class).in(Singleton.class);
+            bind(IManagedProvider.class).to(RdsDropwizardManagedProvider.class).in(Singleton.class);
+        }
     }
 
     @Provides
@@ -55,8 +68,21 @@ public class PsqlClientModule extends AbstractModule {
         hikariConfig.addDataSourceProperty("password", this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
         hikariConfig.addDataSourceProperty("databaseName", this.psqlConfig.getDatabaseName());
 
+
+
         if (psqlConfig instanceof RdsConfig && ((RdsConfig) psqlConfig).isIamAuth()) {
-            hikariConfig.addDataSourceProperty("password", generateAuthToken((RdsConfig) psqlConfig));
+            final RdsConfig rdsConfig = (RdsConfig) psqlConfig;
+
+            int retries = 3;
+            do {
+                try {
+                    LOGGER.info("Attempting to generate RDS auth token from IAM");
+                    hikariConfig.addDataSourceProperty("password", generateAuthToken(rdsConfig));
+                    break;
+                } catch (SdkClientException e) {
+                    LOGGER.error("Failed to generate RDS auth token from IAM", e);
+                }
+            } while (retries-- > 0);
         }
 
         hikariConfig.setPoolName("api-postgres-pool");
@@ -68,12 +94,6 @@ public class PsqlClientModule extends AbstractModule {
     HikariDataSource provideDataSource(final HikariConfig hikariConfig) {
         final HikariDataSource hikariDataSource = new HikariDataSource(hikariConfig);
 
-        try {
-            hikariDataSource.setHealthCheckRegistry(SharedHealthCheckRegistries.getDefault());
-            hikariDataSource.setMetricRegistry(SharedHealthCheckRegistries.getDefault());
-        } catch (IllegalStateException e) {
-            LOGGER.error("Failed to setup health/metrics integration!", e);
-        }
 
         return hikariDataSource;
     }

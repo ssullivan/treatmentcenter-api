@@ -30,7 +30,7 @@ postgres:
   username: ${PG_USER:-postgres}
   password: ${PG_PASSWORD:-}
   databaseName: ${PG_DB:-app_dev}
-  authIAM: ${PG_IAM_AUTH:-false}
+  authIAM: ${PG_IAM_AUTH:-true}
 
 
 # Logging settings.

@@ -1,5 +1,6 @@
 package com.github.ssullivan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
@@ -48,5 +49,15 @@ public class AppConfig extends Configuration {
 
   public void setDatabaseConfig(RdsConfig databaseConfig) {
     this.rdsConfig = databaseConfig;
+  }
+
+  @JsonIgnore
+  public boolean useRedis() {
+    return redisConfig != null;
+  }
+
+  @JsonIgnore
+  public boolean usePostgres() {
+    return this.rdsConfig != null;
   }
 }
