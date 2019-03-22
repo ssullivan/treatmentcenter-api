@@ -181,6 +181,7 @@ nebulaDocker {
         environmentVariable('APP_VERSION', project.version)
         environmentVariable('API_VERSION', project.version)
         entryPoint('/docker-entrypoint.sh')
+
         runCommand('apk --no-cache update \\\n' +
                 '    && apk --no-cache upgrade \\\n' +
                 '    && apk --no-cache add \\\n' +
@@ -191,6 +192,7 @@ nebulaDocker {
                 '    && sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=30/ ${JAVA_HOME}/jre/lib/security/java.security \\\n' +
                 '    && addgroup -g $GID app_user \\\n' +
                 '    && adduser -D -s /bin/false -H -u $UID -G app_user app_user')
+        runCommand('apk add --no-cache nss')
         copyFile('docker-entrypoint.sh', '/')
         copyFile('server.yml', '/treatmentcenter-api-latest/bin/')
         runCommand('chmod ugo+rx ./docker-entrypoint.sh && chmod ugo+rx /treatmentcenter-api-latest/bin/*.sh && dos2unix ./docker-entrypoint.sh')
