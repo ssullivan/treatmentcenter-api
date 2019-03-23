@@ -59,17 +59,18 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
         return DSL.using(hikariDataSource, SQLDialect.POSTGRES_10);
     }
 
+    @Singleton
     @Provides
     HikariConfig providesHikariConfig() {
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
         hikariConfig.setUsername(psqlConfig.getUsername());
-        hikariConfig.addDataSourceProperty("user", this.psqlConfig.getUsername());
-        hikariConfig.addDataSourceProperty("password", this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
+        hikariConfig.setPassword(this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
+        hikariConfig.addDataSourceProperty("serverName", this.psqlConfig.getHost());
         hikariConfig.addDataSourceProperty("databaseName", this.psqlConfig.getDatabaseName());
+        hikariConfig.addDataSourceProperty("portNumber", this.psqlConfig.getPort());
 
-
-
+        boolean setPasswordFromRds = false;
         if (psqlConfig instanceof RdsConfig && ((RdsConfig) psqlConfig).isIamAuth()) {
             final RdsConfig rdsConfig = (RdsConfig) psqlConfig;
 
@@ -77,12 +78,17 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
             do {
                 try {
                     LOGGER.info("Attempting to generate RDS auth token from IAM");
-                    hikariConfig.addDataSourceProperty("password", generateAuthToken(rdsConfig));
+                    hikariConfig.setPassword(generateAuthToken(rdsConfig));
+                    setPasswordFromRds = true;
                     break;
                 } catch (SdkClientException e) {
                     LOGGER.error("Failed to generate RDS auth token from IAM", e);
                 }
             } while (retries-- > 0);
+        }
+
+        if (!setPasswordFromRds) {
+            hikariConfig.setPassword(this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
         }
 
         hikariConfig.setPoolName("api-postgres-pool");
