@@ -86,6 +86,7 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
                     LOGGER.info("Attempting to generate RDS auth token from IAM");
                     hikariConfig.setPassword(generateAuthToken(rdsConfig));
                     setPasswordFromRds = true;
+
                     break;
                 } catch (SdkClientException e) {
                     LOGGER.error("Failed to generate RDS auth token from IAM", e);
@@ -111,7 +112,9 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     }
 
     static String generateAuthToken(RdsConfig rdsConfig) {
-        return generateAuthToken(rdsConfig.getRegion(), rdsConfig.getHost(), rdsConfig.getPort(), rdsConfig.getUsername());
+        final String authToken = generateAuthToken(rdsConfig.getRegion(), rdsConfig.getHost(), rdsConfig.getPort(), rdsConfig.getUsername());
+        LOGGER.info("Successfully, generated auth token for RDS!");
+        return authToken;
     }
 
     static String generateAuthToken(String region, String hostName, int port, String username) {
