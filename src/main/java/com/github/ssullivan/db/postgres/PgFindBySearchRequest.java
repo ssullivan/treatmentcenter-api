@@ -1,9 +1,11 @@
 package com.github.ssullivan.db.postgres;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IFindBySearchRequest;
 import com.github.ssullivan.db.psql.Tables;
+import com.github.ssullivan.db.redis.ToFacilityWithRadiusConverter;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -35,15 +38,18 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
   private ObjectMapper objectMapper;
   private IFeedDao feedDao;
   private IServiceConditionToSql toSql;
+  private IAvailableServiceController availableServiceController;
 
   @Inject
   public PgFindBySearchRequest(final DSLContext dslContext, IFeedDao feedDao,
                                final IServiceConditionToSql conditionToSql,
+                               final IAvailableServiceController availableServiceController,
                                final ObjectMapper objectMapper) {
     this.dsl = dslContext;
     this.objectMapper = objectMapper;
     this.feedDao = feedDao;
     this.toSql = conditionToSql;
+    this.availableServiceController = availableServiceController;
   }
 
   public static Condition ST_DTWithin(final GeoRadiusCondition geoRadiusCondition) {
@@ -78,6 +84,8 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
             .fetchOne()
             .value1();
 
+    final Function<Facility, Facility> addRadius = applyToFacilityWithRadius(searchRequest);
+
     final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON)
             .from(Tables.LOCATION)
             .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition).and(geoCondition))
@@ -87,6 +95,8 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
             .stream()
             .map(this::deserialize)
             .filter(Objects::nonNull)
+            .map(facility -> availableServiceController.apply(facility))
+            .map(addRadius)
             .collect(Collectors.toList());
 
     final SearchResults<Facility> searchResults = SearchResults.searchResults(totalHits, facilities);
@@ -102,5 +112,21 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     return null;
   }
 
+  /**
+   * Higher order function to return a function that will change Facility to FacilityWithRadius.
+   */
+  private Function<Facility, Facility> applyToFacilityWithRadius(final SearchRequest searchRequest) {
 
+    final GeoPoint geoPoint =
+        searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition()
+            .getGeoPoint() : null;
+    final GeoUnit geoUnit =
+        searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition()
+            .getGeoUnit() : GeoUnit.MILE;
+
+    final ToFacilityWithRadiusConverter ToFacilityWithRadius = new ToFacilityWithRadiusConverter(
+        geoPoint, geoUnit.getAbbrev());
+
+    return ToFacilityWithRadius::apply;
+  }
 }
