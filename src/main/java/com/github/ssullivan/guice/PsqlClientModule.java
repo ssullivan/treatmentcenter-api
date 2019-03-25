@@ -101,6 +101,9 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
         if (!setPasswordFromRds) {
             hikariConfig.setPassword(this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
         }
+        else {
+            LOGGER.info("Successfully set password from IAM");
+        }
 
         hikariConfig.setPoolName("api-postgres-pool");
         return hikariConfig;
@@ -110,6 +113,7 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     @Singleton
     HikariDataSource provideDataSource(final HikariConfig hikariConfig) {
         try {
+            LOGGER.info("Creating database pool!");
             return new HikariDataSource(hikariConfig);
         }
         catch (PoolInitializationException e) {
