@@ -31,6 +31,7 @@ postgres:
   password: ${PG_PASSWORD:-}
   databaseName: ${PG_DB:-app_dev}
   authIAM: ${PG_IAM_AUTH:-true}
+  region: ${AWS_REGION:-us-east-1}
 
 
 # Logging settings.
