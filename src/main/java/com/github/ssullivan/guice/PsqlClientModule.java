@@ -22,6 +22,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool.PoolInitializationException;
 import javax.inject.Inject;
 
 import io.dropwizard.lifecycle.Managed;
@@ -68,10 +69,13 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     @Singleton
     @Provides
     HikariConfig providesHikariConfig() {
+        LOGGER.info("Setting up database pool for {}:{}/{}", this.psqlConfig.getHost(), this.psqlConfig.getPort(), this.psqlConfig.getDatabaseName());
+
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
         hikariConfig.setUsername(psqlConfig.getUsername());
         hikariConfig.setPassword(this.psqlConfig.getPassword() == null ? "" : this.psqlConfig.getPassword());
+
         hikariConfig.addDataSourceProperty("serverName", this.psqlConfig.getHost());
         hikariConfig.addDataSourceProperty("databaseName", this.psqlConfig.getDatabaseName());
         hikariConfig.addDataSourceProperty("portNumber", this.psqlConfig.getPort());
@@ -105,10 +109,13 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     @Provides
     @Singleton
     HikariDataSource provideDataSource(final HikariConfig hikariConfig) {
-        final HikariDataSource hikariDataSource = new HikariDataSource(hikariConfig);
-
-
-        return hikariDataSource;
+        try {
+            return new HikariDataSource(hikariConfig);
+        }
+        catch (PoolInitializationException e) {
+            LOGGER.error("Failed to connect to database!", e);
+            throw e;
+        }
     }
 
     static String generateAuthToken(RdsConfig rdsConfig) {
@@ -118,6 +125,8 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     }
 
     static String generateAuthToken(String region, String hostName, int port, String username) {
+        LOGGER.info("Generating token in {} for {}@{}:{}", region, username, hostName, port);
+
         final RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
             .credentials(AWSCredentialsProviderChain.getInstance())
             .region(region)
