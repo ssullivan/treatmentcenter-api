@@ -71,6 +71,11 @@ repositories {
     maven { url "http://repo1.maven.org/maven2/" }
 }
 
+configurations.all {
+    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    exclude group: 'org.slf4j', module: 'slf4j-simple'
+}
+
 dependencies {
     annotationProcessor 'com.google.auto.value:auto-value:1.6.3'
     implementation 'com.google.auto.value:auto-value-annotations:1.6.3'

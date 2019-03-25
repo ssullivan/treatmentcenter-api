@@ -1,7 +1,13 @@
 package com.github.ssullivan.guice;
 
 import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
+import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.SystemPropertiesCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
 import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.codahale.metrics.health.SharedHealthCheckRegistries;
@@ -109,9 +115,8 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     }
 
     static String generateAuthToken(String region, String hostName, int port, String username) {
-
         final RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
-            .credentials(new DefaultAWSCredentialsProviderChain())
+            .credentials(AWSCredentialsProviderChain.getInstance())
             .region(region)
             .build();
 
@@ -123,5 +128,19 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
                 .build());
 
         return authToken;
+    }
+
+    private static class AWSCredentialsProviderChain extends com.amazonaws.auth.AWSCredentialsProviderChain {
+        private static final AWSCredentialsProviderChain INSTANCE
+            = new AWSCredentialsProviderChain();
+
+        AWSCredentialsProviderChain() {
+            super(new DefaultAWSCredentialsProviderChain(),
+                InstanceProfileCredentialsProvider.getInstance());
+        }
+
+        public static AWSCredentialsProviderChain getInstance() {
+            return INSTANCE;
+        }
     }
 }
