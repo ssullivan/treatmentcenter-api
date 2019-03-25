@@ -113,7 +113,7 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
             return new HikariDataSource(hikariConfig);
         }
         catch (PoolInitializationException e) {
-            LOGGER.error("Failed to connect to database!", e);
+            LOGGER.error("Failed to connect to database: " + psqlConfig.getHost() + ":" + psqlConfig.getPort() + "/" + psqlConfig.getDatabaseName() + "!", e);
             throw e;
         }
     }
