@@ -153,6 +153,7 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
       rdsConfig.setUsername(namespace.getString("Username"));
       rdsConfig.setHost(namespace.getString("Host"));
       rdsConfig.setPort(namespace.getInt("Port"));
+      rdsConfig.setIamAuth(namespace.getBoolean("UseIAM"));
 
 
       LOGGER.info("[postgres] Host is {}", rdsConfig.getHost());
