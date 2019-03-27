@@ -1,9 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS postgis_topology WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS intarray;
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 
 CREATE TABLE feed_detail (
   id UUID primary key NOT NULL,
