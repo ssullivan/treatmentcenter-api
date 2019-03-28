@@ -17,8 +17,11 @@ import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.crawler.RobotsTxt;
 import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
+import com.google.common.io.ByteStreams;
+import com.google.common.primitives.Bytes;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -53,7 +56,7 @@ import org.slf4j.LoggerFactory;
  *
  * {bucket}/feeds/samsha/locations-{timestamp}.xlsx {bucket}/feeds/samsha.feed.json
  */
-public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, String>>>,
+public class FetchSamshaDataFeed implements ILoadSamshaSpreadsheet, Supplier<Optional<Tuple2<String, String>>>,
     Function<Void, Optional<Tuple2<String, String>>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FetchSamshaDataFeed.class);
@@ -67,6 +70,8 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
   private AmazonS3 amazonS3;
   private Client client;
   private long crawlDelay;
+  private boolean cacheInMemory;
+  private byte[] cachedBytes;
 
 
   @Inject
@@ -91,6 +96,16 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
           clientRequestContext.getHeaders().add("Upgrade-Insecure-Requests", "1");
 
         });
+    this.cacheInMemory = false;
+    this.cachedBytes = new byte[]{};
+  }
+
+  public InputStream newInputStream() {
+    return new ByteArrayInputStream(cachedBytes);
+  }
+
+  public void setCacheInMemory(boolean cacheInMemory) {
+    this.cacheInMemory = cacheInMemory;
   }
 
   public Optional<RobotsTxt> fetchRobotsTxt() {
@@ -113,85 +128,99 @@ public class FetchSamshaDataFeed implements Supplier<Optional<Tuple2<String, Str
     return Optional.empty();
   }
 
-  @Override
-  public Optional<Tuple2<String, String>> get() {
-
-    if (this.url.startsWith("file")) {
-      final File file = new File(this.url.replaceFirst("file:/", ""));
-      try (FileInputStream fileInputStream = new FileInputStream(file);
-          BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream,
-              DefaultBufferSize)
-      ) {
+  private Optional<Tuple2<String, String>> loadFile() {
+    final File file = new File(this.url.replaceFirst("file:", ""));
+    try (FileInputStream fileInputStream = new FileInputStream(file);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream,
+            DefaultBufferSize)
+    ) {
+      if (this.cacheInMemory) {
+        final ByteArrayOutputStream inMemBuffer = new ByteArrayOutputStream(8192 * 3);
+        ByteStreams.copy(bufferedInputStream, inMemBuffer);
+        this.cachedBytes = inMemBuffer.toByteArray();
+        return Optional.of(new Tuple2<>(bucket,  createObjectKey()));
+      }
+      else {
         return Optional.of(handleStream(file.length(), bufferedInputStream));
-      } catch (IOException e) {
-        LOGGER.error("Failed to load: " + this.url, e);
       }
-      return Optional.empty();
-    } else {
-      Optional<RobotsTxt> robotsTxtOptional = fetchRobotsTxt();
-      if (robotsTxtOptional.isPresent()) {
-        LOGGER.info("Success! Fetched robots.txt file");
+    } catch (IOException e) {
+      LOGGER.error("Failed to load: " + this.url, e);
+    }
+    return Optional.empty();
+  }
+
+  private Optional<Tuple2<String, String>> loadURL() {
+    Optional<RobotsTxt> robotsTxtOptional = fetchRobotsTxt();
+    if (robotsTxtOptional.isPresent()) {
+      LOGGER.info("Success! Fetched robots.txt file");
+    }
+    try {
+
+      if (this.crawlDelay > 0) {
+        Thread.sleep(this.crawlDelay);
       }
+
+      final WebTarget locatorExcelTarget = client.target(url)
+          .path("locatorExcel");
+      int attempts = 1;
       try {
+        do {
+          LOGGER.info("Attempting to download spreadsheet from : {}", locatorExcelTarget);
+          final FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
+          formDataMultiPart.field("sType", "SA");
+          formDataMultiPart.field("page", "1");
+          formDataMultiPart.field("includeServices", "Y");
+          formDataMultiPart.field("sortIndex", "0");
 
-        if (this.crawlDelay > 0) {
-          Thread.sleep(this.crawlDelay);
-        }
+          final Response response = locatorExcelTarget.request()
+              .header("User-Agent", "")
+              .header("TE", "Trailers")
+              .buildPost(Entity.entity(formDataMultiPart, formDataMultiPart.getMediaType()))
+              .invoke();
 
-        final WebTarget locatorExcelTarget = client.target(url)
-            .path("locatorExcel");
-        int attempts = 1;
-        try {
-          do {
-            LOGGER.info("Attempting to download spreadsheet from : {}", locatorExcelTarget);
-            final FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
-            formDataMultiPart.field("sType", "SA");
-            formDataMultiPart.field("page", "1");
-            formDataMultiPart.field("includeServices", "Y");
-            formDataMultiPart.field("sortIndex", "0");
+          if (response.getStatus() == 200) {
+            LOGGER.info("Success! Downloading locator spreadsheet [{} bytes]",
+                response.getLength());
+            try (final InputStream inputStream = response.readEntity(InputStream.class);
+                final BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                    inputStream, DefaultBufferSize)) {
+              return Optional
+                  .of(handleStream(response.getLength(), bufferedInputStream));
 
-            final Response response = locatorExcelTarget.request()
-                .header("User-Agent", "")
-                .header("TE", "Trailers")
-                .buildPost(Entity.entity(formDataMultiPart, formDataMultiPart.getMediaType()))
-                .invoke();
-
-            if (response.getStatus() == 200) {
-              LOGGER.info("Success! Downloading locator spreadsheet [{} bytes]",
-                  response.getLength());
-              try (final InputStream inputStream = response.readEntity(InputStream.class);
-                  final BufferedInputStream bufferedInputStream = new BufferedInputStream(
-                      inputStream, DefaultBufferSize)) {
-                return Optional
-                    .of(handleStream(response.getLength(), bufferedInputStream));
-
-              } catch (IOException e) {
-                LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
-              }
-            } else {
-              LOGGER.error("Received HTTP {}: Body: {}", response.getStatus(),
-                  response.readEntity(String.class));
+            } catch (IOException e) {
+              LOGGER.error("Failed to download the SAMSHA locatorExcel", e);
             }
+          } else {
+            LOGGER.error("Received HTTP {}: Body: {}", response.getStatus(),
+                response.readEntity(String.class));
+          }
 
-            if (this.crawlDelay > 0) {
-              Thread.sleep(this.crawlDelay);
-            }
-          } while (attempts++ < 3);
-        } catch (InterruptedException e) {
-          LOGGER.error("Interrupted while attempting to download spreadsheet", e);
-          Thread.currentThread().interrupt();
-        }
-
-
+          if (this.crawlDelay > 0) {
+            Thread.sleep(this.crawlDelay);
+          }
+        } while (attempts++ < 3);
       } catch (InterruptedException e) {
         LOGGER.error("Interrupted while attempting to download spreadsheet", e);
         Thread.currentThread().interrupt();
-      } finally {
-        client.close();
       }
-    }
 
+
+    } catch (InterruptedException e) {
+      LOGGER.error("Interrupted while attempting to download spreadsheet", e);
+      Thread.currentThread().interrupt();
+    } finally {
+      client.close();
+    }
     return Optional.empty();
+  }
+
+  @Override
+  public Optional<Tuple2<String, String>> get() {
+    if (this.url.startsWith("file")) {
+      return loadFile();
+    } else {
+      return loadURL();
+    }
   }
 
   private Tuple2<String, String> handleStream(final long contentLength,

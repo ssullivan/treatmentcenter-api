@@ -18,10 +18,20 @@ server:
     - type: http
       port: 8081
 
-redis:
-  host: ${REDIS_HOST:-localhost}
-  port: ${REDIS_PORT:-6379}
-  db: ${REDIS_DB:-0}
+#redis:
+#  host: ${REDIS_HOST:-localhost}
+#  port: ${REDIS_PORT:-6379}
+#  db: ${REDIS_DB:-0}
+
+# These are defaults use purely for devel. You will want to change them
+postgres:
+  host: ${PG_HOST:-localhost}
+  port: ${PG_PORT:-5432}
+  username: ${PG_USER:-postgres}
+  password: ${PG_PASSWORD:-}
+  databaseName: ${PG_DB:-app_dev}
+  authIAM: ${PG_IAM_AUTH:-true}
+  region: ${AWS_REGION:-us-east-1}
 
 
 # Logging settings.

@@ -7,11 +7,13 @@ import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.core.PostalcodeService;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
+import com.github.ssullivan.guice.PsqlClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.healthchecks.RedisHealthCheck;
 import com.github.ssullivan.tasks.LoadCategoriesAndServicesTask;
 import com.github.ssullivan.tasks.LoadTreatmentFacilitiesTask;
-import com.github.ssullivan.tasks.feeds.LoadSamshaCommand;
+import com.github.ssullivan.tasks.feeds.LoadSamshaCommandPostgres;
+import com.github.ssullivan.tasks.feeds.LoadSamshaCommandRedis;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -54,7 +56,8 @@ public class ApiApplication extends Application<AppConfig> {
   @Override
   public void initialize(Bootstrap<AppConfig> bootstrap) {
 
-    bootstrap.addCommand(new LoadSamshaCommand());
+    bootstrap.addCommand(new LoadSamshaCommandRedis());
+    bootstrap.addCommand(new LoadSamshaCommandPostgres());
     bootstrap.addCommand(new LoadCategoriesAndServicesTask());
     bootstrap.addCommand(new LoadTreatmentFacilitiesTask());
 
@@ -95,14 +98,19 @@ public class ApiApplication extends Application<AppConfig> {
       @Override
       protected void configure() {
         if (getConfiguration().getRedisConfig() != null) {
-          install(new RedisClientModule(getConfiguration().getRedisConfig()));
           LOGGER.info("Configuring application to connect to Redis/ElastiCache");
+          install(new RedisClientModule(getConfiguration().getRedisConfig()));
+
         } else {
-          LOGGER.info("No configuration provided for Redis/ElastiCache");
+          LOGGER.warn("No configuration provided for Redis/ElastiCache");
         }
 
-        LOGGER.info("Attempting to get config from S3");
-
+        if (getConfiguration().getDatabaseConfig() != null) {
+          LOGGER.info("Configuring application to connect to Postgres/RDS");
+          install(new PsqlClientModule(getConfiguration().getDatabaseConfig()));
+        } else {
+          LOGGER.warn("No configuration provided for Postgres/RDS");
+        }
       }
     };
 
@@ -140,8 +148,6 @@ public class ApiApplication extends Application<AppConfig> {
 
     environment.lifecycle().manage(injector.getInstance(IAvailableServiceController.class));
 
-    environment.healthChecks().register(RedisHealthCheck.class.getSimpleName(),
-        injector.getInstance(RedisHealthCheck.class));
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {

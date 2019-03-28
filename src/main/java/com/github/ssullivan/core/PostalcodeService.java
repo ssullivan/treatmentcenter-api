@@ -38,8 +38,13 @@ public class PostalcodeService implements IPostalcodeService {
 
   @Override
   public void loadPostalCodes(File file) throws IOException {
-    LoadZipCodesAndGeos loader = new LoadZipCodesAndGeos();
-    postalCodes = loader.parse(file);
+    try {
+      LOGGER.info("Loading postal codes from {}", file);
+      LoadZipCodesAndGeos loader = new LoadZipCodesAndGeos();
+      postalCodes = loader.parse(file);
+    } finally {
+      LOGGER.info("Finished loading postal codes!");
+    }
   }
 
   @Override
