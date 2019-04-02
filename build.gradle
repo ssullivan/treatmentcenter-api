@@ -281,6 +281,7 @@ flyway {
     user = postgresUser
     password = postgresPassword
     schemas = ['public']
+    
 }
 
 
