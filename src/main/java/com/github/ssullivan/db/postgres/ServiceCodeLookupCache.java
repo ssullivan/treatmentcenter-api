@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.*;
 import io.dropwizard.lifecycle.Managed;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,9 +68,14 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
 
   @Override
   public void start() throws Exception {
-    this.cache.putAll(this.dsl.select(Tables.SERVICE.CODE, Tables.SERVICE.ID)
-            .from(Tables.SERVICE)
-            .fetchMap(Tables.SERVICE.CODE, Tables.SERVICE.ID));
+    try {
+      this.cache.putAll(this.dsl.select(Tables.SERVICE.CODE, Tables.SERVICE.ID)
+              .from(Tables.SERVICE)
+              .fetchMap(Tables.SERVICE.CODE, Tables.SERVICE.ID));
+    }
+    catch (DataAccessException e) {
+      LOGGER.error("Failed to fetch all service codes from database", e);
+    }
   }
 
   @Override
@@ -92,13 +98,19 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
 
     @Override
     public Integer load(final String key) throws Exception {
-      return this.dsl.select(Tables.SERVICE.ID)
-          .from(Tables.SERVICE)
-          .where(Tables.SERVICE.CODE.eq(key))
-          .fetch(Tables.SERVICE.ID)
-          .stream()
-          .findFirst()
-          .orElse(null);
+      try {
+        return this.dsl.select(Tables.SERVICE.ID)
+                .from(Tables.SERVICE)
+                .where(Tables.SERVICE.CODE.eq(key))
+                .fetch(Tables.SERVICE.ID)
+                .stream()
+                .findFirst()
+                .orElse(null);
+      }
+      catch (DataAccessException e) {
+        LOGGER.error("Failed to get service code {}", key, e);
+        return null;
+      }
     }
 
 

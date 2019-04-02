@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.model.Category;
-import com.github.ssullivan.model.Service;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +33,17 @@ public class PgCategoryDao implements ICategoryCodesDao {
 
     @Override
     public Category get(final String id) throws IOException {
-        final String json = this.dsl.select(Tables.CATEGORY.JSON)
-                .from(Tables.CATEGORY)
-                .fetchOne(Tables.CATEGORY.JSON);
+        try {
+            final String json = this.dsl.select(Tables.CATEGORY.JSON)
+                    .from(Tables.CATEGORY)
+                    .fetchOne(Tables.CATEGORY.JSON);
 
-        return objectReader.readValue(json);
+            return objectReader.readValue(json);
+        }
+        catch (DataAccessException e) {
+            LOGGER.error("Failed to fetch category '{}'", id);
+            throw new IOException("Failed to fetch category " + id, e);
+        }
     }
 
     @Override
@@ -59,23 +65,29 @@ public class PgCategoryDao implements ICategoryCodesDao {
 
     @Override
     public List<Category> listCategories() throws IOException {
-        return this.dsl
-                .select(Tables.CATEGORY.JSON)
-                .from(Tables.CATEGORY)
-                .fetch(Tables.CATEGORY.JSON)
-                .stream()
-                .map(json -> {
-                    try {
-                        return Optional.of(objectReader.readValue(json));
-                    } catch (IOException e) {
-                        LOGGER.error("Failed to deserialize JSON to category", e);
-                    }
-                    return Optional.empty();
-                })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(it -> (Category) it)
-                .collect(Collectors.toList());
+        try {
+            return this.dsl
+                    .select(Tables.CATEGORY.JSON)
+                    .from(Tables.CATEGORY)
+                    .fetch(Tables.CATEGORY.JSON)
+                    .stream()
+                    .map(json -> {
+                        try {
+                            return Optional.of(objectReader.readValue(json));
+                        } catch (IOException e) {
+                            LOGGER.error("Failed to deserialize JSON to category", e);
+                        }
+                        return Optional.empty();
+                    })
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(it -> (Category) it)
+                    .collect(Collectors.toList());
+        }
+        catch (DataAccessException e) {
+            LOGGER.error("Failed to fetch all categories", e);
+            throw new IOException("Failed to fetch categories", e);
+        }
     }
 
     @Override
