@@ -13,19 +13,25 @@ import com.github.ssullivan.model.GeoUnit;
 import com.github.ssullivan.model.Page;
 import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
+import com.github.ssullivan.model.SortDirection;
 import com.github.ssullivan.utils.ShortUuid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.OrderField;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +69,10 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     return DSL.condition("ST_DWithin(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat() + ")'," +  unit.convertTo(GeoUnit.METER, radius) + ",true)");
   }
 
+  public static Field<?> _ST_Distance(final GeoPoint geoPoint) {
+    return DSL.field("ST_DistanceSphere(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat() + ")')");
+  }
+
   @Override
   public CompletionStage<SearchResults<Facility>> find(SearchRequest searchRequest, Page page)
       throws Exception {
@@ -72,6 +82,34 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
         .orElse(CompletableFuture.completedFuture(SearchResults.searchResults(0, new ArrayList<>())))
         .toCompletableFuture();
 
+  }
+
+  private Optional<Field<?>> getSortField(final String sortField) {
+    if (sortField == null || sortField.isEmpty()) return Optional.empty();
+    return Stream.of(Tables.LOCATION.fields())
+        .filter(it -> it.getName().equalsIgnoreCase(sortField))
+        .findFirst();
+  }
+
+  private Optional<OrderField<?>> getOrderBy(final SearchRequest searchRequest) {
+    final String sortField = searchRequest.getSortField();
+    final SortDirection sortDirection = searchRequest.getSortDirection();
+
+    Optional<Field<?>> fieldToSortBy = getSortField(sortField);
+
+    // just going to make the default sort order radius when the user specifies score
+    // at the moment
+    if (("score".equalsIgnoreCase(sortField) || "radius".equalsIgnoreCase(sortField))
+        && searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
+      fieldToSortBy = Optional.of(_ST_Distance(searchRequest.getGeoRadiusCondition().getGeoPoint()));
+    }
+
+    return fieldToSortBy.map(it -> {
+      if (sortDirection == SortDirection.ASC) {
+        return it.asc();
+      }
+      return it.desc();
+    });
   }
 
   private CompletionStage<SearchResults<Facility>> find(final String feedId, SearchRequest searchRequest, Page page) {
@@ -89,8 +127,9 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON)
             .from(Tables.LOCATION)
             .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition).and(geoCondition))
-            .orderBy(Tables.LOCATION.ID)
+            .orderBy(getOrderBy(searchRequest).orElse(Tables.LOCATION.ID))
             .limit(page.offset(), page.size())
+
             .fetch(Tables.LOCATION.JSON)
             .stream()
             .map(this::deserialize)

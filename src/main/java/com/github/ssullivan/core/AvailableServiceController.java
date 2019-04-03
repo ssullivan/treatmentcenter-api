@@ -88,40 +88,48 @@ public class AvailableServiceController implements IAvailableServiceController, 
   @Override
   public Facility apply(final Facility facility) {
     if (facility == null) return null;
+    try {
 
-    // This prevents us from exploding when the cache doesn't contain the categories.
-    // It has a couple side effects:
-    // (1) We might not get any results (unlikely but possible)
-    // (2) We don't force the cache to refresh the cache for this category
-    // (3) There is a big performance gain here by not having to reach out to redis
-    //     to get the categories. Previously we were having some slowness / deadlocks
-    //     with the previous implementation.
-    // (4) We mitigate (1), and (2) via a Guava service that refreshes the
-    //     cache in bulk every 10 minutes.
-    final ImmutableMap<String, Category> cats = this.cache.getAllPresent(facility.getCategoryCodes());
+      // This prevents us from exploding when the cache doesn't contain the categories.
+      // It has a couple side effects:
+      // (1) We might not get any results (unlikely but possible)
+      // (2) We don't force the cache to refresh the cache for this category
+      // (3) There is a big performance gain here by not having to reach out to redis
+      //     to get the categories. Previously we were having some slowness / deadlocks
+      //     with the previous implementation.
+      // (4) We mitigate (1), and (2) via a Guava service that refreshes the
+      //     cache in bulk every 10 minutes.
+      final ImmutableMap<String, Category> cats = this.cache
+          .getAllPresent(facility.getCategoryCodes());
 
-    if (cats == null || cats.isEmpty()) {
-      LOGGER.warn("Cache Miss for facility {} categories: {}", facility.getId(), facility.getCategoryCodes());
-      facility.setAvailableServices(new AvailableServices());
+      if (cats == null || cats.isEmpty()) {
+        LOGGER.warn("Cache Miss for facility {} categories: {}", facility.getId(),
+            facility.getCategoryCodes());
+        facility.setAvailableServices(new AvailableServices());
+      } else {
+        // For the available services object we only want the category objects included in it
+        // to contains services that the facility actually has
+        final Set<Category> facilityCats = cats.values().stream().map(category -> {
+          // This contains only the service objects that the facility actually has
+          final Set<Service> facilityServices =
+              category.getServices().stream()
+                  .filter(service -> facility.hasAnyOf(service.getCode()))
+                  .collect(
+                      Collectors.toSet());
+
+          // Create a new category that only has the services the facility has
+          return new Category(category.getCode(), category.getName(), facilityServices);
+        }).collect(Collectors.toSet());
+
+        facility.setAvailableServices(new AvailableServices(facilityCats));
+      }
+
+      return facility;
     }
-    else {
-      // For the available services object we only want the category objects included in it
-      // to contains services that the facility actually has
-      final Set<Category> facilityCats = cats.values().stream().map(category -> {
-        // This contains only the service objects that the facility actually has
-        final Set<Service> facilityServices =
-            category.getServices().stream().filter(service -> facility.hasAnyOf(service.getCode()))
-                .collect(
-                    Collectors.toSet());
-
-        // Create a new category that only has the services the facility has
-        return new Category(category.getCode(), category.getName(), facilityServices);
-      }).collect(Collectors.toSet());
-
-      facility.setAvailableServices(new AvailableServices(facilityCats));
+    catch (RuntimeException e) {
+      LOGGER.error("An unexpected exception occurred while trying set the available services for facility", e);
+      return facility;
     }
-
-    return facility;
   }
 
   private void refreshAll() {
