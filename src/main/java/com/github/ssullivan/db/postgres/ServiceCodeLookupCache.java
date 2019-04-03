@@ -6,7 +6,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.*;
 import io.dropwizard.lifecycle.Managed;
+import jersey.repackaged.com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +46,7 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
     Objects.requireNonNull(serviceCode, "Service code must not be null");
     try {
       return this.cache.get(serviceCode);
-    } catch (ExecutionException | UncheckedExecutionException | ExecutionError e) {
+    } catch (ExecutionException | RuntimeException | ExecutionError e) {
       LOGGER.error("Failed to load value from cache for key '{}'", serviceCode, e);
       throw e;
     }
@@ -56,7 +58,7 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
       try {
         return lookup(it);
       }
-      catch (ExecutionException | UncheckedExecutionException | ExecutionError e) {
+      catch (ExecutionException | RuntimeException | ExecutionError e) {
         LOGGER.error("Failed to lookup service code '{}'", it, e);
       }
       return null;
@@ -92,13 +94,18 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
 
     @Override
     public Integer load(final String key) throws Exception {
-      return this.dsl.select(Tables.SERVICE.ID)
-          .from(Tables.SERVICE)
-          .where(Tables.SERVICE.CODE.eq(key))
-          .fetch(Tables.SERVICE.ID)
-          .stream()
-          .findFirst()
-          .orElse(null);
+      try {
+        return this.dsl.select(Tables.SERVICE.ID)
+            .from(Tables.SERVICE)
+            .where(Tables.SERVICE.CODE.eq(key))
+            .fetch(Tables.SERVICE.ID)
+            .stream()
+            .findFirst()
+            .orElse(null);
+      } catch (DataAccessException e) {
+        LOGGER.error("Failed to load service code {}", key);
+        return null;
+      }
     }
 
 

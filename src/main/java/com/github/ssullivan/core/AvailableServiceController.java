@@ -137,6 +137,7 @@ public class AvailableServiceController implements IAvailableServiceController, 
 
   @Override
   public void start() throws Exception {
+    LOGGER.info("AvailableServiceController is starting");
     this.serviceManager.startAsync();
 
 
@@ -145,6 +146,7 @@ public class AvailableServiceController implements IAvailableServiceController, 
 
   @Override
   public void stop() throws Exception {
+    LOGGER.info("AvailableServiceController is shutting down");
     this.serviceManager.stopAsync();
     this.pool.shutdown();
   }
