@@ -4,8 +4,16 @@ import static com.github.ssullivan.core.analytics.Constants.ADULT;
 import static com.github.ssullivan.core.analytics.Constants.CHILD;
 import static com.github.ssullivan.core.analytics.Constants.YOUNG_ADULTS;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
+import org.jooq.util.postgres.PostgresDSL;
 
 public class ScoreByAge implements IScoreFacility {
 
@@ -39,6 +47,11 @@ public class ScoreByAge implements IScoreFacility {
     }
 
     return 0.0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+    return PostgresArrayDSL.score(cache, 1.1, ADULT, CHILD, YOUNG_ADULTS);
   }
 
   private boolean isYoungAdult(final int ageYears, final int ageMonths) {

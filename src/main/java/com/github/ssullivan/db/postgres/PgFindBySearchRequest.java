@@ -45,17 +45,20 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
   private IFeedDao feedDao;
   private IServiceConditionToSql toSql;
   private IAvailableServiceController availableServiceController;
+  private IServiceCodeLookupCache serviceCodeLookupCache;
 
   @Inject
   public PgFindBySearchRequest(final DSLContext dslContext, IFeedDao feedDao,
                                final IServiceConditionToSql conditionToSql,
                                final IAvailableServiceController availableServiceController,
+                               final IServiceCodeLookupCache serviceCodeLookupCache,
                                final ObjectMapper objectMapper) {
     this.dsl = dslContext;
     this.objectMapper = objectMapper;
     this.feedDao = feedDao;
     this.toSql = conditionToSql;
     this.availableServiceController = availableServiceController;
+    this.serviceCodeLookupCache = serviceCodeLookupCache;
   }
 
   public static Condition ST_DTWithin(final GeoRadiusCondition geoRadiusCondition) {
@@ -99,6 +102,9 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
 
     // just going to make the default sort order radius when the user specifies score
     // at the moment
+    if ("score".equalsIgnoreCase(sortField) && searchRequest.getCompositeFacilityScore() != null) {
+      return Optional.of(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache));
+    }
     if (("score".equalsIgnoreCase(sortField) || "radius".equalsIgnoreCase(sortField))
         && searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
       fieldToSortBy = Optional.of(_ST_Distance(searchRequest.getGeoRadiusCondition().getGeoPoint()));
@@ -128,6 +134,7 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
             .from(Tables.LOCATION)
             .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition).and(geoCondition))
             .orderBy(getOrderBy(searchRequest).orElse(Tables.LOCATION.ID))
+
             .limit(page.offset(), page.size())
 
             .fetch(Tables.LOCATION.JSON)

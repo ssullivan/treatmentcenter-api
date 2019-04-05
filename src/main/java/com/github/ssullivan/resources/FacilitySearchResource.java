@@ -277,6 +277,8 @@ public class FacilitySearchResource {
       toGeoRadiusCondition(lat, lon, distance, distanceUnit, postalCode)
           .ifPresent(searchRequest::setGeoRadiusCondition);
 
+      searchRequest.setCompositeFacilityScore(scoreBuilder.build());
+
       this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {
             if (error != null) {

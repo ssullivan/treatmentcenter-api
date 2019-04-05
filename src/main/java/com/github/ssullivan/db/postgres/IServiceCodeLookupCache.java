@@ -11,4 +11,6 @@ public interface IServiceCodeLookupCache {
     Integer lookup(final String serviceCode) throws ExecutionException;
 
     Set<Integer> lookupSet(final Collection<String> serviceCodes);
+
+    Set<Integer> lookupSet(final String... serviceCodes);
 }

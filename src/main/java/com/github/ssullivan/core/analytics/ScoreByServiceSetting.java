@@ -1,7 +1,10 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class ScoreByServiceSetting implements IScoreFacility {
 
@@ -24,5 +27,22 @@ public class ScoreByServiceSetting implements IScoreFacility {
     }
 
     return 0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    if (serviceCodes.contains("IRL")) {
+      return PostgresArrayDSL.score(cache, 1.0, "RL");
+    }
+    if (serviceCodes.contains("IRS")) {
+      return PostgresArrayDSL.score(cache, 1.0, "RS");
+    }
+    if (serviceCodes.contains("IOIT")) {
+      return PostgresArrayDSL.score(cache, 1.0, "OIT");
+    }
+    if (serviceCodes.contains("IORT")) {
+      return PostgresArrayDSL.score(cache, 1.0, "IORT");
+    }
+    return DSL.zero().cast(Double.class);
   }
 }
