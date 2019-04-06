@@ -47,8 +47,11 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
     Objects.requireNonNull(serviceCode, "Service code must not be null");
     try {
       return this.cache.get(serviceCode);
+    } catch (InvalidCacheLoadException e) {
+      LOGGER.error("Failed to load serviceCode {} from database. This is likely an invalid service code");
+      throw e;
     } catch (ExecutionException | RuntimeException | ExecutionError e) {
-      LOGGER.error("Failed to load value from cache for key '{}'", serviceCode, e);
+      LOGGER.error("Failed to load value from cache for key '{}'", serviceCode);
       throw e;
     }
   }

@@ -26,14 +26,14 @@ public class ScoreByMilitaryStatus implements IScoreFacility {
   @Override
   public double score(Facility facility) {
     if (this.noMilitaryService
-        || (Sets.anyMatch(serviceCodes, "AD", "GR", "IVET") && importance == Importance.NOT)
+        || (Sets.anyMatch(serviceCodes, "AD", "GR", "VET") && importance == Importance.NOT)
         || (Sets.anyMatch(serviceCodes, "AD") && facility.hasAnyOf("ADM"))
-        || (Sets.anyMatch(serviceCodes, "IVET", "GR") && facility.hasAnyOf("VET"))) {
+        || (Sets.anyMatch(serviceCodes, "VET", "GR") && facility.hasAnyOf("VET"))) {
       return 1.0;
     }
 
     if ((Sets.allMatch(serviceCodes, "AD", "MSI") && !facility.hasAnyOf("ADM"))
-        || (Sets.anyMatch(serviceCodes, "IVET", "GR") && !facility.hasAnyOf("VET"))) {
+        || (Sets.anyMatch(serviceCodes, "VET", "GR") && !facility.hasAnyOf("VET"))) {
       return 0.8;
     }
 
@@ -46,21 +46,21 @@ public class ScoreByMilitaryStatus implements IScoreFacility {
   @Override
   public Field<Double> toField(IServiceCodeLookupCache cache) {
     if (this.noMilitaryService
-        || (Sets.anyMatch(serviceCodes, "AD", "GR", "IVET") && importance == Importance.NOT)
+        || (Sets.anyMatch(serviceCodes, "AD", "GR", "VET") && importance == Importance.NOT)
         || (Sets.anyMatch(serviceCodes, "AD"))
-        || (Sets.anyMatch(serviceCodes, "IVET", "GR"))) {
-      return PostgresArrayDSL.score(cache, 1.0, "ADM", "VERT");
+        || (Sets.anyMatch(serviceCodes, "VET", "GR"))) {
+      return PostgresArrayDSL.score(cache, 1.0, "ADM", "VET");
     }
 
     try {
       if ((Sets.allMatch(serviceCodes, "AD", "MSI"))) {
-        return DSL.field("CASE services @> '?'::int WHEN true THEN .8 ELSE 0 END", Double.class,
+        return DSL.field("CASE services @> ?::int[] WHEN true THEN .8 ELSE 0 END", Double.class,
             '{' + cache.lookup("ADM") + '}');
       }
 
-      if (Sets.anyMatch(serviceCodes, "IVET", "GR")) {
-        return DSL.field("CASE services @> '?'::int WHEN true THEN .8 ELSE 0 END", Double.class,
-            '{' + cache.lookup("ADM") + '}');
+      if (Sets.anyMatch(serviceCodes, "VET", "GR")) {
+        return DSL.field("CASE services @> ?::int[] WHEN true THEN .8 ELSE 0 END", Double.class,
+            '{' + cache.lookup("VET") + '}');
       }
     }
     catch (ExecutionException e) {

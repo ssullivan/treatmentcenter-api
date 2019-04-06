@@ -2,7 +2,11 @@ package com.github.ssullivan.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ServicesConditionFactory {
 
@@ -31,5 +35,13 @@ public class ServicesConditionFactory {
         )
         .forEach(builder::add);
     return builder.build();
+  }
+
+  public static Set<String> serviceCodes(final List<ServicesCondition> conditions) {
+    if (conditions == null || conditions.isEmpty()) return new HashSet<>();
+    return conditions.stream().flatMap(it -> it.getServices().stream())
+        .filter(Objects::nonNull)
+        .filter(it -> !it.isEmpty())
+        .collect(Collectors.toSet());
   }
 }

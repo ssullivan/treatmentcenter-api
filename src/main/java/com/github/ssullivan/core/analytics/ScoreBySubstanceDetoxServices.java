@@ -1,7 +1,10 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class ScoreBySubstanceDetoxServices implements IScoreFacility {
 
@@ -64,5 +67,33 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
     return 0;
   }
 
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    if (!initialDetox) {
 
+
+      if (serviceCodes.contains(OUTPATIENT)) {
+        return PostgresArrayDSL.score(cache, 1.0, OPIOIDS_DETOX);
+      }
+
+      if (serviceCodes.contains(COCAINE)) {
+        return PostgresArrayDSL.score(cache, 1.0, COCAINE_DETOX);
+      }
+
+      if (serviceCodes.contains(METH)) {
+        return PostgresArrayDSL.score(cache, 1.0, METH_DETOX);
+      }
+
+      if (serviceCodes.contains(BENZODIAZEPINE)) {
+        return PostgresArrayDSL.score(cache, 1.0, BENZODIAZEPINES_DETOX);
+      }
+
+      if (serviceCodes.contains(ALCOHOL)) {
+        return PostgresArrayDSL.score(cache, 1.0, ALCOHOL_DETOX);
+      }
+
+      return PostgresArrayDSL.score(cache, 1.0, BUPRENORPHINE_DETOX, HOSPITAL_INPATIENT, RESIDENTIAL);
+    }
+    return DSL.zero().cast(Double.class);
+  }
 }

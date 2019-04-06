@@ -15,6 +15,7 @@ import com.github.ssullivan.model.SearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.SortDirection;
 import com.github.ssullivan.utils.ShortUuid;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.OrderField;
+import org.jooq.SortField;
 import org.jooq.TableField;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,28 +97,50 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
         .findFirst();
   }
 
-  private Optional<OrderField<?>> getOrderBy(final SearchRequest searchRequest) {
+  private Optional<Field<?>> getDistanceField(final SearchRequest searchRequest) {
+    if (searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
+      return Optional.of(_ST_Distance(searchRequest.getGeoRadiusCondition().getGeoPoint()));
+    }
+    return Optional.empty();
+  }
+
+  private SortField<?> applySortDirection(final Field<?> orderField, final SortDirection sortDirection) {
+    if (sortDirection == SortDirection.ASC) {
+      return orderField.asc();
+    }
+    return orderField.desc();
+  }
+
+  private Optional<List<SortField<?>>> getSortFields(final SearchRequest searchRequest) {
     final String sortField = searchRequest.getSortField();
     final SortDirection sortDirection = searchRequest.getSortDirection();
 
-    Optional<Field<?>> fieldToSortBy = getSortField(sortField);
+
+    final List<SortField<?>> orderFields = new ArrayList<>();
 
     // just going to make the default sort order radius when the user specifies score
     // at the moment
     if ("score".equalsIgnoreCase(sortField) && searchRequest.getCompositeFacilityScore() != null) {
-      return Optional.of(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache));
+      orderFields.add(applySortDirection(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache), sortDirection));
+      getDistanceField(searchRequest)
+          .map(it -> applySortDirection(it, SortDirection.DESC))
+          .ifPresent(orderFields::add);
     }
-    if (("score".equalsIgnoreCase(sortField) || "radius".equalsIgnoreCase(sortField))
+    else if ("radius".equalsIgnoreCase(sortField)
         && searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
-      fieldToSortBy = Optional.of(_ST_Distance(searchRequest.getGeoRadiusCondition().getGeoPoint()));
+      orderFields.add(applySortDirection(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache), sortDirection));
+    }
+    else {
+      getSortField(sortField)
+          .map(it -> applySortDirection(it, sortDirection))
+          .ifPresent(orderFields::add);
     }
 
-    return fieldToSortBy.map(it -> {
-      if (sortDirection == SortDirection.ASC) {
-        return it.asc();
-      }
-      return it.desc();
-    });
+    if (orderFields.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(orderFields);
   }
 
   private CompletionStage<SearchResults<Facility>> find(final String feedId, SearchRequest searchRequest, Page page) {
@@ -130,23 +155,32 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
 
     final Function<Facility, Facility> addRadius = applyToFacilityWithRadius(searchRequest);
 
-    final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON)
-            .from(Tables.LOCATION)
-            .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition).and(geoCondition))
-            .orderBy(getOrderBy(searchRequest).orElse(Tables.LOCATION.ID))
+    try {
+      final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON)
+          .from(Tables.LOCATION)
+          .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition)
+              .and(geoCondition))
+          .orderBy(getSortFields(searchRequest)
+              .orElseGet(() -> Lists.newArrayList(Tables.LOCATION.ID.desc())))
+          .limit(page.offset(), page.size())
+          .fetch(Tables.LOCATION.JSON)
+          .stream()
+          .map(this::deserialize)
+          .filter(Objects::nonNull)
+          .map(facility -> availableServiceController.apply(facility))
+          .map(addRadius)
+          .collect(Collectors.toList());
 
-            .limit(page.offset(), page.size())
-
-            .fetch(Tables.LOCATION.JSON)
-            .stream()
-            .map(this::deserialize)
-            .filter(Objects::nonNull)
-            .map(facility -> availableServiceController.apply(facility))
-            .map(addRadius)
-            .collect(Collectors.toList());
-
-    final SearchResults<Facility> searchResults = SearchResults.searchResults(totalHits, facilities);
-    return CompletableFuture.completedFuture(searchResults);
+      final SearchResults<Facility> searchResults = SearchResults
+          .searchResults(totalHits, facilities);
+      return CompletableFuture.completedFuture(searchResults);
+    }
+    catch (DataAccessException e) {
+      LOGGER.error("Failed to query database for feed {} and page {}", feedId, page, e);
+      final SearchResults<Facility> searchResults = SearchResults
+          .searchResults(totalHits, new ArrayList<>());
+      return CompletableFuture.completedFuture(searchResults);
+    }
   }
 
   private Facility deserialize(final String json) {

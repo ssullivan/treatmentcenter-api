@@ -266,6 +266,7 @@ public class FacilitySearchResource {
       }
 
       Builder scoreBuilder = new Builder()
+          .withServiceCodes(ServicesConditionFactory.serviceCodes(searchRequest.getConditions()))
           .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
           .withHearingSupport(hearingSupportImportance)
           .withLangSupport(langSupportImp)

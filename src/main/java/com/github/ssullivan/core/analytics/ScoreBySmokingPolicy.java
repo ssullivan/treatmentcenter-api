@@ -1,7 +1,10 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class ScoreBySmokingPolicy implements IScoreFacility {
 
@@ -48,5 +51,31 @@ public class ScoreBySmokingPolicy implements IScoreFacility {
       }
     }
     return 0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    if (isSmoker) {
+      if (Sets.anyMatch(serviceCodes, SMON)) {
+        return PostgresArrayDSL.scoreIfItContains(cache, 1.0, 0, SMON, SMPD, SMOP);
+      }
+      if (Sets.anyMatch(serviceCodes, SMPD)) {
+        return PostgresArrayDSL.scoreIfItContains(cache, 1.0, 0, SMPD, SMOP);
+      }
+      if (Sets.anyMatch(serviceCodes, SMOP)) {
+        return PostgresArrayDSL.scoreIfItContains(cache, 1.0, 0, SMOP);
+      }
+    } else {
+      if (Sets.anyMatch(serviceCodes, SMON)) {
+        return PostgresArrayDSL.scoreIfItContains(cache, 1.0, 0, SMON);
+      }
+      if (Sets.anyMatch(serviceCodes, SMPD)) {
+        return PostgresArrayDSL.score(cache, 1.0, SMON, SMPD);
+      }
+      if (Sets.anyMatch(serviceCodes, SMOP)) {
+        return PostgresArrayDSL.score(cache, 1.0, SMOP, SMON, SMPD);
+      }
+    }
+    return DSL.zero().cast(Double.class);
   }
 }
