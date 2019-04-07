@@ -1,8 +1,5 @@
 package com.github.ssullivan.core.analytics;
 
-import static com.github.ssullivan.core.analytics.Constants.FEMALE;
-import static com.github.ssullivan.core.analytics.Constants.MALE;
-
 import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;

@@ -6,14 +6,8 @@ import static com.github.ssullivan.core.analytics.Constants.YOUNG_ADULTS;
 
 import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import java.time.LocalDate;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import org.jooq.Field;
-import org.jooq.impl.DSL;
-import org.jooq.util.postgres.PostgresDSL;
 
 public class ScoreByAge implements IScoreFacility {
 

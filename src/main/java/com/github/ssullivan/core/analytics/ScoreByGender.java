@@ -1,14 +1,10 @@
 package com.github.ssullivan.core.analytics;
 
-import static com.github.ssullivan.core.analytics.Constants.ADULT;
-import static com.github.ssullivan.core.analytics.Constants.CHILD;
 import static com.github.ssullivan.core.analytics.Constants.FEMALE;
 import static com.github.ssullivan.core.analytics.Constants.MALE;
-import static com.github.ssullivan.core.analytics.Constants.YOUNG_ADULTS;
 
 import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
-import com.sun.el.parser.AstMethodArguments;
 import java.util.Set;
 import org.jooq.Field;
 

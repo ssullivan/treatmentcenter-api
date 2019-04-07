@@ -3,7 +3,6 @@ package com.github.ssullivan.core.analytics;
 import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
-import javafx.geometry.Pos;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
 

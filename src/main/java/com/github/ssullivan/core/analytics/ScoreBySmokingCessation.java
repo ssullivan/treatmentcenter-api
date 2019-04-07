@@ -4,8 +4,6 @@ import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import com.google.common.base.Joiner;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import javafx.geometry.Pos;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;

@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
-import org.jooq.util.postgres.PostgresDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
