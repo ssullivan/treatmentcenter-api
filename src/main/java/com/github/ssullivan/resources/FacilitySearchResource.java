@@ -266,6 +266,7 @@ public class FacilitySearchResource {
       }
 
       Builder scoreBuilder = new Builder()
+          .withServiceCodes(ServicesConditionFactory.serviceCodes(searchRequest.getConditions()))
           .withDateOfBirth(null == dateOfBirth ? null : LocalDate.parse(dateOfBirth))
           .withHearingSupport(hearingSupportImportance)
           .withLangSupport(langSupportImp)
@@ -276,6 +277,8 @@ public class FacilitySearchResource {
 
       toGeoRadiusCondition(lat, lon, distance, distanceUnit, postalCode)
           .ifPresent(searchRequest::setGeoRadiusCondition);
+
+      searchRequest.setCompositeFacilityScore(scoreBuilder.build());
 
       this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {

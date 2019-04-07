@@ -1,7 +1,11 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
+import javafx.geometry.Pos;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class ScoreByMentalHealth implements IScoreFacility {
 
@@ -24,5 +28,13 @@ public class ScoreByMentalHealth implements IScoreFacility {
       return 1.0;
     }
     return 0.0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    if (mentalHealthRelated) {
+      return PostgresArrayDSL.score(cache, 1.0,"MHSAF", "MHF", "CO");
+    }
+    return DSL.zero().cast(Double.class);
   }
 }

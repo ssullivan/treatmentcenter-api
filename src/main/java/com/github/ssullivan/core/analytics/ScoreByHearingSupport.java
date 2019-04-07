@@ -1,7 +1,12 @@
 package com.github.ssullivan.core.analytics;
 
+import static com.github.ssullivan.core.analytics.Constants.FEMALE;
+import static com.github.ssullivan.core.analytics.Constants.MALE;
+
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
+import org.jooq.Field;
 
 public class ScoreByHearingSupport implements IScoreFacility {
 
@@ -31,6 +36,23 @@ public class ScoreByHearingSupport implements IScoreFacility {
         .anyMatch(AH::equalsIgnoreCase);
     this.importance = importance;
   }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+    return PostgresArrayDSL.score(cache, weight(), AH);
+  }
+
+  public double weight() {
+    if (!isDeafOrHardOfHearing || importance == Importance.NOT) {
+      return 1.0;
+    }
+    if (importance == Importance.SOMEWHAT) {
+      return .8;
+    }
+
+    return 0;
+  }
+
 
 
   @Override

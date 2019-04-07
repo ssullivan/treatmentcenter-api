@@ -1,9 +1,12 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class ScoreByTraumaServices implements IScoreFacility {
 
@@ -63,5 +66,34 @@ public class ScoreByTraumaServices implements IScoreFacility {
       return 1.0;
     }
     return 0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    if (!needsSupport) {
+      return DSL.one().cast(Double.class);
+    }
+
+    if (this.traumaTypes.contains(TraumaTypes.TRAUMA)) {
+      return PostgresArrayDSL.score(cache, 1.0, "TRMA", "TRC");
+    }
+    if (this.traumaTypes.contains(TraumaTypes.DOMESTIC)) {
+      return PostgresArrayDSL.score(cache, 1.0, "DV", "DVFP");
+    }
+    if (this.traumaTypes.contains(TraumaTypes.SEXUAL)) {
+      return PostgresArrayDSL.score(cache, 1.0, "IXA");
+    }
+
+    if (Sets.anyMatch(traumaTypes, TraumaTypes.TRAUMA, TraumaTypes.DOMESTIC)) {
+      return PostgresArrayDSL.score(cache, 1.0, "DV", "DVFP");
+    }
+    if (Sets.anyMatch(traumaTypes, TraumaTypes.TRAUMA, TraumaTypes.SEXUAL)) {
+      return PostgresArrayDSL.score(cache, 1.0, "XA");
+    }
+    if (Sets.anyMatch(traumaTypes, TraumaTypes.DOMESTIC, TraumaTypes.SEXUAL, TraumaTypes.TRAUMA)) {
+      return PostgresArrayDSL.score(cache, 1.0, "DV", "DVP", "XA", "TRMA", "TRC");
+    }
+
+    return DSL.zero().cast(Double.class);
   }
 }

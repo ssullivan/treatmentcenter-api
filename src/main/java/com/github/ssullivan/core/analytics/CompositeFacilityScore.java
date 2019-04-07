@@ -1,5 +1,6 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.collections.Tuple2;
 import java.time.LocalDate;
@@ -8,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class CompositeFacilityScore implements IScoreFacility {
 
@@ -69,6 +72,25 @@ public class CompositeFacilityScore implements IScoreFacility {
     this.scoreBySubstanceDetoxServices = scoreBySubstanceDetoxServices;
     this.scoreByTraumaServices = scoreByTraumaServices;
     this.scoreByMilitaryStatus = scoreByMilitaryStatus;
+  }
+
+  public Field<Double> toField(final IServiceCodeLookupCache cache) {
+    return Stream.of(scoreByAge,
+        scoreByGender,
+        scoreByHearingSupport,
+        scoreByLang,
+        scoreByMedAssistedTreatment,
+        scoreByMentalHealth,
+        scoreByMilitaryFamilyStatus,
+        scoreByMilitaryStatus,
+        scoreByServiceSetting,
+        scoreBySmokingCessation,
+        scoreBySmokingPolicy,
+        scoreBySubstanceDetoxServices,
+        scoreByTraumaServices)
+        .filter(Optional::isPresent)
+        .map(it -> it.get().toField(cache))
+        .reduce(DSL.zero().cast(Double.class), Field::add);
   }
 
   @Override

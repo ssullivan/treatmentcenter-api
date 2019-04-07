@@ -1,7 +1,11 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
+import javafx.geometry.Pos;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 
 public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
   private Importance importance;
@@ -33,5 +37,15 @@ public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
       return .8;
     }
     return 0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    if (!this.isMilitary || importance == Importance.NOT) {
+      return DSL.one().cast(Double.class);
+    }
+
+    // not sure how to handle the ! yet
+    return PostgresArrayDSL.score(cache, 1.0, "MF");
   }
 }

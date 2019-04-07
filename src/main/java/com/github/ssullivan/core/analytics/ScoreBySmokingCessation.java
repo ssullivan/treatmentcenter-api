@@ -1,9 +1,18 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
+import com.google.common.base.Joiner;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import javafx.geometry.Pos;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScoreBySmokingCessation implements IScoreFacility {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ScoreBySmokingCessation.class);
 
   private static final String NRT = "NRT";
   private static final String NSC = "NSC";
@@ -60,5 +69,22 @@ public class ScoreBySmokingCessation implements IScoreFacility {
 //      }
     }
     return 0;
+  }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
+    try {
+      if (importance == Importance.SOMEWHAT) {
+        return DSL.field("CASE services @> ?::int[] WHEN false THEN .8 ELSE 0 END", Double.class,
+            '{' + Joiner.on(",").join(cache.lookupSet("NRT", "NSC", "STU", "TCC")) + '}')
+            .cast(Double.class);
+      }
+
+      return PostgresArrayDSL.score(cache, 1.0, "NRT", "NSC", "STU", "TCC");
+    }
+    catch (RuntimeException e) {
+      LOGGER.error("", e);
+    }
+    return DSL.zero().cast(Double.class);
   }
 }

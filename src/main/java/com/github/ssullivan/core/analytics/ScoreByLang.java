@@ -1,8 +1,10 @@
 package com.github.ssullivan.core.analytics;
 
+import com.github.ssullivan.db.postgres.IServiceCodeLookupCache;
 import com.github.ssullivan.model.Facility;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jooq.Field;
 
 public class ScoreByLang implements IScoreFacility {
 
@@ -171,4 +173,28 @@ public class ScoreByLang implements IScoreFacility {
 
     return 0;
   }
+
+  @Override
+  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+    return PostgresArrayDSL.score(cache, weight(), selectedLangs);
+  }
+
+  public double weight() {
+    if (this.isEnglishFirst || (importance == Importance.NOT)) {
+      return 1.0;
+    }
+
+    if (importance == Importance.SOMEWHAT
+        && !selectedLangs.isEmpty()) {
+      return .8;
+    }
+
+    if (!selectedLangs.isEmpty()) {
+      return 1.0;
+    }
+
+
+    return 0;
+  }
+
 }

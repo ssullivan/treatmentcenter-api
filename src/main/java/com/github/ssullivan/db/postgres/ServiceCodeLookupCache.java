@@ -6,6 +6,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.*;
 import io.dropwizard.lifecycle.Managed;
+import java.util.stream.Stream;
 import jersey.repackaged.com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
@@ -46,8 +47,11 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
     Objects.requireNonNull(serviceCode, "Service code must not be null");
     try {
       return this.cache.get(serviceCode);
+    } catch (InvalidCacheLoadException e) {
+      LOGGER.error("Failed to load serviceCode {} from database. This is likely an invalid service code");
+      throw e;
     } catch (ExecutionException | RuntimeException | ExecutionError e) {
-      LOGGER.error("Failed to load value from cache for key '{}'", serviceCode, e);
+      LOGGER.error("Failed to load value from cache for key '{}'", serviceCode);
       throw e;
     }
   }
@@ -64,6 +68,20 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
       return null;
     }).filter(Objects::nonNull)
             .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Integer> lookupSet(String... serviceCodes) {
+    return Stream.of(serviceCodes).map(it -> {
+      try {
+        return lookup(it);
+      }
+      catch (ExecutionException | RuntimeException | ExecutionError e) {
+        LOGGER.error("Failed to lookup service code '{}'", it, e);
+      }
+      return null;
+    }).filter(Objects::nonNull)
+        .collect(Collectors.toSet());
   }
 
 

@@ -1,5 +1,6 @@
 package com.github.ssullivan.model;
 
+import com.github.ssullivan.core.analytics.CompositeFacilityScore;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -15,6 +16,7 @@ public class SearchRequest {
   private String sortField;
   private SortDirection sortDirection;
   private String id;
+  private CompositeFacilityScore compositeFacilityScore;
 
   public SearchRequest() {
     this.id = ShortUuid.randomShortUuid();
@@ -85,5 +87,14 @@ public class SearchRequest {
         .flatMap(it -> it.getServices().stream())
         .forEach(builder::add);
     return builder.build();
+  }
+
+  public CompositeFacilityScore getCompositeFacilityScore() {
+    return compositeFacilityScore;
+  }
+
+  public void setCompositeFacilityScore(
+      CompositeFacilityScore compositeFacilityScore) {
+    this.compositeFacilityScore = compositeFacilityScore;
   }
 }
