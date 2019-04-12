@@ -11,7 +11,6 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
   private static final String BMW = "BMW";
   private static final String BU = "BU";
   private static final String BUM = "BUM";
-  private static final String BUP = "BUP";
   private static final String METH = "METH";
   private static final String MM = "MM";
   private static final String MMW = "MMW";
@@ -24,7 +23,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
   private static final String VIV = "VIV";
 
   private static final String[] MED_CODES = new String[]{
-      BMW, BU, BUP, BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL,  VIV, NMOA
+      BMW, BU,  BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL,  VIV, NMOA
   };
 
 
@@ -45,7 +44,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
       if (noPref() && usesMeds(facility)) {
         return 1.0;
       }
-      if (Sets.anyMatch(serviceCodes, BUP) && facility.hasAnyOf(BMW, BU, BUM, PAIN, UBN)) {
+      if (Sets.anyMatch(serviceCodes, BU) && facility.hasAnyOf(BMW, BU, BUM, PAIN, UBN)) {
         return 1.0;
       }
       if (Sets.anyMatch(serviceCodes, METH) && facility.hasAnyOf(METH, MM, MMW, PAIN)) {
@@ -74,7 +73,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
     if (noPref()) {
       return PostgresArrayDSL.score(cache, 1.0, MED_CODES);
     }
-    if (Sets.anyMatch(serviceCodes, BUP)) {
+    if (Sets.anyMatch(serviceCodes, BU)) {
       return PostgresArrayDSL.score(cache, 1.0, BMW, BU, BUM, PAIN, UBN);
     }
     if (Sets.anyMatch(serviceCodes, METH)) {
