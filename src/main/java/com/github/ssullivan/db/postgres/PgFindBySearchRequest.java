@@ -123,7 +123,7 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     if ("score".equalsIgnoreCase(sortField) && searchRequest.getCompositeFacilityScore() != null) {
       orderFields.add(applySortDirection(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache), sortDirection));
       getDistanceField(searchRequest)
-          .map(it -> applySortDirection(it, SortDirection.DESC))
+          .map(it -> applySortDirection(it, SortDirection.ASC))
           .ifPresent(orderFields::add);
     }
     else if ("radius".equalsIgnoreCase(sortField)
