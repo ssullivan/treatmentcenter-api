@@ -70,7 +70,13 @@ public class FacilitySearchResource {
     this.postalcodeService = postalcodeService;
   }
 
+  public static <F extends Facility> SearchResults<F> sort(final SearchResults<F> searchResults,
+      final String sortField, final SortDirection sortDirection) {
 
+    return SearchResults.searchResults(searchResults.totalHits(),
+        ImmutableList.sortedCopyOf(new FacilityComparator<>(sortField, sortDirection),
+            searchResults.hits()));
+  }
 
   public static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
