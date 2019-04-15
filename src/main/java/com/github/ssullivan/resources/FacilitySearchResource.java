@@ -70,13 +70,7 @@ public class FacilitySearchResource {
     this.postalcodeService = postalcodeService;
   }
 
-  public static <F extends Facility> SearchResults<F> sort(final SearchResults<F> searchResults,
-      final String sortField, final SortDirection sortDirection) {
 
-    return SearchResults.searchResults(searchResults.totalHits(),
-        ImmutableList.sortedCopyOf(new FacilityComparator<>(sortField, sortDirection),
-            searchResults.hits()));
-  }
 
   public static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
@@ -287,8 +281,7 @@ public class FacilitySearchResource {
               asyncResponse.resume(Response.serverError().build());
             } else {
               asyncResponse.resume(Response
-                  .ok(sort(applyScores(searchRequest, scoreBuilder, result), sortFields,
-                      sortDirection)).build());
+                  .ok(applyScores(searchRequest, scoreBuilder, result)).build());
             }
           });
 
@@ -411,8 +404,7 @@ public class FacilitySearchResource {
               asyncResponse.resume(Response.serverError().build());
             } else {
               asyncResponse.resume(Response
-                  .ok(sort(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result),
-                      sortField, sortDirection)).build());
+                  .ok(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result)).build());
             }
           });
 
