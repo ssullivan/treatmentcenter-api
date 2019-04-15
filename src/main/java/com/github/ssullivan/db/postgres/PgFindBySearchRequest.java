@@ -128,7 +128,9 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     }
     else if ("radius".equalsIgnoreCase(sortField)
         && searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
-      orderFields.add(applySortDirection(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache), sortDirection));
+      getDistanceField(searchRequest)
+          .map(it -> applySortDirection(it, sortDirection))
+          .ifPresent(orderFields::add);
     }
     else {
       getSortField(sortField)
