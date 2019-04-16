@@ -80,9 +80,10 @@ public class FacilitySearchResource {
 
   public static <F extends Facility> SearchResults<F> applyScores(final SearchRequest searchRequest,
       final CompositeFacilityScore.Builder builder, final SearchResults<F> searchResults) {
-    applyScores(searchRequest.allServiceCodes(),
-        builder, searchResults);
     return searchResults;
+//    applyScores(searchRequest.allServiceCodes(),
+//        builder, searchResults);
+ //   return searchResults;
   }
 
   public static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
@@ -287,7 +288,7 @@ public class FacilitySearchResource {
               asyncResponse.resume(Response.serverError().build());
             } else {
               asyncResponse.resume(Response
-                  .ok(applyScores(searchRequest, scoreBuilder, result)).build());
+                  .ok(result).build());
             }
           });
 

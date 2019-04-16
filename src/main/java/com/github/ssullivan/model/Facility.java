@@ -54,6 +54,8 @@ public class Facility {
     this.formattedAddress = facility.getFormattedAddress();
     this.website = facility.getWebsite();
     this.county = facility.getCounty();
+    this.score = facility.score;
+
 
     if (facility.getPhoneNumbers() != null) {
       this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());

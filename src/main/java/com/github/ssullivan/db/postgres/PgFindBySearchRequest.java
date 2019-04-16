@@ -125,6 +125,7 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
       getDistanceField(searchRequest)
           .map(it -> applySortDirection(it, SortDirection.ASC))
           .ifPresent(orderFields::add);
+      orderFields.add(Tables.LOCATION.ID.desc());
     }
     else if ("radius".equalsIgnoreCase(sortField)
         && searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
@@ -157,17 +158,26 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
 
     final Function<Facility, Facility> addRadius = applyToFacilityWithRadius(searchRequest);
 
+    final Field<Double> scoreField = searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache).as("score");
+
     try {
-      final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON)
+      final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON, scoreField)
           .from(Tables.LOCATION)
           .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition)
               .and(geoCondition))
           .orderBy(getSortFields(searchRequest)
               .orElseGet(() -> Lists.newArrayList(Tables.LOCATION.ID.desc())))
           .limit(page.offset(), page.size())
-          .fetch(Tables.LOCATION.JSON)
+          .fetch()
           .stream()
-          .map(this::deserialize)
+          .map(record -> {
+
+            final Facility facility = deserialize(record.value1());
+            if (facility != null) {
+              facility.setScore(record.value2());
+            }
+            return facility;
+          })
           .filter(Objects::nonNull)
           .map(facility -> availableServiceController.apply(facility))
           .map(addRadius)
