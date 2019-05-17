@@ -171,7 +171,6 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
           .fetch()
           .stream()
           .map(record -> {
-
             final Facility facility = deserialize(record.value1());
             if (facility != null) {
               facility.setScore(record.value2());
