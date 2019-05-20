@@ -34,6 +34,7 @@ postgres:
   region: ${AWS_REGION:-us-east-1}
 
 
+
 # Logging settings.
 logging:
 
