@@ -5,6 +5,8 @@ import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.bundles.InjectorRegistry;
 import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.core.PostalcodeService;
+import com.github.ssullivan.db.IApiKeyDao;
+import com.github.ssullivan.db.env.EnvApiKeyDao;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.PsqlClientModule;
@@ -118,6 +120,7 @@ public class ApiApplication extends Application<AppConfig> {
         new AbstractModule() {
           @Override
           protected void configure() {
+            bind(IApiKeyDao.class).to(EnvApiKeyDao.class).in(Singleton.class);
             bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);
             bindConstant().annotatedWith(PropPostalcodesPath.class)
                 .to(getProperty("POSTALCODES_US_PATH",
