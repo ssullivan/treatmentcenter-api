@@ -15,7 +15,9 @@ public interface IWorksheetDao {
      *
      * @return the current version (most recent version change)
      */
-    int getLatestVersion();
+    long getLatestVersion(final String spreadsheetId, final int worksheetId);
+
+    List<JsonNode> listWorksheets(Page page);
 
     void deleteOldVersions();
 

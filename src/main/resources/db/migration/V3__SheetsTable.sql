@@ -12,6 +12,7 @@ CREATE TABLE spreadsheet (
   num_sheets int NOT NULL default 0,
   owner_email text NOT NULL,
   last_editor_email text NOT NULL,
+  published boolean NOT NULL default false,
   version bigint NOT NULL DEFAULT 0,
   last_updated TIMESTAMP WITH TIME ZONE NULL,
   created TIMESTAMP WITH TIME ZONE NOT NULL default (now())
