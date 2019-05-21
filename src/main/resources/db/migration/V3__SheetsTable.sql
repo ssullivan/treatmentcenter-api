@@ -5,16 +5,15 @@
 --
 -- This table stores high level metadata regarding
 --
-CREATE TABLE sheet_detail (
-  id bigserial primary key,
-  sheet_id text NOT NULL,
+CREATE TABLE spreadsheet (
+  pk bigserial primary key,
+  id text NOT NULL,
   name text NOT NULL,
+  num_sheets int NOT NULL default 0,
+  owner_email text NOT NULL,
   last_editor_email text NOT NULL,
-  rows int NOT NULL DEFAULT 0,
-  cols int NOT NULL DEFAULT 0,
   version bigint NOT NULL DEFAULT 0,
   last_updated TIMESTAMP WITH TIME ZONE NULL,
-  fields text[] NULL,
   created TIMESTAMP WITH TIME ZONE NOT NULL default (now())
 );
 
@@ -25,16 +24,18 @@ CREATE TABLE sheet_detail (
 --- Every row from the Google Spreadsheet will have this version applied to it
 --- If a latitude/longitude are in the row then this will be extracted and stored in the geog field
 ---
-
-CREATE TABLE sheet_rows (
-  id bigserial primary key not null,
-  sheet_id text NOT NULL,
+CREATE TABLE worksheet (
+  pk bigserial primary key not null,
+  spreadsheet_id text NOT NULL,
+  id int NOT NULL,
+  name text NOT NULL,
   version bigint NOT NULL,
-  row jsonb not null default '{}'::jsonb,
+  column_headers text[] NOT NULL,
+  row_jsonb jsonb not null default '{}'::jsonb,
   row_index int NOT NULL,
   geog GEOMETRY(POINT,4326) NULL
 );
 
-CREATE INDEX idx_sheet_id_version ON sheet_rows USING btree(version, sheet_id);
-CREATE INDEX idx_sheet_rows_gix ON sheet_rows USING gist(version, sheet_id, geog) WHERE geog IS NOT NULL;
-CREATE INDEX idx_sheet_row_gin ON sheet_rows USING gin(row);
+CREATE INDEX idx_sheet_id_version ON worksheet USING btree(version, spreadsheet_id, id, name);
+CREATE INDEX idx_sheet_rows_gix ON worksheet USING gist(geog) WHERE geog IS NOT NULL;
+CREATE INDEX idx_sheet_row_gin ON worksheet USING gin(row_jsonb);

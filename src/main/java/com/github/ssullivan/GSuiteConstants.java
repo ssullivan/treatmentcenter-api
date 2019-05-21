@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GSuiteConstants {
+public final class GSuiteConstants {
     private static final Set<SubnetUtils> GOOGLE_IP_CIDRS = Collections.unmodifiableSet(Sets.newHashSet("64.18.0.0/20",
             "64.233.160.0/19",
             "66.102.0.0/20",
@@ -20,7 +20,7 @@ public class GSuiteConstants {
             "216.239.32.0/19").stream().map(SubnetUtils::new)
             .collect(Collectors.toSet()));
 
-    public boolean isGSuiteIpAddress(final String ipAddress) {
+    public static boolean isGSuiteIpAddress(final String ipAddress) {
         if (null == ipAddress || ipAddress.isEmpty()) return false;
         return GOOGLE_IP_CIDRS.stream().anyMatch(it -> it.getInfo().isInRange(ipAddress));
     }

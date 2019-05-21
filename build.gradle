@@ -314,7 +314,14 @@ jooq {
                         types = '.*'
                         binding = 'com.github.ssullivan.db.postgres.PostGisGeometryBinding'
                     }
+                    forcedType {
+                        userType = 'com.fasterxml.jackson.databind.JsonNode'
+                        expression = 'row_jsonb'
+                        types = '.*'
+                        binding = 'com.github.ssullivan.db.postgres.PgJSONBJacksonBinding'
+                    }
                 }
+
             }
             target {
                 packageName = 'com.github.ssullivan.db.psql'

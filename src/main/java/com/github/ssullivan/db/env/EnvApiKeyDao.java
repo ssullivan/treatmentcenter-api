@@ -6,6 +6,7 @@ public class EnvApiKeyDao implements IApiKeyDao {
 
   // the api key that is allowed to write data into the system
   private static final String ENV_API_KEY = "API_KEY";
+  private static final String ENV_DOMAIN_KEY = "API_KEY_DOMAIN";
   private final String authorizedApiKey;
 
   public EnvApiKeyDao() {
@@ -19,5 +20,10 @@ public class EnvApiKeyDao implements IApiKeyDao {
     }
 
     return authorizedApiKey.equals(apiKey);
+  }
+
+  @Override
+  public boolean isValidApiKey(String domain, String apiKey) {
+    return isValidApiKey(apiKey);
   }
 }
