@@ -14,8 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class WorksheetDao implements IWorksheetDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorksheetDao.class);
@@ -121,76 +123,66 @@ public class WorksheetDao implements IWorksheetDao {
 
     @Override
     public SearchResults<JsonNode> findRows(String spreadsheetId, int worksheetId, Map<String, Object> params, Page page) {
-        return dsl.transactionResult(configuration -> {
-            final DSLContext innerDsl = DSL.using(configuration);
-
-            long maxVersion = innerDsl.select(DSL.max(Tables.WORKSHEET.ID))
-                    .from(Tables.WORKSHEET)
-                    .where(Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId)
-                            .and(Tables.WORKSHEET.ID.eq(worksheetId)))
-                    .limit(1)
-                    .fetchOne().value1();
-
-            Condition condition = Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId)
-                    .and(Tables.WORKSHEET.ID.eq(worksheetId)).and(Tables.WORKSHEET.VERSION.eq(maxVersion));
-
-            if (null != params && !params.isEmpty()) {
-                condition = condition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params));
-            }
-
-            int totalResults = innerDsl.select(DSL.count(Tables.WORKSHEET.PK))
-                    .from(Tables.WORKSHEET)
-                    .where(condition)
-                    .fetchOne()
-                    .value1();
-
-            List<JsonNode> results = innerDsl.select(Tables.WORKSHEET.ROW_JSONB)
-                    .from(Tables.WORKSHEET)
-                    .where(condition)
-                    .orderBy(Tables.WORKSHEET.ROW_INDEX)
-                    .offset(page.offset())
-                    .limit(page.size())
-                    .fetch(Tables.WORKSHEET.ROW_JSONB);
-
-            return SearchResults.searchResults(totalResults, results);
-        });
+        return findRows(spreadsheetId,
+                null,
+                worksheetId,
+                params,
+                page);
     }
 
     @Override
     public SearchResults<JsonNode> findRows(String spreadsheetId, String worksheetName, Map<String, Object> params, Page page) {
-        return dsl.transactionResult(configuration -> {
-            final DSLContext innerDsl = DSL.using(configuration);
-
-            long maxVersion = innerDsl.select(DSL.max(Tables.WORKSHEET.ID))
-                    .from(Tables.WORKSHEET)
-                    .where(Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId)
-                            .and(Tables.WORKSHEET.NAME.eq(worksheetName)))
-                    .limit(1)
-                    .fetchOne().value1();
-
-            Condition condition = Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId)
-                    .and(Tables.WORKSHEET.NAME.eq(worksheetName)).and(Tables.WORKSHEET.VERSION.eq(maxVersion));
-
-            if (null != params && !params.isEmpty()) {
-                condition = condition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params));
-            }
-
-            int totalResults = innerDsl.select(DSL.count(Tables.WORKSHEET.PK))
-                    .from(Tables.WORKSHEET)
-                    .where(condition)
-                    .fetchOne()
-                    .value1();
-
-            List<JsonNode> results = innerDsl.select(Tables.WORKSHEET.ROW_JSONB)
-                    .from(Tables.WORKSHEET)
-                    .where(condition)
-                    .orderBy(Tables.WORKSHEET.ROW_INDEX)
-                    .offset(page.offset())
-                    .limit(page.size())
-                    .fetch(Tables.WORKSHEET.ROW_JSONB);
-
-            return SearchResults.searchResults(totalResults, results);
-        });
+        return findRows(spreadsheetId,
+                worksheetName,
+                null,
+                params,
+                page);
     }
 
+    private SearchResults<JsonNode> findRows(final String spreadsheetId,
+                                             final String worksheetName,
+                                             final Integer worksheetId,
+                                             final Map<String, Object> params,
+                                             final Page page) {
+        return dsl.transactionResult(configuration -> {
+                    final DSLContext innerDsl = DSL.using(configuration);
+
+                    Condition worksheetCondition = Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId);
+                    if (worksheetName != null) {
+                        worksheetCondition = worksheetCondition.and(Tables.WORKSHEET.NAME.eq(worksheetName));
+                    }
+                    if (worksheetId != null) {
+                        worksheetCondition = worksheetCondition.and(Tables.WORKSHEET.ID.eq(worksheetId));
+                    }
+
+                    long maxVersion = innerDsl.select(DSL.max(Tables.WORKSHEET.ID))
+                            .from(Tables.WORKSHEET)
+                            .where(worksheetCondition)
+                            .limit(1)
+                            .fetchOne().value1();
+
+                    worksheetCondition = worksheetCondition.and(Tables.WORKSHEET.VERSION.eq(maxVersion));
+
+                    if (params != null && !params.isEmpty()) {
+                        worksheetCondition = worksheetCondition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params));
+                    }
+
+                    int totalResults = innerDsl.select(DSL.count(Tables.WORKSHEET.PK))
+                            .from(Tables.WORKSHEET)
+                            .where(worksheetCondition)
+                            .fetchOne()
+                            .value1();
+
+                    List<JsonNode> results = innerDsl.select(Tables.WORKSHEET.ROW_JSONB)
+                            .from(Tables.WORKSHEET)
+                            .where(worksheetCondition)
+                            .orderBy(Tables.WORKSHEET.ROW_INDEX)
+                            .offset(page.offset())
+                            .limit(page.size())
+                            .fetch(Tables.WORKSHEET.ROW_JSONB);
+
+                    return SearchResults.searchResults(totalResults, results);
+                });
+
+    }
 }

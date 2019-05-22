@@ -39,6 +39,8 @@ public interface IWorksheetDao {
      */
     List<String> getColumnHeaders(final String spreadsheetId, final String worksheetName);
 
+    void addRows(final String spreadsheetId, final String worksheetName)
+
     /**
      * Returns the dimensions of the spreadsheet (rows, cols).
      *
