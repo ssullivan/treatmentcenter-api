@@ -13,7 +13,6 @@ CREATE TABLE spreadsheet (
   owner_email text NOT NULL,
   last_editor_email text NOT NULL,
   published boolean NOT NULL default false,
-  version bigint NOT NULL DEFAULT 0,
   last_updated TIMESTAMP WITH TIME ZONE NULL,
   created TIMESTAMP WITH TIME ZONE NOT NULL default (now())
 );
@@ -30,13 +29,11 @@ CREATE TABLE worksheet (
   spreadsheet_id text NOT NULL,
   id int NOT NULL,
   name text NOT NULL,
-  version bigint NOT NULL,
-  column_headers text[] NOT NULL,
-  row_jsonb jsonb not null default '{}'::jsonb,
   row_index int NOT NULL,
-  geog GEOMETRY(POINT,4326) NULL
+  column_headers text[] NOT NULL,
+  row_jsonb jsonb not null default '{}'::jsonb
 );
 
-CREATE INDEX idx_sheet_id_version ON worksheet USING btree(version, spreadsheet_id, id, name);
-CREATE INDEX idx_sheet_rows_gix ON worksheet USING gist(geog) WHERE geog IS NOT NULL;
+CREATE UNIQUE INDEX idx_sheet_row on worksheet (spreadsheet_id, row_index, name);
+CREATE INDEX idx_sheet_id_version ON worksheet USING btree(spreadsheet_id, id, name);
 CREATE INDEX idx_sheet_row_gin ON worksheet USING gin(row_jsonb);

@@ -59,6 +59,7 @@ public class SamshaLocatorEtlTest {
     AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(200)
+
         .setBody(FixtureHelpers.fixture("fixtures/Robots.txt"))
     );
     mockWebServer.enqueue(new MockResponse()

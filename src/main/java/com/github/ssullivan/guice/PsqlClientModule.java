@@ -28,6 +28,9 @@ import javax.inject.Inject;
 import io.dropwizard.lifecycle.Managed;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.MappedSchema;
+import org.jooq.conf.RenderMapping;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -63,6 +66,13 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     @Provides
     @Inject
     DSLContext providesDSLContext(final HikariDataSource hikariDataSource) {
+        if (! "public".equalsIgnoreCase(psqlConfig.getSchema())) {
+            return DSL.using(hikariDataSource, SQLDialect.POSTGRES_10, new Settings()
+                    .withRenderMapping(new RenderMapping()
+                    .withSchemata(
+                            new MappedSchema().withInput("public")
+                                    .withOutput(psqlConfig.getSchema()))));
+        }
         return DSL.using(hikariDataSource, SQLDialect.POSTGRES_10);
     }
 
