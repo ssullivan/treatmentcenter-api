@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Objects;
 
 public class WorksheetDao implements IWorksheetDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorksheetDao.class);
@@ -28,6 +29,12 @@ public class WorksheetDao implements IWorksheetDao {
 
     @Override
     public int upsertBatch(String spreadsheetId, Sheet sheet, List<SheetRow> rows) {
+        Objects.requireNonNull(spreadsheetId, "spreadsheetId must not be null");
+        Objects.requireNonNull(sheet, "sheet must not be null");
+        Objects.requireNonNull(sheet.getProperties(), "sheet properties must not be null");
+        Objects.requireNonNull(sheet.getProperties().getSheetId(), "sheetId must not be null");
+        Objects.requireNonNull(rows, "rows must not be null");
+
         return dsl.transactionResult(configuration -> {
             final DSLContext innerDsl = DSL.using(configuration);
             int total = 0;
@@ -52,5 +59,25 @@ public class WorksheetDao implements IWorksheetDao {
             }
             return total;
         });
+    }
+
+    @Override
+    public List<JsonNode> listAll(String spreadsheetId, int sheetId) {
+        Objects.requireNonNull(spreadsheetId, "spreadsheetId must not be null");
+        return dsl.select(Tables.WORKSHEET.ROW_JSONB)
+                .from(Tables.WORKSHEET)
+                .where(Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId).and(Tables.WORKSHEET.ID.eq(sheetId)))
+                .fetch(Tables.WORKSHEET.ROW_JSONB);
+    }
+
+    @Override
+    public List<JsonNode> listAll(String spreadsheetId, String title) {
+        Objects.requireNonNull(spreadsheetId, "spreadsheetId must not be null");
+        Objects.requireNonNull(title, "title must not be null");
+
+        return dsl.select(Tables.WORKSHEET.ROW_JSONB)
+                .from(Tables.WORKSHEET)
+                .where(Tables.WORKSHEET.SPREADSHEET_ID.eq(spreadsheetId).and(Tables.WORKSHEET.NAME.eq(title)))
+                .fetch(Tables.WORKSHEET.ROW_JSONB);
     }
 }

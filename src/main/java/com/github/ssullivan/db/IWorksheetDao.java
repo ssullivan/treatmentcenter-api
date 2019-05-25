@@ -1,5 +1,6 @@
 package com.github.ssullivan.db;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.ssullivan.model.sheets.SheetRow;
 import com.google.api.services.sheets.v4.model.Sheet;
 
@@ -12,4 +13,7 @@ public interface IWorksheetDao {
                      final List<SheetRow> rows);
 
 
+    List<JsonNode> listAll(final String spreadsheetId, final int sheetId);
+
+    List<JsonNode> listAll(final String spreadsheetId, final String title);
 }
