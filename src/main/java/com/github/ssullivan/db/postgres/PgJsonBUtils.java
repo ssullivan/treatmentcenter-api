@@ -16,11 +16,12 @@ public final class PgJsonBUtils {
     private static final PgJSONBJacksonBinding PG_JSONB_JACKSON_BINDING = new PgJSONBJacksonBinding();
     private static final DataType<JsonNode> JSON_NODE_DATA_TYPE = SQLDataType.OTHER.asConvertedDataType(PG_JSONB_JACKSON_BINDING);
 
+
     public static Condition jsonContains(final Field<JsonNode> field, final JsonNode value) {
         return DSL.condition("{0} @> {1}::jsonb", field, DSL.val(value, field));
     }
 
-    public static <T> Condition jsonContains(final Field<JsonNode> field, final Map<String, Object> keyValues) {
+    public static <T> Condition jsonContains(final Field<JsonNode> field, final Map<String, String> keyValues) {
         return jsonContains(field, PG_JSONB_JACKSON_BINDING.converter().from(keyValues));
     }
 

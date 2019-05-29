@@ -3,12 +3,10 @@ package com.github.ssullivan.core;
 import com.github.ssullivan.db.ISpreadsheetDao;
 import com.github.ssullivan.db.IWorksheetDao;
 import com.github.ssullivan.model.sheets.SheetRow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.common.collect.Range;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,29 +20,19 @@ import java.util.List;
 public class GoogleSheetsReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoogleSheetsReader.class);
 
-    private static final JacksonFactory JACKSON_FACTORY = JacksonFactory.getDefaultInstance();
-
     private IWorksheetDao worksheetDao;
     private ISpreadsheetDao spreadsheetDao;
-
-    private NetHttpTransport netHttpTransport = new NetHttpTransport.Builder()
-            .build();
     private Sheets client;
 
 
     @Inject
     public GoogleSheetsReader(IWorksheetDao worksheetDao,
                               ISpreadsheetDao spreadsheetDao,
-                              GoogleCredential googleCredential) {
+                              Sheets client) {
 
         this.worksheetDao = worksheetDao;
         this.spreadsheetDao = spreadsheetDao;
-
-        client = new Sheets.Builder(netHttpTransport,
-                JACKSON_FACTORY,
-                googleCredential)
-                .setApplicationName("SpreadsheetService")
-                .build();
+        this.client = client;
     }
 
     public void importSpreadsheet(final String spreadsheetId) throws IOException {
@@ -62,13 +50,12 @@ public class GoogleSheetsReader {
         // Controls how many records we insert into the database at once
         int batchSize = 100;
         int rowCounter = 0;
+        int emptyRowIndex = 0;
 
+        // Fetch ValueRanges in batches
         final List<SheetRow> aggBatch = new ArrayList<>();
-
         for (int i = 1; i <= totalRows; i += fetchSize) {
             String range = toRange(sheets.get(0), i, fetchSize);
-
-            System.out.println(range);
             try {
                 final ValueRange valueRange = client.spreadsheets()
                         .values()
@@ -94,6 +81,7 @@ public class GoogleSheetsReader {
                 }
                 else {
                     LOGGER.info("Found empty row at row: {}", rowCounter);
+                    emptyRowIndex = rowCounter;
                     break;
                 }
             } catch (IOException e) {
@@ -105,6 +93,10 @@ public class GoogleSheetsReader {
         if (! aggBatch.isEmpty()) {
             worksheetDao.upsertBatch(spreadsheetId, sheets.get(0), aggBatch);
         }
+
+        // Delete anything starting at the empty row
+        int rowsDeleted = worksheetDao.deleteRows(spreadsheetId, sheets.get(0), Range.closedOpen(emptyRowIndex, Integer.MAX_VALUE));
+        LOGGER.info("Deleted {} rows", rowsDeleted);
     }
 
 

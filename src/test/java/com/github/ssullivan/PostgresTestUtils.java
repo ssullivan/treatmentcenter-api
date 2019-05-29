@@ -5,6 +5,7 @@ import com.github.ssullivan.RdsConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 
 public final class PostgresTestUtils {
 
@@ -41,6 +42,10 @@ public final class PostgresTestUtils {
     }
 
     public static void dropSchema(DSLContext dslContext) {
-        dslContext.dropSchema(TestSchema).cascade().execute();
+        try {
+            dslContext.dropSchema(TestSchema).cascade().execute();
+        } catch (DataAccessException e) {
+            // ignored
+        }
     }
 }
