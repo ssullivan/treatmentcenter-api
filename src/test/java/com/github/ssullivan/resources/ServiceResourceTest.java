@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
-//@TestInstance(Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 public class ServiceResourceTest {
 
   private static final GenericType<List<Service>> LIST_SERVICES
@@ -48,7 +48,7 @@ public class ServiceResourceTest {
     Mockito.reset(dao);
   }
 
-  //@Test
+  @Test
   public void testListServices() {
     final List<Service> services =
         resources.target("services").request().get(LIST_SERVICES);

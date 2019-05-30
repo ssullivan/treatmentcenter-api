@@ -86,7 +86,7 @@ public class WorksheetDao implements IWorksheetDao {
 
         Condition whereCondition = Tables.SPREADSHEET.PUBLISHED.eq(true);
         if (!params.isEmpty()) {
-            whereCondition = whereCondition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params);
+            whereCondition = whereCondition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params));
         }
 
         return dsl.select(DSL.count())
@@ -103,7 +103,7 @@ public class WorksheetDao implements IWorksheetDao {
 
         Condition whereCondition = Tables.SPREADSHEET.PUBLISHED.eq(true);
         if (!params.isEmpty()) {
-            whereCondition = whereCondition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params);
+            whereCondition = whereCondition.and(PgJsonBUtils.jsonContains(Tables.WORKSHEET.ROW_JSONB, params));
         }
 
         return dsl.select(Tables.WORKSHEET.ROW_JSONB)

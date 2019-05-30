@@ -17,7 +17,7 @@ import jersey.repackaged.com.google.common.collect.ImmutableMap;
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class ApiKeyContainerRequestFilter implements ContainerRequestFilter {
-  private static final String ApiKeyHeader = "API-Key";
+  public static final String ApiKeyHeader = "API-Key";
   private IApiKeyDao apiKeyDao;
 
   @Inject

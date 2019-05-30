@@ -11,5 +11,5 @@ public interface IRecoveryHousingController {
 
     void syncSpreadsheet(final String spreadsheetId, final boolean publish) throws IOException;
 
-    SearchResults<JsonNode> listAll(final Map<String, String> params, Page page);
+    SearchResults<JsonNode> listAll(final Map<String, String> params, Page page) throws IOException;
 }

@@ -1,33 +1,41 @@
 package com.github.ssullivan.resources;
 
 import com.github.ssullivan.auth.RequireApiKey;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.github.ssullivan.core.IRecoveryHousingController;
+import com.github.ssullivan.core.RecoveryHousingConstants;
+import com.github.ssullivan.model.Page;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.sun.org.apache.regexp.internal.RECompiler;
+import io.swagger.annotations.ApiParam;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.jooq.Require;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Path("/recovery")
 public class RecoveryHousingResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(RecoveryHousingResource.class);
 
-  private static final String SPREADSHEET_ID = "spreadsheetId";
-  private static final String PUBLISH = "publish";
+  static final String SPREADSHEET_ID = "spreadsheetId";
+  static final String PUBLISH = "publish";
 
   private IRecoveryHousingController recoveryHousingController;
 
@@ -37,22 +45,25 @@ public class RecoveryHousingResource {
   }
 
   @POST
-  @Produces(MediaType.APPLICATION_JSON)
-  @Consumes(MediaType.APPLICATION_JSON)
   @ManagedAsync
   @Path("/sync")
   @RequireApiKey
   public void syncGoogleSheets(Map<String, String> spreadsheetSyncRequest, @Suspended AsyncResponse asyncResponse) {
+    asyncResponse.setTimeout(1, TimeUnit.SECONDS);
+    asyncResponse.setTimeoutHandler(asyncResponse1 -> asyncResponse1.resume(Response.ok(ImmutableMap.of("message", "Processing of spreadsheet timedout.")).build()));
+
     if (spreadsheetSyncRequest == null || spreadsheetSyncRequest.isEmpty()) {
       asyncResponse.resume(Response.status(400).entity(ImmutableMap.of("message", "Invalid sync request. Please specify a " + SPREADSHEET_ID + ", and " + PUBLISH + " status of {true|false}")).build());
+      return;
     }
 
     if (null == spreadsheetSyncRequest.get(SPREADSHEET_ID)) {
       asyncResponse.resume(Response.status(400).entity(ImmutableMap.of("message", "Invalid sync request. Please specify a " + SPREADSHEET_ID )).build());
+      return;
     }
 
     String spreadsheetId = spreadsheetSyncRequest.get(SPREADSHEET_ID);
-    Boolean publish = Boolean.valueOf(spreadsheetSyncRequest.get(PUBLISH));
+    boolean publish = Boolean.valueOf(spreadsheetSyncRequest.get(PUBLISH));
 
     try {
       recoveryHousingController.syncSpreadsheet(spreadsheetId, publish);
@@ -64,7 +75,40 @@ public class RecoveryHousingResource {
   }
 
   @GET
-  public void search()  {
+  @Path("/search")
+  @ManagedAsync
+  public void search(@QueryParam("postalCode") String postalCode,
+                     @QueryParam("state") String state,
+                     @QueryParam("city") String city,
 
+                     @ApiParam(value = "the number of results to skip", allowableValues = "range[0, 9999]")
+                     @Min(0) @Max(9999) @DefaultValue("0")
+                     @QueryParam("offset")
+                     final int offset,
+
+                     @ApiParam(value = "the number of results to return", allowableValues = "range[0, 9999]")
+                     @Min(0) @Max(9999)
+                     @DefaultValue("10")
+                     @QueryParam("size") final int size,
+
+                     @Suspended AsyncResponse asyncResponse)  {
+
+    Map<String, String> searchParams = new LinkedHashMap<>(3);
+    if (postalCode != null) {
+      searchParams.put(RecoveryHousingConstants.ZIP_CODE, postalCode);
+    }
+    if (state != null) {
+      searchParams.put(RecoveryHousingConstants.STATE, state);
+    }
+    if (city != null) {
+      searchParams.put(RecoveryHousingConstants.CITY, city);
+    }
+
+    try {
+      asyncResponse.resume(Response.ok(recoveryHousingController.listAll(searchParams, Page.page(offset, size))).build());
+    } catch (IOException e) {
+      LOGGER.error("Failed to search for recovery hosing locations with: {}", searchParams, e);
+      asyncResponse.resume(Response.status(500).entity(ImmutableMap.of("message", "Search failed")).build());
+    }
   }
 }
