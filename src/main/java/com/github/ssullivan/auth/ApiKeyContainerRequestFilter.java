@@ -10,7 +10,6 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 @RequireApiKey

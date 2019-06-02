@@ -142,7 +142,7 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
         LOGGER.info("Generating token in {} for {}@{}:{}", region, username, hostName, port);
 
         final RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
-            .credentials(AWSCredentialsProviderChain.getInstance())
+            .credentials(AWSCredProviderChain.getInstance())
             .region(region)
             .build();
 
@@ -156,17 +156,5 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
         return authToken;
     }
 
-    private static class AWSCredentialsProviderChain extends com.amazonaws.auth.AWSCredentialsProviderChain {
-        private static final AWSCredentialsProviderChain INSTANCE
-            = new AWSCredentialsProviderChain();
 
-        AWSCredentialsProviderChain() {
-            super(new DefaultAWSCredentialsProviderChain(),
-                InstanceProfileCredentialsProvider.getInstance());
-        }
-
-        public static AWSCredentialsProviderChain getInstance() {
-            return INSTANCE;
-        }
-    }
 }

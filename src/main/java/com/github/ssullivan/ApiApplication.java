@@ -7,6 +7,7 @@ import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.core.PostalcodeService;
 import com.github.ssullivan.db.IApiKeyDao;
 import com.github.ssullivan.db.env.EnvApiKeyDao;
+import com.github.ssullivan.guice.AwsSecretManagerModule;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.PsqlClientModule;
@@ -112,6 +113,12 @@ public class ApiApplication extends Application<AppConfig> {
           install(new PsqlClientModule(getConfiguration().getDatabaseConfig()));
         } else {
           LOGGER.warn("No configuration provided for Postgres/RDS");
+        }
+
+        if (getConfiguration().getSecretsConfig() != null) {
+          LOGGER.info("Configuring AWS Secret Manager");
+          install(new AwsSecretManagerModule()
+            .wtihConfig(getConfiguration().getSecretsConfig()));
         }
       }
     };

@@ -34,6 +34,11 @@ postgres:
   region: ${AWS_REGION:-us-east-1}
 
 
+# AWS Secrets Manager Configuration
+secrets:
+  region: ${AWS_REGION:-us-east-1}
+  endpoint: ${AWS_SECRETS_ENDPOINT:-https://secretsmanager.us-east-1.amazonaws.com}
+
 
 # Logging settings.
 logging:
