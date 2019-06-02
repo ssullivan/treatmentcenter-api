@@ -114,7 +114,7 @@ dependencies {
     jooqRuntime group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
 
     // For extracing data from spreadsheet
-    implementation 'org.apache.poi:poi-ooxml:4.0.1'
+    implementation 'org.apache.poi:poi-ooxml:4.1.0'
     implementation 'org.apache.poi:poi:4.0.1'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.500'
 
