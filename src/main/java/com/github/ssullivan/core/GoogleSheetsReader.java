@@ -1,44 +1,31 @@
 package com.github.ssullivan.core;
 
-import com.github.ssullivan.db.ISpreadsheetDao;
-import com.github.ssullivan.db.IWorksheetDao;
 import com.github.ssullivan.model.sheets.SheetRow;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import com.google.common.collect.Range;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GoogleSheetsReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoogleSheetsReader.class);
 
-    private IWorksheetDao worksheetDao;
-    private ISpreadsheetDao spreadsheetDao;
     private Sheets client;
 
-
     @Inject
-    public GoogleSheetsReader(IWorksheetDao worksheetDao,
-                              ISpreadsheetDao spreadsheetDao,
-                              Sheets client) {
-
-        this.worksheetDao = worksheetDao;
-        this.spreadsheetDao = spreadsheetDao;
+    public GoogleSheetsReader(Sheets client) {
         this.client = client;
     }
 
-    public void importSpreadsheet(final String spreadsheetId) throws IOException {
+    public void importSpreadsheet(final String spreadsheetId, Function<List<SheetRow>, Boolean> rowHandler) throws IOException {
         final Sheets.Spreadsheets.Get spreadsheetGet = client.spreadsheets().get(spreadsheetId);
-
-        this.spreadsheetDao.upsert(spreadsheetGet.execute());
 
         List<Sheet> sheets = spreadsheetGet.execute().getSheets();
         List<String> headers = getColumnHeaders(client, spreadsheetId, sheets.get(0));
@@ -70,12 +57,12 @@ public class GoogleSheetsReader {
                             headers = getColumnHeaders(client, spreadsheetId, sheets.get(0));
                         }
 
-                        aggBatch.add(new SheetRow(toMap(headers, row), rowCounter));
+                        aggBatch.add(new SheetRow(spreadsheetId, toMap(headers, row), rowCounter));
                         rowCounter++;
                     }
 
                     if ((aggBatch.size() % batchSize) == 0) {
-                        worksheetDao.upsertBatch(spreadsheetId, sheets.get(0), aggBatch);
+                        rowHandler.apply(aggBatch);
                         aggBatch.clear();
                     }
                 }
@@ -91,12 +78,8 @@ public class GoogleSheetsReader {
         }
 
         if (! aggBatch.isEmpty()) {
-            worksheetDao.upsertBatch(spreadsheetId, sheets.get(0), aggBatch);
+            rowHandler.apply(aggBatch);
         }
-
-        // Delete anything starting at the empty row
-        int rowsDeleted = worksheetDao.deleteRows(spreadsheetId, sheets.get(0), Range.closedOpen(emptyRowIndex, Integer.MAX_VALUE));
-        LOGGER.info("Deleted {} rows", rowsDeleted);
     }
 
 

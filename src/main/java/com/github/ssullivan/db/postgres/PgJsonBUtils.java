@@ -1,16 +1,13 @@
 package com.github.ssullivan.db.postgres;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Maps;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.jooq.Condition;
 import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public final class PgJsonBUtils {
     private static final PgJSONBJacksonBinding PG_JSONB_JACKSON_BINDING = new PgJSONBJacksonBinding();

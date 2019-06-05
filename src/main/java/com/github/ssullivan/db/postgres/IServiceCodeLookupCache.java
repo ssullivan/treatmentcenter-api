@@ -1,7 +1,6 @@
 package com.github.ssullivan.db.postgres;
 
 import com.google.inject.ImplementedBy;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;

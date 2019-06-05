@@ -2,10 +2,7 @@ package com.github.ssullivan.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.PostgresTestUtils;
-import com.github.ssullivan.db.ISpreadsheetDao;
-import com.github.ssullivan.db.IWorksheetDao;
-import com.github.ssullivan.db.postgres.SpreadsheetDao;
-import com.github.ssullivan.db.postgres.WorksheetDao;
+import com.github.ssullivan.db.IRecoveryHousingDao;
 import com.github.ssullivan.guice.PsqlClientModule;
 import com.github.ssullivan.guice.google.GoogleMockCredentialProvider;
 import com.github.ssullivan.guice.google.GoogleMockTransportProvider;
@@ -38,7 +35,7 @@ public class GoogleSheetsReaderTest {
     private DSLContext dslContext;
 
     @Inject
-    private IWorksheetDao worksheetDao;
+    private IRecoveryHousingDao dao;
 
     @Inject
     private MockGoogleCredential googleCredential;
@@ -56,8 +53,6 @@ public class GoogleSheetsReaderTest {
                 new AbstractModule() {
                     @Override
                     protected void configure() {
-                        bind(IWorksheetDao.class).to(WorksheetDao.class);
-                        bind(ISpreadsheetDao.class).to(SpreadsheetDao.class);
                         bind(Sheets.class).toProvider(GoogleSheetsClientProvider.class);
 
                         bind(GoogleMockCredentialProvider.class).in(Singleton.class);

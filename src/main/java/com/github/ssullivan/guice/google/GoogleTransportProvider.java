@@ -4,6 +4,9 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.inject.Provider;
 
+/**
+ * Provides a default configured instance of {@link NetHttpTransport}
+ */
 public class GoogleTransportProvider implements Provider<HttpTransport> {
     private HttpTransport transport;
 
