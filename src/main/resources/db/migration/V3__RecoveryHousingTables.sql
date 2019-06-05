@@ -32,5 +32,5 @@ CREATE TABLE recovery_housing (
     lon float not null default 0,
     geog GEOMETRY(POINT,4326),
 
-    UNIQUE(id, feed_name, feed_record_id)
+    UNIQUE(id, feed_version, feed_record_id, feed_name)
 )
