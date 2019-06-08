@@ -80,6 +80,17 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
   }
 
   @Override
+  public long count(Map<String, String> params) {
+    Objects.requireNonNull(params, "params must not be null");
+
+    return dsl.selectCount()
+        .from(Tables.RECOVERY_HOUSING)
+        .where(toCondition(params))
+        .fetchOne(0, Integer.class)
+        .longValue();
+  }
+
+  @Override
   public List<RecoveryHousingRecord> listAll(Map<String, String> params, Page page) {
     Objects.requireNonNull(params, "params must not be null");
     Objects.requireNonNull(page, "page must not be null");
@@ -104,7 +115,10 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
         conditions.add(Tables.RECOVERY_HOUSING.STATE.eq(entry.getValue()));
       }
       else if (Tables.RECOVERY_HOUSING.CITY.getName().equals(entry.getKey())) {
-        conditions.add(Tables.RECOVERY_HOUSING.CITY.eq(entry.getKey()));
+        conditions.add(Tables.RECOVERY_HOUSING.CITY.eq(entry.getValue()));
+      }
+      else if (Tables.RECOVERY_HOUSING.FEED_NAME.getName().equals(entry.getKey())) {
+        conditions.add(Tables.RECOVERY_HOUSING.FEED_NAME.eq(entry.getValue()));
       }
     }
     return DSL.condition(Operator.AND, conditions);
