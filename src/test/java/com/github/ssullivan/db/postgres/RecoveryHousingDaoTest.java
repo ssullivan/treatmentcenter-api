@@ -1,23 +1,16 @@
 package com.github.ssullivan.db.postgres;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.PostgresTestUtils;
 import com.github.ssullivan.db.IRecoveryHousingDao;
-import com.github.ssullivan.db.IWorksheetDao;
 import com.github.ssullivan.db.psql.tables.records.RecoveryHousingRecord;
 import com.github.ssullivan.guice.PsqlClientModule;
-import com.github.ssullivan.model.sheets.SheetRow;
-import com.google.api.services.sheets.v4.model.Sheet;
-import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Collections;
-import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.jooq.DSLContext;
@@ -25,12 +18,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RecoveryHousingDaoTest {
@@ -89,6 +76,7 @@ public class RecoveryHousingDaoTest {
             .setContactName("Test")
             .setFeedName("Test")
             .setFeedRecordId(100L)
+            .setFeedVersion(System.currentTimeMillis())
             .setPostalcode("21043")
             .setCapacity(100);
 
