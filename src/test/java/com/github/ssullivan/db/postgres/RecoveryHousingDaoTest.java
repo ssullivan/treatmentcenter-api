@@ -104,7 +104,7 @@ public class RecoveryHousingDaoTest {
         MatcherAssert.assertThat(dao.upsert(secondBatch), Matchers.equalTo(secondBatch.size()));
 
         MatcherAssert.assertThat(dao.deleteByVersion("Test", Range.lessThan(secondFeedVersion)), Matchers.equalTo(10));
-        MatcherAssert.assertThat(dao.count(ImmutableMap.of("feedName", "Test")), Matchers.equalTo(10L));
+        MatcherAssert.assertThat(dao.count(ImmutableMap.of("feed_name", "Test")), Matchers.equalTo(10L));
     }
 
     private static List<RecoveryHousingRecord> testRecords(long feedVersion, int total) {
