@@ -1,9 +1,8 @@
-package com.github.ssullivan.bundles;
+package com.github.ssullivan.guice;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
-import com.github.ssullivan.guice.AWSCredProviderChain;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

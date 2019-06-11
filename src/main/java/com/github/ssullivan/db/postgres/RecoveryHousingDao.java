@@ -5,13 +5,21 @@ import com.github.ssullivan.db.IRecoveryHousingDao;
 import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.db.psql.tables.records.RecoveryHousingRecord;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.RecoveryHousingSearchRequest;
+import com.github.ssullivan.model.conditions.RangeCondition;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.inject.Inject;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -64,7 +72,7 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
 
     return dsl.deleteFrom(Tables.RECOVERY_HOUSING)
               .where(Tables.RECOVERY_HOUSING.FEED_NAME.eq(feedName)
-                  .and(toRangeCondition(Tables.RECOVERY_HOUSING.FEED_RECORD_ID, feedRecordIdRange)))
+                  .and(toLongRangeCondition(Tables.RECOVERY_HOUSING.FEED_RECORD_ID, feedRecordIdRange)))
         .execute();
   }
 
@@ -75,7 +83,7 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
 
     return dsl.deleteFrom(Tables.RECOVERY_HOUSING)
         .where(Tables.RECOVERY_HOUSING.FEED_NAME.eq(feedName))
-        .and(toRangeCondition(Tables.RECOVERY_HOUSING.FEED_VERSION, versionRange))
+        .and(toLongRangeCondition(Tables.RECOVERY_HOUSING.FEED_VERSION, versionRange))
         .execute();
   }
 
@@ -91,6 +99,30 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
   }
 
   @Override
+  public List<RecoveryHousingRecord> listAll(RecoveryHousingSearchRequest searchRequest,
+      Page page) {
+    Objects.requireNonNull(searchRequest, "searchRequest must not be null");
+    Objects.requireNonNull(page, "page must not be null");
+
+    Condition condition = DSL.trueCondition();
+    if (null != searchRequest.getCapacity()) {
+      condition = condition.and(toIntRangeCondition(Tables.RECOVERY_HOUSING.CAPACITY, searchRequest.getCapacity().toRange()));
+    }
+    if (null != searchRequest.getCity()) {
+      condition = condition.and(Tables.RECOVERY_HOUSING.CITY.equalIgnoreCase(searchRequest.getCity()));
+    }
+    if (null != searchRequest.getZipcode()) {
+      condition = condition.and(Tables.RECOVERY_HOUSING.POSTALCODE.equalIgnoreCase(searchRequest.getZipcode()));
+    }
+
+    return dsl.selectFrom(Tables.RECOVERY_HOUSING)
+        .where(condition)
+        .orderBy(Tables.RECOVERY_HOUSING.FEED_RECORD_ID)
+        .offset(page.offset())
+        .limit(page.size())
+        .fetch();
+  }
+
   public List<RecoveryHousingRecord> listAll(Map<String, String> params, Page page) {
     Objects.requireNonNull(params, "params must not be null");
     Objects.requireNonNull(page, "page must not be null");
@@ -120,12 +152,14 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
       else if (Tables.RECOVERY_HOUSING.FEED_NAME.getName().equals(entry.getKey())) {
         conditions.add(Tables.RECOVERY_HOUSING.FEED_NAME.eq(entry.getValue()));
       }
+      else if (Tables.RECOVERY_HOUSING.CAPACITY.getName().equals(entry.getKey())) {
+
+      }
     }
     return DSL.condition(Operator.AND, conditions);
   }
 
-
-  private static <R extends Record> Condition toRangeCondition(TableField<R, Long> field, Range<Long> range) {
+  private static Condition toIntRangeCondition(Field<Integer> field, Range<Integer> range) {
 
     if (range.hasLowerBound() && !range.hasUpperBound()) {
       return toLowerBoundType(field, range.lowerBoundType(), range.lowerEndpoint());
@@ -141,6 +175,24 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
       return DSL.condition(false);
     }
   }
+
+  private static <T> Condition toLongRangeCondition(Field<Long> field, Range<Long> range) {
+
+    if (range.hasLowerBound() && !range.hasUpperBound()) {
+      return toLowerBoundType(field, range.lowerBoundType(), range.lowerEndpoint());
+    }
+    else if (!range.hasLowerBound() && range.hasUpperBound()) {
+      return toUpperBoundType(field, range.upperBoundType(), range.upperEndpoint());
+    }
+    else if (range.hasLowerBound()) {
+      return toLowerBoundType(field, range.lowerBoundType(), range.lowerEndpoint())
+          .and(toUpperBoundType(field, range.upperBoundType(), range.upperEndpoint()));
+    }
+    else {
+      return DSL.condition(false);
+    }
+  }
+
 
   private static <T> Condition toUpperBoundType(Field<Long> field, BoundType boundType, long endpoint) {
     if (BoundType.CLOSED.equals(boundType)) {

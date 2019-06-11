@@ -5,8 +5,6 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.github.ssullivan.SecretManagerConfig;
-import com.github.ssullivan.bundles.AwsSecretProvider;
-import com.github.ssullivan.bundles.ISecretProvider;
 import com.google.inject.AbstractModule;
 import java.util.Objects;
 import javax.inject.Inject;

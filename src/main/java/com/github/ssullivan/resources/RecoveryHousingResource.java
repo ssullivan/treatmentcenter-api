@@ -1,7 +1,14 @@
 package com.github.ssullivan.resources;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.ssullivan.auth.RequireApiKey;
 
+import com.github.ssullivan.model.conditions.RangeCondition;
+import com.google.api.client.http.UrlEncodedParser;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -18,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.sun.org.apache.regexp.internal.RECompiler;
 import io.swagger.annotations.ApiParam;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.jooq.Require;
 import org.slf4j.Logger;
@@ -36,12 +44,12 @@ public class RecoveryHousingResource {
 
   static final String SPREADSHEET_ID = "spreadsheetId";
   static final String PUBLISH = "publish";
-
   private IRecoveryHousingController recoveryHousingController;
 
   @Inject
   public RecoveryHousingResource(IRecoveryHousingController recoveryHousingController) {
     this.recoveryHousingController = recoveryHousingController;
+
   }
 
   @POST
@@ -80,6 +88,7 @@ public class RecoveryHousingResource {
   public void search(@QueryParam("postalCode") String postalCode,
                      @QueryParam("state") String state,
                      @QueryParam("city") String city,
+                     @QueryParam("capacity") RangeParameter capacity,
 
                      @ApiParam(value = "the number of results to skip", allowableValues = "range[0, 9999]")
                      @Min(0) @Max(9999) @DefaultValue("0")
@@ -109,6 +118,30 @@ public class RecoveryHousingResource {
     } catch (IOException e) {
       LOGGER.error("Failed to search for recovery hosing locations with: {}", searchParams, e);
       asyncResponse.resume(Response.status(500).entity(ImmutableMap.of("message", "Search failed")).build());
+    }
+  }
+
+
+  static class RangeParameter {
+    private static final ObjectReader READER = new ObjectMapper().readerFor(RangeCondition.class);
+    private RangeCondition range;
+
+    public RangeParameter(String json) throws WebApplicationException {
+      try {
+        this.range = READER.readValue(json);
+      } catch (IOException e) {
+        try {
+          String decoded = URLDecoder.decode(json, "UTF-8");
+          this.range = READER.readValue(decoded);
+        }
+        catch (IOException ee) {
+          throw new WebApplicationException("Invalid Range", ee);
+        }
+      }
+    }
+
+    public RangeCondition getRange() {
+      return range;
     }
   }
 }

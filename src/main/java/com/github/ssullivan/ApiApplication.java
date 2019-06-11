@@ -116,9 +116,14 @@ public class ApiApplication extends Application<AppConfig> {
         }
 
         if (getConfiguration().getSecretsConfig() != null) {
-          LOGGER.info("Configuring AWS Secret Manager");
-          install(new AwsSecretManagerModule()
-            .wtihConfig(getConfiguration().getSecretsConfig()));
+          if ("aws".equals(getConfiguration().getSecretsConfig().getProvider())) {
+            LOGGER.info("Configuring AWS Secret Manager Provider");
+            install(new AwsSecretManagerModule()
+                .wtihConfig(getConfiguration().getSecretsConfig()));
+          }
+          else {
+            LOGGER.info("Configuring ENV Secret Provider");
+          }
         }
       }
     };

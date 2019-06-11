@@ -1,6 +1,6 @@
 package com.github.ssullivan.guice.google;
 
-import com.github.ssullivan.bundles.ISecretProvider;
+import com.github.ssullivan.guice.ISecretProvider;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;

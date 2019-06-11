@@ -6,6 +6,7 @@ import com.github.ssullivan.db.ISpreadsheetDao;
 import com.github.ssullivan.db.IWorksheetDao;
 import com.github.ssullivan.db.psql.tables.records.RecoveryHousingRecord;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.RecoveryHousingSearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.sheets.SheetRow;
 import com.google.common.collect.DiscreteDomain;
@@ -46,6 +47,11 @@ public class RecoveryHousingController implements IRecoveryHousingController {
     }
 
     @Override
+    public SearchResults<JsonNode> listAll(RecoveryHousingSearchRequest searchRequest,
+        Page page) throws IOException {
+        return null;
+    }
+
     public SearchResults<JsonNode> listAll(Map<String, String> params, Page page) throws IOException {
         try {
             return SearchResults.searchResults(housingDao.count(params), toJsonNodes(housingDao.listAll(params, page)));

@@ -3,6 +3,7 @@ package com.github.ssullivan.db;
 import com.github.ssullivan.db.postgres.RecoveryHousingDao;
 import com.github.ssullivan.db.psql.tables.records.RecoveryHousingRecord;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.RecoveryHousingSearchRequest;
 import com.google.common.collect.Range;
 import com.google.inject.ImplementedBy;
 import java.util.List;
@@ -20,5 +21,5 @@ public interface IRecoveryHousingDao {
     return 0;
   }
 
-  List<RecoveryHousingRecord> listAll(Map<String, String> params, Page page);
+  List<RecoveryHousingRecord> listAll(RecoveryHousingSearchRequest searchRequest, Page page);
 }

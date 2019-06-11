@@ -6,8 +6,10 @@ import javax.inject.Inject;
 public class SecretManagerConfig {
   private String region;
   private String endpoint;
+  private String provider = "env";
 
-  @Inject
+
+
   public SecretManagerConfig(String region, String endpoint) {
     this.region = region;
     this.endpoint = endpoint;
@@ -36,5 +38,9 @@ public class SecretManagerConfig {
     Objects.requireNonNull("endpoint must not be null");
     this.endpoint = endpoint;
     return this;
+  }
+
+  public String getProvider() {
+    return provider;
   }
 }
