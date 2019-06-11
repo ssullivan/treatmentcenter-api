@@ -48,7 +48,7 @@ public class RangeConditionJsonTests {
     try {
       RangeCondition rangeCondition = Jackson.readValue(createRange(0, -1), RangeCondition.class);
     } catch (IllegalArgumentException e) {
-      MatcherAssert.assertThat(e, Matchers.equalTo(IOException.class));
+      MatcherAssert.assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
     }
   }
 

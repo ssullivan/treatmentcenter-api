@@ -52,14 +52,6 @@ public class RecoveryHousingController implements IRecoveryHousingController {
         return null;
     }
 
-    public SearchResults<JsonNode> listAll(Map<String, String> params, Page page) throws IOException {
-        try {
-            return SearchResults.searchResults(housingDao.count(params), toJsonNodes(housingDao.listAll(params, page)));
-        } catch (DataAccessException e) {
-            throw new IOException("Failed to query database", e);
-        }
-    }
-
     private List<JsonNode> toJsonNodes(List<RecoveryHousingRecord> records) {
         return null;
     }

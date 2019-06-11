@@ -200,7 +200,7 @@ public class RecoveryHousingResourceTest {
     public void testValidOffsetAndSize() throws IOException {
         Mockito.when(mockApiKeyDao.isValidApiKey(Mockito.eq("Test")))
                 .thenReturn(true);
-        Mockito.when(mockController.listAll(Mockito.anyMap(), Mockito.eq(Page.page(0, 100))))
+        Mockito.when(mockController.listAll(Mockito.any(), Mockito.eq(Page.page(0, 100))))
                 .thenReturn(SearchResults.empty());
 
         Response response = resources
@@ -218,7 +218,7 @@ public class RecoveryHousingResourceTest {
     public void testSearchFailed() throws IOException {
         Mockito.when(mockApiKeyDao.isValidApiKey(Mockito.eq("Test")))
                 .thenReturn(true);
-        Mockito.when(mockController.listAll(Mockito.anyMap(), Mockito.eq(Page.page(0, 100))))
+        Mockito.when(mockController.listAll(Mockito.any(), Mockito.eq(Page.page(0, 100))))
                 .thenThrow(new IOException("Database error"));
 
 

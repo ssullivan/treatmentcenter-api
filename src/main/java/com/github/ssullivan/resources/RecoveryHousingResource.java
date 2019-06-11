@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.ssullivan.auth.RequireApiKey;
 
+import com.github.ssullivan.model.RecoveryHousingSearchRequest;
 import com.github.ssullivan.model.conditions.RangeCondition;
 import com.google.api.client.http.UrlEncodedParser;
 import java.io.UnsupportedEncodingException;
@@ -102,21 +103,13 @@ public class RecoveryHousingResource {
 
                      @Suspended AsyncResponse asyncResponse)  {
 
-    Map<String, String> searchParams = new LinkedHashMap<>(3);
-    if (postalCode != null) {
-      searchParams.put(RecoveryHousingConstants.ZIP_CODE, postalCode);
-    }
-    if (state != null) {
-      searchParams.put(RecoveryHousingConstants.STATE, state);
-    }
-    if (city != null) {
-      searchParams.put(RecoveryHousingConstants.CITY, city);
-    }
-
     try {
-      asyncResponse.resume(Response.ok(recoveryHousingController.listAll(searchParams, Page.page(offset, size))).build());
+      asyncResponse.resume(Response.ok(recoveryHousingController.listAll(new RecoveryHousingSearchRequest()
+          .withCapacity(capacity != null ? capacity.getRange() : null)
+          .withCity(city)
+          .withZipcode(postalCode), Page.page(offset, size))).build());
     } catch (IOException e) {
-      LOGGER.error("Failed to search for recovery hosing locations with: {}", searchParams, e);
+      LOGGER.error("Failed to search for recovery hosing locations with", e);
       asyncResponse.resume(Response.status(500).entity(ImmutableMap.of("message", "Search failed")).build());
     }
   }
