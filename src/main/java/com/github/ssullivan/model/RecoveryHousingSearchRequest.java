@@ -1,6 +1,7 @@
 package com.github.ssullivan.model;
 
 import com.github.ssullivan.model.conditions.RangeCondition;
+import java.util.Objects;
 import org.w3c.dom.ranges.Range;
 
 public class RecoveryHousingSearchRequest {
@@ -44,5 +45,24 @@ public class RecoveryHousingSearchRequest {
       final RangeCondition capacity) {
     this.capacity = capacity;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RecoveryHousingSearchRequest that = (RecoveryHousingSearchRequest) o;
+    return Objects.equals(getCity(), that.getCity()) &&
+        Objects.equals(getZipcode(), that.getZipcode()) &&
+        Objects.equals(getCapacity(), that.getCapacity());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getCity(), getZipcode(), getCapacity());
   }
 }

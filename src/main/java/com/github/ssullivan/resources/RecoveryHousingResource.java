@@ -1,41 +1,38 @@
 package com.github.ssullivan.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.ssullivan.auth.RequireApiKey;
-
-import com.github.ssullivan.model.RecoveryHousingSearchRequest;
-import com.github.ssullivan.model.conditions.RangeCondition;
-import com.google.api.client.http.UrlEncodedParser;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.ws.rs.*;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.container.TimeoutHandler;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.github.ssullivan.core.IRecoveryHousingController;
-import com.github.ssullivan.core.RecoveryHousingConstants;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.RecoveryHousingSearchRequest;
+import com.github.ssullivan.model.SearchResults;
+import com.github.ssullivan.model.conditions.RangeCondition;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import com.sun.org.apache.regexp.internal.RECompiler;
 import io.swagger.annotations.ApiParam;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.glassfish.jersey.server.ManagedAsync;
-import org.jooq.Require;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.util.LinkedHashMap;
+import java.net.URLDecoder;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.server.ManagedAsync;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -89,7 +86,7 @@ public class RecoveryHousingResource {
   public void search(@QueryParam("postalCode") String postalCode,
                      @QueryParam("state") String state,
                      @QueryParam("city") String city,
-                     @QueryParam("capacity") RangeParameter capacity,
+                     @QueryParam("capacity") String capacity,
 
                      @ApiParam(value = "the number of results to skip", allowableValues = "range[0, 9999]")
                      @Min(0) @Max(9999) @DefaultValue("0")
@@ -104,10 +101,12 @@ public class RecoveryHousingResource {
                      @Suspended AsyncResponse asyncResponse)  {
 
     try {
-      asyncResponse.resume(Response.ok(recoveryHousingController.listAll(new RecoveryHousingSearchRequest()
-          .withCapacity(capacity != null ? capacity.getRange() : null)
+      SearchResults<JsonNode> results = recoveryHousingController.listAll(new RecoveryHousingSearchRequest()
+          .withCapacity(capacity != null ? new RangeParameter(capacity).getRange() : null)
           .withCity(city)
-          .withZipcode(postalCode), Page.page(offset, size))).build());
+          .withZipcode(postalCode), Page.page(offset, size));
+
+      asyncResponse.resume(Response.ok(results).build());
     } catch (IOException e) {
       LOGGER.error("Failed to search for recovery hosing locations with", e);
       asyncResponse.resume(Response.status(500).entity(ImmutableMap.of("message", "Search failed")).build());

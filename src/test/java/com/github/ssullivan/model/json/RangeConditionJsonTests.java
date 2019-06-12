@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.model.conditions.RangeCondition;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import org.eclipse.jetty.util.IO;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.Test;

@@ -13,6 +13,7 @@ import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.PsqlClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.healthchecks.RedisHealthCheck;
+import com.github.ssullivan.json.AppJacksonModule;
 import com.github.ssullivan.tasks.LoadCategoriesAndServicesTask;
 import com.github.ssullivan.tasks.LoadTreatmentFacilitiesTask;
 import com.github.ssullivan.tasks.feeds.LoadSamshaCommandPostgres;
@@ -162,7 +163,7 @@ public class ApiApplication extends Application<AppConfig> {
     final Injector injector = InjectorRegistry.getInjector(this);
 
     environment.lifecycle().manage(injector.getInstance(IAvailableServiceController.class));
-
+    environment.getObjectMapper().registerModule(new AppJacksonModule());
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {

@@ -1,15 +1,25 @@
 package com.github.ssullivan.resources;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.auth.ApiKeyContainerRequestFilter;
 import com.github.ssullivan.core.IRecoveryHousingController;
 import com.github.ssullivan.db.IApiKeyDao;
+import com.github.ssullivan.db.psql.tables.records.RecoveryHousingRecord;
+import com.github.ssullivan.json.AppJacksonModule;
 import com.github.ssullivan.model.Page;
+import com.github.ssullivan.model.RecoveryHousingSearchRequest;
 import com.github.ssullivan.model.SearchResults;
 import com.github.ssullivan.model.Service;
+import com.github.ssullivan.model.conditions.RangeCondition;
+import com.google.common.collect.ImmutableMap;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import io.swagger.util.Json;
+import java.util.Collections;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
+import org.glassfish.jersey.uri.UriComponent;
 import org.hamcrest.Matchers;
 import org.hamcrest.junit.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
@@ -32,11 +42,21 @@ import static com.github.ssullivan.resources.RecoveryHousingResource.SPREADSHEET
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class RecoveryHousingResourceTest {
+    private static final ObjectMapper Jackson = new ObjectMapper()
+        .registerModule(new AppJacksonModule());
     private static final GenericType<LinkedHashMap<String, String>> MAP_TYPE = new GenericType<LinkedHashMap<String, String>>() {
     };
     private static final GenericType<List<Service>> LIST_SERVICES
             = new GenericType<List<Service>>() {
     };
+    private static RecoveryHousingRecord TestRecord = new RecoveryHousingRecord()
+        .setName("Test")
+        .setFeedRecordId(1L)
+        .setFeedVersion(System.currentTimeMillis())
+        .setFeedName("test")
+        .setCapacity(15);
+
+
 
     private static final IRecoveryHousingController mockController = Mockito.mock(IRecoveryHousingController.class);
     private static final IApiKeyDao mockApiKeyDao = Mockito.mock(IApiKeyDao.class);
@@ -233,5 +253,38 @@ public class RecoveryHousingResourceTest {
 
 
         MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(500));
+    }
+
+    @Test
+    public void testFindRoomsByCapacityRange() throws IOException {
+        JsonNode jsonNode = Jackson.convertValue(TestRecord, JsonNode.class);
+
+        Mockito.when(mockApiKeyDao.isValidApiKey(Mockito.eq("Test")))
+            .thenReturn(true);
+        Mockito.when(mockController.listAll(Mockito.any(RecoveryHousingSearchRequest.class), Mockito.eq(Page.page(0, 100))))
+            .thenReturn(SearchResults.searchResults(1, Collections.singletonList(jsonNode)));
+
+
+
+        String encoded = UriComponent.encode(Jackson.writeValueAsString(ImmutableMap.of("start", 10, "end", 20)),
+        UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
+
+        Response response = resources
+            .target("recovery")
+            .path("search")
+            .queryParam("capacity", encoded)
+            .queryParam("offset", 0)
+            .queryParam("size", 100)
+            .request()
+            .get();
+
+        String expected =
+            Jackson.writeValueAsString(SearchResults.searchResults(1, Collections.singletonList(jsonNode)));
+
+
+        String searchResults = response.readEntity(String.class);
+
+        MatcherAssert.assertThat(response.getStatus(), Matchers.equalTo(200));
+        MatcherAssert.assertThat(searchResults, Matchers.equalTo(expected));
     }
 }
