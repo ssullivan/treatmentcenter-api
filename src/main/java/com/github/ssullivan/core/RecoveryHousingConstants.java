@@ -11,4 +11,6 @@ public class RecoveryHousingConstants {
     public static final String WEBSITE = "Website";
     public static final String EMAIL = "Email address";
     public static final String CONTACT = "Owner/Employee Name";
+    public static final String CAPACITY = "Number of Beds";
+    public static final String RES_EMAIL = "Residence Email Address";
 }

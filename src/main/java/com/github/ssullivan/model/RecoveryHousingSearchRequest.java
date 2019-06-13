@@ -2,21 +2,19 @@ package com.github.ssullivan.model;
 
 import com.github.ssullivan.model.conditions.RangeCondition;
 import java.util.Objects;
-import org.w3c.dom.ranges.Range;
 
 public class RecoveryHousingSearchRequest {
+  private String state;
   private String city;
   private String zipcode;
+  private String gender;
   private RangeCondition capacity;
 
-  public RecoveryHousingSearchRequest(String city, String zipcode,
-      RangeCondition capacity) {
-    this.city = city;
-    this.zipcode = zipcode;
-    this.capacity = capacity;
+  public RecoveryHousingSearchRequest() {
   }
 
-  public RecoveryHousingSearchRequest() {
+  public String getState() {
+    return state;
   }
 
   public String getCity() {
@@ -29,6 +27,15 @@ public class RecoveryHousingSearchRequest {
 
   public RangeCondition getCapacity() {
     return capacity;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public RecoveryHousingSearchRequest withState(final String state) {
+    this.state = state;
+    return this;
   }
 
   public RecoveryHousingSearchRequest withCity(final String city) {
@@ -46,6 +53,12 @@ public class RecoveryHousingSearchRequest {
     this.capacity = capacity;
     return this;
   }
+
+  public RecoveryHousingSearchRequest withGender(final String gender) {
+    this.gender = gender;
+    return this;
+  }
+
 
   @Override
   public boolean equals(Object o) {

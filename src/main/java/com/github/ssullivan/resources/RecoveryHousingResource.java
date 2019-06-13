@@ -87,7 +87,7 @@ public class RecoveryHousingResource {
                      @QueryParam("state") String state,
                      @QueryParam("city") String city,
                      @QueryParam("capacity") String capacity,
-
+                     @QueryParam("gender") String gender,
                      @ApiParam(value = "the number of results to skip", allowableValues = "range[0, 9999]")
                      @Min(0) @Max(9999) @DefaultValue("0")
                      @QueryParam("offset")
@@ -101,9 +101,24 @@ public class RecoveryHousingResource {
                      @Suspended AsyncResponse asyncResponse)  {
 
     try {
+      if (postalCode.length() > 15) {
+        invalidQueryParam(asyncResponse, "postcalcode is too long");
+        return;
+      }
+      if (state.length() > 2) {
+        invalidQueryParam(asyncResponse, "state is too long. must be a two character state code");
+        return;
+      }
+      if (gender.length() > 30) {
+        invalidQueryParam(asyncResponse, "gender is too long. must be less than 30 chars");
+        return;
+      }
+
       SearchResults<JsonNode> results = recoveryHousingController.listAll(new RecoveryHousingSearchRequest()
           .withCapacity(capacity != null ? new RangeParameter(capacity).getRange() : null)
+          .withGender(gender)
           .withCity(city)
+          .withState(state)
           .withZipcode(postalCode), Page.page(offset, size));
 
       asyncResponse.resume(Response.ok(results).build());
@@ -135,5 +150,9 @@ public class RecoveryHousingResource {
     public RangeCondition getRange() {
       return range;
     }
+  }
+
+  private static void invalidQueryParam(final AsyncResponse asyncResponse, final String message) {
+    asyncResponse.resume(Response.status(400).entity(ImmutableMap.of("message", message)));
   }
 }

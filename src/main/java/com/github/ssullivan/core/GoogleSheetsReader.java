@@ -14,7 +14,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GoogleSheetsReader {
+public class    GoogleSheetsReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoogleSheetsReader.class);
 
     private Sheets client;

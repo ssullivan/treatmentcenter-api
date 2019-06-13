@@ -43,6 +43,7 @@ public class SheetRow implements Serializable {
 
     public String[] getStringArray(String name) {
         Object value = cells.get(name);
+        if (value == null) return null;
         if (value instanceof String) {
             return Iterables.toArray(SPLITTER.split((String) value), String.class);
         }
@@ -52,7 +53,11 @@ public class SheetRow implements Serializable {
         else if (value instanceof Set) {
             return (String[]) ((Set) value).stream().map(Object::toString).toArray();
         }
-        return null;
+        else {
+
+            return new String[]{value.toString()};
+        }
+
     }
 
     public Integer getIntValue(String name) {

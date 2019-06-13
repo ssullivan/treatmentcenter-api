@@ -114,6 +114,12 @@ public class RecoveryHousingDao implements IRecoveryHousingDao {
     if (null != searchRequest.getZipcode()) {
       condition = condition.and(Tables.RECOVERY_HOUSING.POSTALCODE.equalIgnoreCase(searchRequest.getZipcode()));
     }
+    if (null != searchRequest.getState()) {
+      condition = condition.and(Tables.RECOVERY_HOUSING.STATE.equalIgnoreCase(searchRequest.getState()));
+    }
+    if (null != searchRequest.getGender()) {
+      condition = condition.and(Tables.RECOVERY_HOUSING.SERVES.containsIgnoreCase(new String[]{searchRequest.getGender()}));
+    }
 
     return dsl.selectFrom(Tables.RECOVERY_HOUSING)
         .where(condition)
