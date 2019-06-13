@@ -88,7 +88,7 @@ public class RecoveryHousingController implements IRecoveryHousingController {
             }
 
             if (visibility.canShareZipCode()) {
-              record.setPostalcode(sheetRow.getStringValue(RecoveryHousingConstants.ZIP_CODE);
+              record.setPostalcode(sheetRow.getStringValue(RecoveryHousingConstants.ZIP_CODE));
             }
 
             if (visibility.canSharePhoneNumber()) {
