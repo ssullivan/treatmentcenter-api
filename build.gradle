@@ -11,7 +11,7 @@ buildscript {
     dependencies {
         classpath "com.netflix.nebula:nebula-docker-plugin:2.0.6"
         // https://mvnrepository.com/artifact/com.kohlschutter.junixsocket/junixsocket-native
-        classpath group: 'com.kohlschutter.junixsocket', name: 'junixsocket-native', version: '2.1.2'
+        classpath group: 'com.kohlschutter.junixsocket', name: 'junixsocket-native', version: '2.2.1'
 
         classpath 'org.jooq:jooq-codegen:3.11.9'
         classpath 'com.h2database:h2:1.4.177'
