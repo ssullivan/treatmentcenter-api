@@ -47,7 +47,7 @@ apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
 apply plugin: 'nu.studer.jooq'
 
-version = '1.16.4'
+version = '1.17.0-SNAPSHOT'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
