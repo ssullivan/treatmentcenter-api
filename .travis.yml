@@ -6,20 +6,13 @@ sudo: required
 jdk:
   - openjdk8
 
-services:
-  - docker # required, but travis uses older version of docker
-  - redis-server
-
-
-env:
-  global:
-    - PGPORT=5433
-    - PGHOST="0.0.0.0"
-
-
 matrix:
   include:
     - language: java
+      env:
+        global:
+          - PGPORT=5433
+          - PGHOST="0.0.0.0"
       services:
         - postgresql
         - docker # required, but travis uses older version of docker
@@ -34,8 +27,6 @@ matrix:
             - postgresql-contrib-10
       before_install:
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
-        - sudo service postgresql restart
-        - sleep 1
         - sudo -u postgres psql -c 'CREATE DATABASE travis_ci_test'
         - sudo -u postgres psql -c "CREATE USER travis_ci_user WITH PASSWORD 'travis'"
         - sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON DATABASE "travis_ci_test" TO "travis_ci_user"'
@@ -43,6 +34,7 @@ matrix:
         - sudo -u postgres psql -d travis_ci_test -c 'CREATE EXTENSION IF NOT EXISTS intarray'
         - sudo -u postgres psql -d travis_ci_test -c 'CREATE EXTENSION IF NOT EXISTS btree_gist'
         - sudo -u postgres psql -d travis_ci_test -c 'CREATE EXTENSION IF NOT EXISTS postgis'
+        - sudo chmod 666 $TRAVIS_REPO_SLUG || true
       before_script:
         - chmod +x ./gradlew
         - docker --version  # document the version travis is using
