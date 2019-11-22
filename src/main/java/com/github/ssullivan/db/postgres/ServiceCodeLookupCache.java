@@ -4,17 +4,11 @@ import com.github.ssullivan.db.psql.Tables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.ExecutionError;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.dropwizard.lifecycle.Managed;
-import java.util.stream.Stream;
-import jersey.repackaged.com.google.common.cache.CacheLoader.InvalidCacheLoadException;
-import org.jooq.DSLContext;
-import org.jooq.exception.DataAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
@@ -23,6 +17,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import jersey.repackaged.com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed {

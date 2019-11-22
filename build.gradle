@@ -91,18 +91,21 @@ dependencies {
     implementation 'com.smoketurner:dropwizard-swagger:1.3.9-1'
     implementation 'com.spotify:completable-futures:0.3.2'
     implementation 'org.glassfish.jersey.media:jersey-media-multipart:2.25.1'
+    implementation 'commons-net:commons-net:3.0.1'
 
     // https://mvnrepository.com/artifact/io.github.novacrypto/Base58
     implementation group: 'io.github.novacrypto', name: 'Base58', version: '0.1.3'
 
     // https://mvnrepository.com/artifact/net.postgis/postgis-jdbc
-    compile group: 'net.postgis', name: 'postgis-jdbc', version: '2.3.0'
+    implementation group: 'net.postgis', name: 'postgis-jdbc', version: '2.3.0'
 
     // Database
     // https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
     implementation 'com.zaxxer:HikariCP:3.3.1'
-    implementation 'com.amazonaws:aws-java-sdk-rds:1.11.505'
+    implementation 'com.amazonaws:aws-java-sdk-rds:1.11.563'
+    implementation 'com.amazonaws:aws-java-sdk-secretsmanager:1.11.563'
+
     implementation 'org.jooq:jooq:3.11.9'
 
     runtime 'com.h2database:h2:1.4.177'
@@ -118,6 +121,11 @@ dependencies {
     implementation 'org.apache.poi:poi:4.0.1'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.500'
 
+    implementation 'com.google.api-client:google-api-client:1.23.0'
+    implementation 'com.google.apis:google-api-services-sheets:v4-rev516-1.23.0'
+
+    // https://mvnrepository.com/artifact/org.flywaydb/flyway-core
+    compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
 
     // https://mvnrepository.com/artifact/io.dropwizard/dropwizard-testing
     testCompile group: 'io.dropwizard', name: 'dropwizard-testing', version: '1.3.9'
@@ -136,7 +144,7 @@ dependencies {
     testCompile "org.hamcrest:hamcrest-junit:2.0.0.0"
     testCompile 'org.junit.vintage:junit-vintage-engine:5.4.0'
     testCompile 'org.awaitility:awaitility:3.1.6'
-    testImplementation "com.squareup.okhttp3:mockwebserver:+"
+    testImplementation "com.squareup.okhttp3:mockwebserver:3.14.0"
 
 }
 
@@ -311,7 +319,14 @@ jooq {
                         types = '.*'
                         binding = 'com.github.ssullivan.db.postgres.PostGisGeometryBinding'
                     }
+                    forcedType {
+                        userType = 'com.fasterxml.jackson.databind.JsonNode'
+                        expression = 'row_jsonb'
+                        types = '.*'
+                        binding = 'com.github.ssullivan.db.postgres.PgJSONBJacksonBinding'
+                    }
                 }
+
             }
             target {
                 packageName = 'com.github.ssullivan.db.psql'

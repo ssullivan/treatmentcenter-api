@@ -1,14 +1,19 @@
 package com.github.ssullivan.db.postgres;
 
 import com.github.ssullivan.model.GeoPoint;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.postgis.Geometry;
-
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
-import java.util.Objects;
+import org.jooq.Binding;
+import org.jooq.BindingGetResultSetContext;
+import org.jooq.BindingGetSQLInputContext;
+import org.jooq.BindingGetStatementContext;
+import org.jooq.BindingRegisterContext;
+import org.jooq.BindingSQLContext;
+import org.jooq.BindingSetSQLOutputContext;
+import org.jooq.BindingSetStatementContext;
+import org.jooq.Converter;
+import org.jooq.impl.DSL;
 
 public class PostGisGeometryBinding implements Binding<Object, GeoPoint> {
     private final Converter<Object, GeoPoint> converter = new PostGisGeometryConverter();

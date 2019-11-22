@@ -5,11 +5,15 @@ import com.github.ssullivan.bundles.DropwizardGuiceBundle;
 import com.github.ssullivan.bundles.InjectorRegistry;
 import com.github.ssullivan.core.IAvailableServiceController;
 import com.github.ssullivan.core.PostalcodeService;
+import com.github.ssullivan.db.IApiKeyDao;
+import com.github.ssullivan.db.env.EnvApiKeyDao;
+import com.github.ssullivan.guice.AwsSecretManagerModule;
 import com.github.ssullivan.guice.DropwizardAwareModule;
 import com.github.ssullivan.guice.PropPostalcodesPath;
 import com.github.ssullivan.guice.PsqlClientModule;
 import com.github.ssullivan.guice.RedisClientModule;
 import com.github.ssullivan.healthchecks.RedisHealthCheck;
+import com.github.ssullivan.json.AppJacksonModule;
 import com.github.ssullivan.tasks.LoadCategoriesAndServicesTask;
 import com.github.ssullivan.tasks.LoadTreatmentFacilitiesTask;
 import com.github.ssullivan.tasks.feeds.LoadSamshaCommandPostgres;
@@ -111,6 +115,17 @@ public class ApiApplication extends Application<AppConfig> {
         } else {
           LOGGER.warn("No configuration provided for Postgres/RDS");
         }
+
+        if (getConfiguration().getSecretsConfig() != null) {
+          if ("aws".equals(getConfiguration().getSecretsConfig().getProvider())) {
+            LOGGER.info("Configuring AWS Secret Manager Provider");
+            install(new AwsSecretManagerModule()
+                .wtihConfig(getConfiguration().getSecretsConfig()));
+          }
+          else {
+            LOGGER.info("Configuring ENV Secret Provider");
+          }
+        }
       }
     };
 
@@ -118,6 +133,7 @@ public class ApiApplication extends Application<AppConfig> {
         new AbstractModule() {
           @Override
           protected void configure() {
+            bind(IApiKeyDao.class).to(EnvApiKeyDao.class).in(Singleton.class);
             bind(IPostalcodeService.class).to(PostalcodeService.class).in(Singleton.class);
             bindConstant().annotatedWith(PropPostalcodesPath.class)
                 .to(getProperty("POSTALCODES_US_PATH",
@@ -147,7 +163,7 @@ public class ApiApplication extends Application<AppConfig> {
     final Injector injector = InjectorRegistry.getInjector(this);
 
     environment.lifecycle().manage(injector.getInstance(IAvailableServiceController.class));
-
+    environment.getObjectMapper().registerModule(new AppJacksonModule());
     environment.healthChecks().runHealthChecks()
         .forEach((s, result) -> {
           if (!result.isHealthy()) {

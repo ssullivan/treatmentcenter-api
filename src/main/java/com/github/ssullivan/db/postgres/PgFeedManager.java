@@ -2,9 +2,8 @@ package com.github.ssullivan.db.postgres;
 
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IManageFeeds;
-
-import javax.inject.Inject;
 import java.util.Set;
+import javax.inject.Inject;
 
 public class PgFeedManager implements IManageFeeds {
     private IFeedDao feedDao;

@@ -1,6 +1,5 @@
 package com.github.ssullivan.db.postgres;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.utils.ShortUuid;

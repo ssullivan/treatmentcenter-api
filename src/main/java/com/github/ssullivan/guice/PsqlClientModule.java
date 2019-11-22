@@ -28,6 +28,9 @@ import javax.inject.Inject;
 import io.dropwizard.lifecycle.Managed;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.MappedSchema;
+import org.jooq.conf.RenderMapping;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -63,6 +66,13 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
     @Provides
     @Inject
     DSLContext providesDSLContext(final HikariDataSource hikariDataSource) {
+        if (! "public".equalsIgnoreCase(psqlConfig.getSchema())) {
+            return DSL.using(hikariDataSource, SQLDialect.POSTGRES_10, new Settings()
+                    .withRenderMapping(new RenderMapping()
+                    .withSchemata(
+                            new MappedSchema().withInput("public")
+                                    .withOutput(psqlConfig.getSchema()))));
+        }
         return DSL.using(hikariDataSource, SQLDialect.POSTGRES_10);
     }
 
@@ -132,7 +142,7 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
         LOGGER.info("Generating token in {} for {}@{}:{}", region, username, hostName, port);
 
         final RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
-            .credentials(AWSCredentialsProviderChain.getInstance())
+            .credentials(AWSCredProviderChain.getInstance())
             .region(region)
             .build();
 
@@ -146,17 +156,5 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
         return authToken;
     }
 
-    private static class AWSCredentialsProviderChain extends com.amazonaws.auth.AWSCredentialsProviderChain {
-        private static final AWSCredentialsProviderChain INSTANCE
-            = new AWSCredentialsProviderChain();
 
-        AWSCredentialsProviderChain() {
-            super(new DefaultAWSCredentialsProviderChain(),
-                InstanceProfileCredentialsProvider.getInstance());
-        }
-
-        public static AWSCredentialsProviderChain getInstance() {
-            return INSTANCE;
-        }
-    }
 }

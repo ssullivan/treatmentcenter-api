@@ -1,9 +1,5 @@
 package com.github.ssullivan;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
-import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
-
 public class DatabaseConfig {
     private String username = "postgres";
     private String password;
@@ -11,6 +7,7 @@ public class DatabaseConfig {
 
     private String host = "localhost";
     private int port = 5432;
+    private String schema = "public";
 
 
     public DatabaseConfig() {
@@ -57,4 +54,11 @@ public class DatabaseConfig {
         this.port = port;
     }
 
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
 }

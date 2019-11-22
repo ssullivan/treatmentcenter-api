@@ -13,6 +13,8 @@ public class AppConfig extends Configuration {
   private RedisConfig redisConfig;
   private SwaggerBundleConfiguration swaggerBundleConfiguration;
   private RdsConfig rdsConfig;
+  private SecretManagerConfig secretsConfig;
+
 
 
   public AppConfig() {
@@ -49,6 +51,15 @@ public class AppConfig extends Configuration {
 
   public void setDatabaseConfig(RdsConfig databaseConfig) {
     this.rdsConfig = databaseConfig;
+  }
+
+  @JsonProperty("secrets")
+  public SecretManagerConfig getSecretsConfig() {
+    return secretsConfig;
+  }
+
+  public void setSecretsConfig(SecretManagerConfig secretsConfig) {
+    this.secretsConfig = secretsConfig;
   }
 
   @JsonIgnore

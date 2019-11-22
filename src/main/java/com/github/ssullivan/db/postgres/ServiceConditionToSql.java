@@ -6,16 +6,14 @@ import com.github.ssullivan.model.SetOperation;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import java.util.StringJoiner;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
-
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ServiceConditionToSql implements IServiceConditionToSql {
     private final IServiceCodeLookupCache serviceCodeLookupCache;

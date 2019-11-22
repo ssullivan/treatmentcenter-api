@@ -10,18 +10,19 @@ import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoUnit;
 import com.github.ssullivan.utils.ShortUuid;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import javax.ws.rs.QueryParam;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.postgis.Point;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

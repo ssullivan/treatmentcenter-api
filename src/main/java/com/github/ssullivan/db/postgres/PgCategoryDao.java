@@ -6,17 +6,15 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.model.Category;
-import com.github.ssullivan.model.Service;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PgCategoryDao implements ICategoryCodesDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgCategoryDao.class);
