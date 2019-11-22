@@ -14,9 +14,6 @@ RUN apk --no-cache update \
     && addgroup -g $GID app_user \
     && adduser -D -s /bin/false -H -u $UID -G app_user app_user
 
-WORKDIR /tmp
-RUN https://www.amazontrust.com/repository/AmazonRootCA1.pem
-
 COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
