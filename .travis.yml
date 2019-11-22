@@ -34,7 +34,7 @@ matrix:
         - sudo -u postgres psql -d travis_ci_test -c 'CREATE EXTENSION IF NOT EXISTS intarray'
         - sudo -u postgres psql -d travis_ci_test -c 'CREATE EXTENSION IF NOT EXISTS btree_gist'
         - sudo -u postgres psql -d travis_ci_test -c 'CREATE EXTENSION IF NOT EXISTS postgis'
-        - sudo chmod 666 ssullivan/treatmentcenter-api
+        - sudo chmod 666 ssullivan/treatmentcenter-api || true
       before_script:
         - chmod +x ./gradlew
         - docker --version  # document the version travis is using
