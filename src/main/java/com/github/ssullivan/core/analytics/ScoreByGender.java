@@ -24,7 +24,7 @@ public class ScoreByGender implements IScoreFacility {
   }
 
   @Override
-  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
     return PostgresArrayDSL.score(cache, 1, MALE, FEMALE);
   }
 

@@ -7,6 +7,7 @@ import org.jooq.Field;
 import org.jooq.impl.DSL;
 
 public class ScoreByMilitaryFamilyStatus implements IScoreFacility {
+
   private Importance importance;
   private boolean isMilitary;
 

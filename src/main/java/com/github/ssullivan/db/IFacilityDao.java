@@ -36,7 +36,6 @@ public interface IFacilityDao {
    * @param seconds the seconds to set the ttl too
    * @param overwrite if true, if the key already has a ttl it will reset the ttl
    * @return true success / false failure
-   * @throws IOException
    */
   Boolean expire(final String feed, long seconds, boolean overwrite) throws IOException;
 

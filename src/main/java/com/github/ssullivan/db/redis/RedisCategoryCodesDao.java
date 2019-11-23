@@ -5,16 +5,10 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.ICategoryCodesDao;
 import com.github.ssullivan.model.Category;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
-import com.google.common.cache.LoadingCache;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -25,10 +19,8 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class RedisCategoryCodesDao implements ICategoryCodesDao {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
-
   public static final String KEY = "treatment:categories";
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisServiceCodeDao.class);
   private ObjectReader objectReader;
   private ObjectWriter objectWriter;
 
@@ -64,7 +56,6 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
-
 
 
   @Override
@@ -111,8 +102,7 @@ public class RedisCategoryCodesDao implements ICategoryCodesDao {
       final String categoryJson = serialize(category);
       if (sync.hset(KEY, category.getCode(), categoryJson)) {
         LOGGER.info("{} is a new category code in {}", category.getCode(), KEY);
-      }
-      else {
+      } else {
         LOGGER.info("{} already existed in {} and was updated {}", category.getCode(), KEY);
       }
       return true;

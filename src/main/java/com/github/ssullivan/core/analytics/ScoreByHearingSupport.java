@@ -35,7 +35,7 @@ public class ScoreByHearingSupport implements IScoreFacility {
   }
 
   @Override
-  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
     return PostgresArrayDSL.score(cache, weight(), AH);
   }
 
@@ -49,7 +49,6 @@ public class ScoreByHearingSupport implements IScoreFacility {
 
     return 0;
   }
-
 
 
   @Override

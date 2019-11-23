@@ -88,8 +88,8 @@ public abstract class GeoPoint {
     double temp = Math.sin(deltaLatRadians / 2)
         * Math.sin(deltaLatRadians / 2)
         + Math.cos(lat1Radians) * Math.cos(lat2Radians)
-            * Math.sin(deltaLonRadians / 2)
-            * Math.sin(deltaLonRadians / 2);
+        * Math.sin(deltaLonRadians / 2)
+        * Math.sin(deltaLonRadians / 2);
 
     return 2 * Math.atan2(Math.sqrt(temp), Math.sqrt(1 - temp));
   }

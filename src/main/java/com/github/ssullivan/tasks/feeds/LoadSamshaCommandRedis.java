@@ -104,7 +104,6 @@ public class LoadSamshaCommandRedis extends ConfiguredCommand<AppConfig> {
         .type(Integer.class)
         .help("The redis database to store the data into (default 0)");
 
-
     subparser.addArgument("-skipS3")
         .dest("SkipS3")
         .required(false)
@@ -190,8 +189,7 @@ public class LoadSamshaCommandRedis extends ConfiguredCommand<AppConfig> {
         samshaEtlJob.extract();
         samshaEtlJob.transform();
         samshaEtlJob.load();
-      }
-      else {
+      } else {
         final ISamshaEtlJob samshaEtlJob = injector.getInstance(InMemorySamshaLocalEtl.class);
 
         samshaEtlJob.extract();

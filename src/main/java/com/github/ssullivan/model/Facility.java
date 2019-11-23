@@ -56,7 +56,6 @@ public class Facility {
     this.county = facility.getCounty();
     this.score = facility.score;
 
-
     if (facility.getPhoneNumbers() != null) {
       this.phoneNumbers = new HashSet<>(facility.getPhoneNumbers());
     }
@@ -112,8 +111,8 @@ public class Facility {
   }
 
   /**
-   * This is the uniq identifier for the locator spreadsheet that was downloaded via
-   * {@link com.github.ssullivan.tasks.feeds.SamshaLocatorEtl}
+   * This is the uniq identifier for the locator spreadsheet that was downloaded via {@link
+   * com.github.ssullivan.tasks.feeds.SamshaLocatorEtl}
    *
    * @return the feed id
    */

@@ -317,8 +317,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
         if (overwrite) {
           sync.expire(keyToExpire, seconds);
-        }
-        else {
+        } else {
           final Long ttl = sync.ttl(keyToExpire);
           if (ttl == null || ttl < 0) {
             sync.expire(keyToExpire, seconds);
@@ -328,8 +327,7 @@ public class RedisFacilityDao implements IFacilityDao {
 
       if (overwrite) {
         sync.expire(TREATMENT_FACILITIES_IDS + feed, seconds);
-      }
-      else {
+      } else {
         final Long ttl = sync.ttl(TREATMENT_FACILITIES_IDS + feed);
         if (ttl == null || ttl < 0) {
           sync.expire(TREATMENT_FACILITIES_IDS + feed, seconds);

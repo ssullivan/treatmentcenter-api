@@ -24,8 +24,8 @@ public interface IFeedDao {
   Collection<String> getFeedIds() throws IOException;
 
   /**
-   * We keep track of the identifiers for every feed that is loaded.
-   * This will remove the feedId from that list.
+   * We keep track of the identifiers for every feed that is loaded. This will remove the feedId
+   * from that list.
    *
    * @param feedId the feed id to remove
    */

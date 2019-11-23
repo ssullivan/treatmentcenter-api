@@ -8,7 +8,6 @@ import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Service;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
-import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -46,8 +45,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
       try {
         if (this.categoryCodesDao.addCategory(category)) {
           totalCats++;
-        }
-        else {
+        } else {
           LOGGER.error("Failed to store category: {}", category);
         }
       } catch (IOException e) {
@@ -61,8 +59,7 @@ public class StoreSamshaLocatorData implements Function<SamshaLocatorData, Boole
       try {
         if (this.serviceCodesDao.addService(service)) {
           totalServices++;
-        }
-        else {
+        } else {
           LOGGER.error("Failed to add service: {}", service);
         }
       } catch (IOException e) {

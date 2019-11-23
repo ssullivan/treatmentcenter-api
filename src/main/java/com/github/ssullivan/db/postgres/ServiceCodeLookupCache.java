@@ -4,17 +4,11 @@ import com.github.ssullivan.db.psql.Tables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.ExecutionError;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.dropwizard.lifecycle.Managed;
-import java.util.stream.Stream;
-import jersey.repackaged.com.google.common.cache.CacheLoader.InvalidCacheLoadException;
-import org.jooq.DSLContext;
-import org.jooq.exception.DataAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
@@ -23,9 +17,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import jersey.repackaged.com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCodeLookupCache.class);
 
   private final ExecutorService pool = Executors.newSingleThreadExecutor();
@@ -35,7 +38,7 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
   @Inject
   public ServiceCodeLookupCache(final DSLContext dslContext) {
     this.dsl = dslContext;
-    this.cache =  CacheBuilder.newBuilder()
+    this.cache = CacheBuilder.newBuilder()
         .concurrencyLevel(8)
         .maximumSize(512)
         .refreshAfterWrite(30, TimeUnit.MINUTES)
@@ -48,7 +51,8 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
     try {
       return this.cache.get(serviceCode);
     } catch (InvalidCacheLoadException e) {
-      LOGGER.error("Failed to load serviceCode {} from database. This is likely an invalid service code");
+      LOGGER.error(
+          "Failed to load serviceCode {} from database. This is likely an invalid service code");
       throw e;
     } catch (ExecutionException | RuntimeException | ExecutionError e) {
       LOGGER.error("Failed to load value from cache for key '{}'", serviceCode);
@@ -61,13 +65,12 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
     return serviceCodes.stream().map(it -> {
       try {
         return lookup(it);
-      }
-      catch (ExecutionException | RuntimeException | ExecutionError e) {
+      } catch (ExecutionException | RuntimeException | ExecutionError e) {
         LOGGER.error("Failed to lookup service code '{}'", it, e);
       }
       return null;
     }).filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -75,8 +78,7 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
     return Stream.of(serviceCodes).map(it -> {
       try {
         return lookup(it);
-      }
-      catch (ExecutionException | RuntimeException | ExecutionError e) {
+      } catch (ExecutionException | RuntimeException | ExecutionError e) {
         LOGGER.error("Failed to lookup service code '{}'", it, e);
       }
       return null;
@@ -88,8 +90,8 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
   @Override
   public void start() throws Exception {
     this.cache.putAll(this.dsl.select(Tables.SERVICE.CODE, Tables.SERVICE.ID)
-            .from(Tables.SERVICE)
-            .fetchMap(Tables.SERVICE.CODE, Tables.SERVICE.ID));
+        .from(Tables.SERVICE)
+        .fetchMap(Tables.SERVICE.CODE, Tables.SERVICE.ID));
   }
 
   @Override
@@ -102,6 +104,7 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
    * CacheLoader that can async refresh the cache
    */
   private static final class ServiceIdCacheLoader extends CacheLoader<String, Integer> {
+
     private final ListeningExecutorService executorService;
     private final DSLContext dsl;
 
@@ -128,7 +131,8 @@ public class ServiceCodeLookupCache implements IServiceCodeLookupCache, Managed 
 
 
     @Override
-    public ListenableFuture<Integer> reload(final String key, final Integer oldValue) throws Exception {
+    public ListenableFuture<Integer> reload(final String key, final Integer oldValue)
+        throws Exception {
       return this.executorService.submit(() -> load(key));
     }
   }

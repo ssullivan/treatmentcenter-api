@@ -23,7 +23,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
   private static final String VIV = "VIV";
 
   private static final String[] MED_CODES = new String[]{
-      BMW, BU,  BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL,  VIV, NMOA
+      BMW, BU, BUM, METH, MM, MMW, NXN, PAIN, RPN, UBN, VTRL, VIV, NMOA
   };
 
 
@@ -69,7 +69,7 @@ public class ScoreByMedAssistedTreatment implements IScoreFacility {
   }
 
   @Override
-  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
     if (noPref()) {
       return PostgresArrayDSL.score(cache, 1.0, MED_CODES);
     }

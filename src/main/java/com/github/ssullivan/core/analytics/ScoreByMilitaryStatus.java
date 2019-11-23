@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ScoreByMilitaryStatus implements IScoreFacility {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ScoreByMilitaryStatus.class);
 
   private boolean noMilitaryService;
@@ -61,8 +62,7 @@ public class ScoreByMilitaryStatus implements IScoreFacility {
         return DSL.field("CASE services @> ?::int[] WHEN true THEN .8 ELSE 0 END", Double.class,
             '{' + cache.lookup("VET") + '}');
       }
-    }
-    catch (ExecutionException e) {
+    } catch (ExecutionException e) {
       LOGGER.error("Failed to find service code", e);
     }
 

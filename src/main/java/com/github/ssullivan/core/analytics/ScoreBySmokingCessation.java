@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ScoreBySmokingCessation implements IScoreFacility {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ScoreBySmokingCessation.class);
 
   private static final String NRT = "NRT";
@@ -79,8 +80,7 @@ public class ScoreBySmokingCessation implements IScoreFacility {
       }
 
       return PostgresArrayDSL.score(cache, 1.0, "NRT", "NSC", "STU", "TCC");
-    }
-    catch (RuntimeException e) {
+    } catch (RuntimeException e) {
       LOGGER.error("", e);
     }
     return DSL.zero().cast(Double.class);

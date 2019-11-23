@@ -4,9 +4,9 @@ import com.github.ssullivan.db.IFacilityDao;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.IManageFeeds;
 import com.github.ssullivan.db.IndexFacility;
+import com.google.common.base.Stopwatch;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
-import com.google.common.base.Stopwatch;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
@@ -29,8 +29,8 @@ public class RedisFeedManager implements IManageFeeds {
 
   @Inject
   public RedisFeedManager(final IFeedDao feedDao, IFacilityDao facilityDao,
-                          IndexFacility indexFacility,
-                          IRedisConnectionPool pool) {
+      IndexFacility indexFacility,
+      IRedisConnectionPool pool) {
     this.feedDao = feedDao;
     this.facilityDao = facilityDao;
     this.indexDao = indexFacility;
@@ -80,8 +80,7 @@ public class RedisFeedManager implements IManageFeeds {
             sync.persist(RedisConstants.TREATMENT_FACILITIES + ":" + facilityId);
             LOGGER.info("PERSIST {}:{}", RedisConstants.TREATMENT_FACILITIES, facilityId);
             break;
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             LOGGER.error("Failed to persist {}", facilityId, e);
           }
         } while (retries-- > 0);
@@ -98,7 +97,8 @@ public class RedisFeedManager implements IManageFeeds {
   }
 
   @Override
-  public void expireOldFeeds(final String currentFeedID, final long expireSeconds) throws Exception {
+  public void expireOldFeeds(final String currentFeedID, final long expireSeconds)
+      throws Exception {
     LOGGER.info("expireOldFeeds currentFeedId is {}, {}", currentFeedID, expireSeconds);
     Stopwatch stopwatch = Stopwatch.createStarted();
 
@@ -116,8 +116,7 @@ public class RedisFeedManager implements IManageFeeds {
       persistCriticalIds();
 
       return;
-    }
-    else {
+    } else {
       LOGGER.info("Set search feed id to {} [this is our new data]", currentFeedID);
     }
 
@@ -137,8 +136,7 @@ public class RedisFeedManager implements IManageFeeds {
             }
           }
         }
-      }
-      finally {
+      } finally {
         persistCriticalIds();
         this.feedDao.setSearchFeedId(currentFeedID);
       }

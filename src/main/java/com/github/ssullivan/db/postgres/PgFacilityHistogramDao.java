@@ -23,7 +23,8 @@ public class PgFacilityHistogramDao implements IFacilityHistogramDao {
   private IServiceCodesDao serviceCodesDao;
 
   @Inject
-  public PgFacilityHistogramDao(final DSLContext dslContext, final IServiceCodesDao serviceCodesDao, final ObjectMapper objectMapper) {
+  public PgFacilityHistogramDao(final DSLContext dslContext, final IServiceCodesDao serviceCodesDao,
+      final ObjectMapper objectMapper) {
     this.dsl = dslContext;
     this.objectMapper = objectMapper;
     this.serviceCodesDao = serviceCodesDao;
@@ -33,7 +34,8 @@ public class PgFacilityHistogramDao implements IFacilityHistogramDao {
   @Override
   public Map<String, Integer> toServicesHistogram(String groupBy) throws IOException {
     final List<String> serviceCodes = this.serviceCodesDao.listServiceCodes();
-    final Field<?> servicesArrayAggField = DSL.arrayAgg(DSL.field("S")).as(Tables.LOCATION.SERVICES);
+    final Field<?> servicesArrayAggField = DSL.arrayAgg(DSL.field("S"))
+        .as(Tables.LOCATION.SERVICES);
 
 //    this.dsl.select(Tables.LOCATION.STATE, servicesArrayAggField)
 //        .from(

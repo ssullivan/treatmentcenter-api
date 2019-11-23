@@ -56,14 +56,15 @@ public class DropwizardGuiceBundle<T extends Configuration> implements Configure
         createInjector(configuration, environment));
 
     InjectorRegistry.getInjector(this.application)
-            .getInstance(IManagedProvider.class)
-            .get()
-            .forEach(managed -> environment.lifecycle().manage(managed));
+        .getInstance(IManagedProvider.class)
+        .get()
+        .forEach(managed -> environment.lifecycle().manage(managed));
 
     InjectorRegistry.getInjector(this.application)
-            .getInstance(IHealthcheckProvider.class)
-            .get()
-            .forEach(healthCheck -> environment.healthChecks().register(healthCheck.getClass().getName(), healthCheck));
+        .getInstance(IHealthcheckProvider.class)
+        .get()
+        .forEach(healthCheck -> environment.healthChecks()
+            .register(healthCheck.getClass().getName(), healthCheck));
 
   }
 

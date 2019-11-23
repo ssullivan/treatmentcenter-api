@@ -28,8 +28,8 @@ public class LoadZipCodesAndGeos {
    * subdivision (county/province) varchar(100) //  admin code2       : 2. order subdivision
    * (county/province) varchar(20) //  admin name3       : 3. order subdivision (community)
    * varchar(100) //  admin code3       : 3. order subdivision (community) varchar(20) //  latitude
-   * : estimated latitude (wgs84) //  longitude         : estimated longitude (wgs84) // accuracy
-   * : accuracy of lat/lng from 1=estimated to 6=centroid
+   * : estimated latitude (wgs84) //  longitude         : estimated longitude (wgs84) // accuracy :
+   * accuracy of lat/lng from 1=estimated to 6=centroid
    **/
   private static final String ISO_COUNTRY_CODE = "(?<isoCountryCode>\\w{2})";
   private static final String POSTAL_CODE = "(?<postalCode>[^\t]{0,20})";
@@ -82,7 +82,8 @@ public class LoadZipCodesAndGeos {
 
     final Map<String, List<GeoPoint>> geoPointMap = new HashMap<>();
 
-    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
+    try (BufferedReader bufferedReader = new BufferedReader(
+        new InputStreamReader(inputStream, "UTF-8"))) {
       String line = null;
       while ((line = bufferedReader.readLine()) != null) {
         if (line.isEmpty()) {

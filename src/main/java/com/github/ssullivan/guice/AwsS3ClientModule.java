@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Guice module for providing an AmazonS3 client. Supports using a client with accesskey + secretkey
- * (primarilyu used for local dev with minio) + ec2 instance profiles
+ * (primarily used for local dev with minio) + ec2 instance profiles
  */
 public class AwsS3ClientModule extends AbstractModule {
 
@@ -25,11 +25,10 @@ public class AwsS3ClientModule extends AbstractModule {
 
 
   /**
-   * Creates a new instance of {@link AwsS3ClientModule}. This module will setup
-   * Guice so that i can inject a configured instance of {@link AmazonS3} client.
+   * Creates a new instance of {@link AwsS3ClientModule}. This module will setup Guice so that i can
+   * inject a configured instance of {@link AmazonS3} client.
    *
    * @param awsS3Settings the settings to configure the AmazonS3 client with
-   *
    */
   public AwsS3ClientModule(final AwsS3Settings awsS3Settings) {
     Objects.requireNonNull(awsS3Settings, "AWS settings must not be empty/null");

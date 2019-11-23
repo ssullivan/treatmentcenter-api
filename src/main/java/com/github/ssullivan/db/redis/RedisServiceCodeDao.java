@@ -5,18 +5,12 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.ssullivan.db.IServiceCodesDao;
 import com.github.ssullivan.model.Service;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
-import com.google.common.cache.LoadingCache;
 import com.google.inject.Singleton;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -118,8 +112,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
     try {
       if (sync.hset(KEY, service.getCode(), serialize(service))) {
         LOGGER.info("{} service code is a new field in {}", service.getCode(), KEY);
-      }
-      else {
+      } else {
         LOGGER.info("{} service code existed but was updated in {}", service.getCode(), KEY);
       }
       return true;
@@ -131,6 +124,7 @@ public class RedisServiceCodeDao implements IServiceCodesDao {
       throw new IOException("Failed to connect to REDIS", e);
     }
   }
+
   private String serialize(@Nonnull final Service service) throws IOException {
     return serviceWriter.writeValueAsString(service);
   }

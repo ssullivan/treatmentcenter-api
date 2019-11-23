@@ -71,8 +71,7 @@ public class RedisIndexFacilityByGeoPoint extends AbstractRedisIndexFacility imp
         if (connection.sync().expire(indexByGeoKey(feed), seconds)) {
           LOGGER.debug("expire {}, {}", indexByGeoKey(feed), seconds);
         }
-      }
-      else {
+      } else {
         if (connection.sync().expire(indexByGeoKey(feed), seconds)) {
           LOGGER.debug("expire {}, {}", indexByGeoKey(feed), seconds);
         }

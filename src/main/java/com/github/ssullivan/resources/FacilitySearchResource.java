@@ -7,7 +7,6 @@ import com.github.ssullivan.core.analytics.CompositeFacilityScore.Builder;
 import com.github.ssullivan.core.analytics.Importance;
 import com.github.ssullivan.core.analytics.TraumaTypes;
 import com.github.ssullivan.db.IFindBySearchRequest;
-import com.github.ssullivan.db.redis.search.FindBySearchRequest;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
@@ -83,7 +82,7 @@ public class FacilitySearchResource {
     return searchResults;
 //    applyScores(searchRequest.allServiceCodes(),
 //        builder, searchResults);
- //   return searchResults;
+    //   return searchResults;
   }
 
   public static <F extends Facility> SearchResults<F> applyScores(final Set<String> serviceCodes,
@@ -109,15 +108,14 @@ public class FacilitySearchResource {
       final String distanceUnit,
       final String postalCode) throws IllegalArgumentException {
 
-
     if (distance == null || distanceUnit == null || distanceUnit.isEmpty()) {
       return Optional.empty();
     }
 
     if (lat != null && lon != null && GeoPoint.isValidLatLong(lat, lon)) {
-      return Optional.of(new GeoRadiusCondition(GeoPoint.geoPoint(lat, lon), distance, distanceUnit));
-    }
-    else if (postalCode != null && !postalCode.isEmpty()) {
+      return Optional
+          .of(new GeoRadiusCondition(GeoPoint.geoPoint(lat, lon), distance, distanceUnit));
+    } else if (postalCode != null && !postalCode.isEmpty()) {
       ImmutableList<GeoPoint> geoPoints = postalcodeService.fetchGeos(postalCode);
       if (geoPoints == null || geoPoints.size() <= 0) {
         LOGGER.error("Failed to find GeoPoints for PostCode", postalCode);
@@ -125,8 +123,7 @@ public class FacilitySearchResource {
       } else {
         return Optional.of(new GeoRadiusCondition(geoPoints.get(0), distance, distanceUnit));
       }
-    }
-    else {
+    } else {
       return Optional.empty();
     }
   }
@@ -236,7 +233,6 @@ public class FacilitySearchResource {
             .build()
         );
       }
-
 
       final SearchRequest searchRequest = new SearchRequest();
       searchRequest.setSortDirection(sortDirection);
@@ -411,7 +407,8 @@ public class FacilitySearchResource {
               asyncResponse.resume(Response.serverError().build());
             } else {
               asyncResponse.resume(Response
-                  .ok(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result)).build());
+                  .ok(applyScores(searchRequest, new CompositeFacilityScore.Builder(), result))
+                  .build());
             }
           });
 

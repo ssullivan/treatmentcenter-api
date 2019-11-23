@@ -58,7 +58,8 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
   abstract protected void index(final RedisCommands<String, String> sync, final String feed,
       final Facility facility);
 
-  void expireMatching(final String pattern, final long seconds, final boolean overwrite) throws IOException {
+  void expireMatching(final String pattern, final long seconds, final boolean overwrite)
+      throws IOException {
     Objects.requireNonNull(pattern, "Key pattern must not be null");
     if (pattern.isEmpty()) {
       throw new IllegalArgumentException("Key pattern must not be empty");
@@ -68,13 +69,14 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
       KeyScanCursor<String> cursor = connection.sync().scan(
           ScanArgs.Builder
               .matches(pattern + "*").limit(10));
-        do {
-          expireKeysForCursor(connection.sync(), cursor, seconds, overwrite);
-          if (!cursor.isFinished())
-            cursor = connection.sync().scan(cursor);
-        } while (!cursor.isFinished());
-
+      do {
         expireKeysForCursor(connection.sync(), cursor, seconds, overwrite);
+        if (!cursor.isFinished()) {
+          cursor = connection.sync().scan(cursor);
+        }
+      } while (!cursor.isFinished());
+
+      expireKeysForCursor(connection.sync(), cursor, seconds, overwrite);
 
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
@@ -85,7 +87,8 @@ public abstract class AbstractRedisIndexFacility implements IndexFacility {
     }
   }
 
-  private void expireKeysForCursor(final RedisCommands<String, String> sync, final KeyScanCursor<String> cursor,
+  private void expireKeysForCursor(final RedisCommands<String, String> sync,
+      final KeyScanCursor<String> cursor,
       final long seconds, final boolean overwrite) {
     for (final String key : cursor.getKeys()) {
       final Long ttl = sync.ttl(key);
