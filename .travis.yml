@@ -26,6 +26,7 @@ matrix:
             - postgresql-10-postgis-2.4-scripts
             - postgresql-contrib-10
       before_install:
+        - pip install --user awscli # install aws cli w/o sudo
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
         - sudo -u postgres psql -c 'CREATE DATABASE travis_ci_test'
         - sudo -u postgres psql -c "CREATE USER travis_ci_user WITH PASSWORD 'travis'"
