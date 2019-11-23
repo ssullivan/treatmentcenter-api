@@ -110,6 +110,8 @@ public class PsqlClientModule extends DropwizardAwareModule<AppConfig> {
 
     if (this.psqlConfig.getSsl()) {
       LOGGER.info("Configuring psql client with SSL support");
+      // otherwise it tries to load a pem from the filesystem
+      hikariConfig.addDataSourceProperty("sslfactory","org.postgresql.ssl.DefaultJavaSSLFactory");
     } else {
       LOGGER.info("Postgres client is not configured for SSL support");
     }
