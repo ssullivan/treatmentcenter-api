@@ -206,40 +206,39 @@ task buildImage(type: DockerBuildImage, dependsOn: [copyDockerResources, distTar
     }
 }
 
+def getDockerLoginCommand = {
+    def ecrStdOut = new ByteArrayOutputStream()
+    exec {
+        environment([
+                AWS_DEFAULT_REGION   : AWS_DEFAULT_REGION,
+                AWS_ACCESS_KEY_ID    : AWS_ACCESS_KEY_ID,
+                AWS_SECRET_ACCESS_KEY: AWS_SECRET_ACCESS_KEY
+        ])
+        commandLine 'aws', 'ecr', 'get-login', '--no-include-email', '--region', AWS_DEFAULT_REGION
+        standardOutput = ecrStdOut
+    }
+    final String dockerLoginCommand = ecrStdOut.toString()
+    dockerLoginCommand
+}
+
+docker {
+    def dockerLoginCommandArray = getDockerLoginCommand().split()
+    def loginUrl = dockerLoginCommandArray[6]
+    def loginUser = dockerLoginCommandArray[3]
+    def loginPassword = dockerLoginCommandArray[5]
+
+    registryCredentials {
+        url = loginUrl
+        username = loginUser
+        password = loginPassword
+    }
+}
+
 task pushImageProd(type: DockerPushImage) {
     images.addAll(["$prodImage:latest", "$prodImage:$project.version"])
 }
 
 task pushImageDev(type: DockerPushImage) {
-    doFirst {
-        def getDockerLoginCommand = {
-            def ecrStdOut = new ByteArrayOutputStream()
-            exec {
-                environment([
-                        AWS_DEFAULT_REGION   : AWS_DEFAULT_REGION,
-                        AWS_ACCESS_KEY_ID    : AWS_ACCESS_KEY_ID,
-                        AWS_SECRET_ACCESS_KEY: AWS_SECRET_ACCESS_KEY
-                ])
-                commandLine 'aws', 'ecr', 'get-login', '--no-include-email', '--region', AWS_DEFAULT_REGION
-                standardOutput = ecrStdOut
-            }
-            final String dockerLoginCommand = ecrStdOut.toString()
-            dockerLoginCommand
-        }
-
-        docker {
-            def dockerLoginCommandArray = getDockerLoginCommand().split()
-            def loginUrl = dockerLoginCommandArray[6]
-            def loginUser = dockerLoginCommandArray[3]
-            def loginPassword = dockerLoginCommandArray[5]
-
-            registryCredentials {
-                url = loginUrl
-                username = loginUser
-                password = loginPassword
-            }
-        }
-    }
 
 
     images.addAll(["$devImage:latest", "$devImage:$project.version"])
