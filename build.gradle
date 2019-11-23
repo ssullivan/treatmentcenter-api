@@ -207,7 +207,7 @@ task pushImageProd(type: DockerPushImage) {
 }
 
 task pushImageDev(type: DockerPushImage) {
-    images.addAll(["$testImage:latest", "$testImage:$project.version"])
+    images.addAll(["$devImage:latest", "$devImage:$project.version"])
 }
 
 
