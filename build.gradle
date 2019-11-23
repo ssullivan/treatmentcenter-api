@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.netflix.nebula:nebula-docker-plugin:2.0.6"
+//        classpath "com.netflix.nebula:nebula-docker-plugin:2.0.6"
         // https://mvnrepository.com/artifact/com.kohlschutter.junixsocket/junixsocket-native
         classpath group: 'com.kohlschutter.junixsocket', name: 'junixsocket-native', version: '2.1.2'
 
@@ -29,7 +29,13 @@ plugins {
     id 'java'
     id 'nu.studer.jooq' version '3.0.3'
     id "org.flywaydb.flyway" version "5.2.4"
+    id 'com.bmuschko.docker-remote-api' version '6.0.0'
 }
+
+// Import task types
+import com.bmuschko.gradle.docker.tasks.image.*
+
+
 
 jacoco {
     toolVersion = "0.8.2"
@@ -42,8 +48,7 @@ apply plugin: 'net.ltgt.apt'
 apply plugin: 'net.ltgt.apt-idea'
 apply plugin: 'checkstyle'
 apply plugin: 'application'
-apply plugin: 'com.bmuschko.docker-remote-api'
-apply plugin: 'nebula.docker'
+//apply plugin: 'nebula.docker'
 apply plugin: 'jacoco'
 apply plugin: 'nu.studer.jooq'
 
@@ -170,12 +175,24 @@ if (AWS_DEFAULT_REGION == null) {
 task copyDockerResources(type: Copy) {
     doFirst {
         mkdir project.buildDir
-        mkdir new File(project.buildDir, "docker-resources")
+        mkdir new File(project.buildDir, "docker")
     }
     from 'docker/'
-    into 'build/docker-resources/'
-    include "*.*"
+    into 'build/docker/'
+    include "*"
 }
+
+// Use task types
+task buildImage(type: DockerBuildImage, dependsOn: [copyDockerResources, distTar]) {
+    inputDir = new File(project.buildDir, "docker")
+    buildArgs = ['API_VERSION':project.version]
+    images.add('test/myapp:latest')
+    copy {
+        from new File(project.buildDir, "distributions")
+        into new File(project.buildDir, "docker")
+    }
+}
+
 
 
 distributions {
@@ -202,64 +219,73 @@ distZip {
         include '*.*'
     }
 }
-nebulaDocker {
-    dockerBase = 'openjdk:8-alpine'
 
-    // There is a problem with the docker java library that this
-    // plugin uses where it doesn't work on windows.
-    // So if you're stuck with Windows then you'll need
-    // to make your daemon listen on localhost
-    if (OperatingSystem.current().isWindows()) {
-        dockerUrl = 'tcp://127.0.0.1:2375'
-    }
-    else {
-        dockerUrl = 'unix:///var/run/docker.sock'
-    }
-    dockerRepo = [test: '', prod: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api", dev: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/dev/treatmentcenter-api"]
-    dockerImage = {
-        arg('UID=7999')
-        arg('GID=7999')
-        environmentVariable('JAVA_OPTS', '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap')
-        environmentVariable('APP_VERSION', project.version)
-        environmentVariable('API_VERSION', project.version)
-        entryPoint('/docker-entrypoint.sh')
-
-        runCommand('apk --no-cache update \\\n' +
-                '    && apk --no-cache upgrade \\\n' +
-                '    && apk --no-cache add \\\n' +
-                '\tca-certificates dos2unix \\\n' +
-                '\tcurl \\\n' +
-                '        shadow \\\n' +
-                '        su-exec \\\n' +
-                '    && sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=30/ ${JAVA_HOME}/jre/lib/security/java.security \\\n' +
-                '    && addgroup -g $GID app_user \\\n' +
-                '    && adduser -D -s /bin/false -H -u $UID -G app_user app_user')
-        runCommand('apk add --no-cache nss')
-        copyFile('docker-entrypoint.sh', '/')
-        copyFile('server.yml', '/treatmentcenter-api-latest/bin/')
-        runCommand('chmod ugo+rx ./docker-entrypoint.sh && chmod ugo+rx /treatmentcenter-api-latest/bin/*.sh && dos2unix ./docker-entrypoint.sh')
-        defaultCommand "/treatmentcenter-api-latest/bin/treatmentcenter-api", "server", "/treatmentcenter-api-latest/bin/server.yml"
-    }
-
-    afterEvaluate {
-
-        task createBuildDir {
-            doLast {
-                mkdir project.buildDir
-                mkdir new File(project.buildDir, "docker")
-            }
-        }
-
-        task copyDockerDir(type: Copy, dependsOn: [createBuildDir]) {
-            from 'docker/'
-            into 'build/docker/app-lib'
-            include "*.*"
-        }
-
-        createDockerfile.dependsOn copyDockerDir
-        copyDockerDir.mustRunAfter nebulaDockerCopyDistResources
-    }
-}
+//nebulaDocker {
+//    dockerBase = 'openjdk:8-alpine'
+//
+//    // There is a problem with the docker java library that this
+//    // plugin uses where it doesn't work on windows.
+//    // So if you're stuck with Windows then you'll need
+//    // to make your daemon listen on localhost
+//    if (OperatingSystem.current().isWindows()) {
+//        dockerUrl = 'tcp://127.0.0.1:2375'
+//    }
+//    else {
+//        dockerUrl = 'unix:///var/run/docker.sock'
+//    }
+//    dockerRepo = [test: '', prod: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api", dev: AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/dev/treatmentcenter-api"]
+//    dockerFile = new File(new File(project.buildDir, "docker"), "Dockerfile").getAbsolutePath()
+//    dockerImage = {
+//        arg('UID=7999')
+//        arg('GID=7999')
+//        environmentVariable('JAVA_OPTS', '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap')
+//        environmentVariable('APP_VERSION', project.version)
+//        environmentVariable('API_VERSION', project.version)
+//        entryPoint('/docker-entrypoint.sh')
+//
+//        runCommand('apk --no-cache update \\\n' +
+//                '    && apk --no-cache upgrade \\\n' +
+//                '    && apk --no-cache add \\\n' +
+//                '\tca-certificates coreutils perl openssl dos2unix \\\n' +
+//                '\tcurl \\\n' +
+//                '        shadow \\\n' +
+//                '        su-exec \\\n' +
+//                '    && sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=30/ ${JAVA_HOME}/jre/lib/security/java.security \\\n' +
+//                '    && addgroup -g $GID app_user \\\n' +
+//                '    && adduser -D -s /bin/false -H -u $UID -G app_user app_user')
+//        runCommand('apk add --no-cache nss')
+//        copyFile('docker-entrypoint.sh', '/')
+//
+//        copyFile('server.yml', '/treatmentcenter-api-latest/bin/')
+//        runCommand('chmod ugo+rx ./docker-entrypoint.sh && chmod ugo+rx /treatmentcenter-api-latest/bin/*.sh && dos2unix ./docker-entrypoint.sh')
+//        defaultCommand "/treatmentcenter-api-latest/bin/treatmentcenter-api", "server", "/treatmentcenter-api-latest/bin/server.yml"
+//    }
+//
+//    afterEvaluate {
+//
+//        task createBuildDir {
+//            doLast {
+//                mkdir project.buildDir
+//                mkdir new File(project.buildDir, "docker")
+//            }
+//        }
+//
+//        task copyDockerDir(type: Copy, dependsOn: [createBuildDir]) {
+//            from 'docker/'
+//            into 'build/docker/app-lib'
+//            include "*.*"
+//        }
+//
+//        task copyDockerfile(type: Copy, dependsOn: [copyDockerDir]) {
+//            from 'docker/'
+//            into 'build/'
+//            into 'build/docker'
+//        }
+//
+//        createDockerfile.dependsOn copyDockerfile
+//        copyDockerDir.mustRunAfter nebulaDockerCopyDistResources
+//    }
+//}
 
 def postgresPortEnv = System.getenv("PGPORT")
 def postgresPort = postgresPortEnv == null || postgresPortEnv.isEmpty() ? 5432 : Integer.parseInt(postgresPortEnv)
