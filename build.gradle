@@ -18,6 +18,7 @@ buildscript {
         classpath 'org.orbisgis:h2gis:1.4.0'
         // https://mvnrepository.com/artifact/org.postgresql/postgresql
         classpath group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+        // doesnt work with gradle-docker-plugi 6.0 classpath "gradle.plugin.com.patdouble:gradle-aws-ecr-plugin:0.5.2"
 
     }
 }
@@ -166,6 +167,8 @@ checkstyleMain.exclude '.*generated-src.*'
 
 ext.AWS_ACCOUNT_ID = System.getenv("AWS_ACCOUNT_ID")
 ext.AWS_DEFAULT_REGION = System.getenv("AWS_DEFAULT_REGION")
+ext.AWS_ACCESS_KEY_ID = System.getenv("AWS_ACCESS_KEY_ID")
+ext.AWS_SECRET_ACCESS_KEY = System.getenv("AWS_SECRET_ACCESS_KEY")
 
 if (AWS_DEFAULT_REGION == null) {
     AWS_DEFAULT_REGION = "us-east-2"
@@ -185,6 +188,7 @@ task copyDockerResources(type: Copy) {
 ext.prodImage = AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api"
 ext.devImage = AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/dev/treatmentcenter-api"
 ext.testImage = "test/treatmentcenter-api"
+
 
 // Use task types
 task buildImage(type: DockerBuildImage, dependsOn: [copyDockerResources, distTar]) {
@@ -207,6 +211,37 @@ task pushImageProd(type: DockerPushImage) {
 }
 
 task pushImageDev(type: DockerPushImage) {
+    doFirst {
+        def getDockerLoginCommand = {
+            def ecrStdOut = new ByteArrayOutputStream()
+            exec {
+                environment([
+                        AWS_DEFAULT_REGION   : AWS_DEFAULT_REGION,
+                        AWS_ACCESS_KEY_ID    : AWS_ACCESS_KEY_ID,
+                        AWS_SECRET_ACCESS_KEY: AWS_SECRET_ACCESS_KEY
+                ])
+                commandLine 'aws', 'ecr', 'get-login', '--no-include-email', '--region', AWS_DEFAULT_REGION
+                standardOutput = ecrStdOut
+            }
+            final String dockerLoginCommand = ecrStdOut.toString()
+            dockerLoginCommand
+        }
+
+        docker {
+            def dockerLoginCommandArray = getDockerLoginCommand().split()
+            def loginUrl = dockerLoginCommandArray[6]
+            def loginUser = dockerLoginCommandArray[3]
+            def loginPassword = dockerLoginCommandArray[5]
+
+            registryCredentials {
+                url = loginUrl
+                username = loginUser
+                password = loginPassword
+            }
+        }
+    }
+
+
     images.addAll(["$devImage:latest", "$devImage:$project.version"])
 }
 
