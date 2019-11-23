@@ -60,7 +60,7 @@ matrix:
           provider: script
           script: ./gradlew pushImageDev
           on:
-            branch: remove-neptune
+            branch: "remove-neptune"
     - language: node_js
       node_js:
         - "node"
