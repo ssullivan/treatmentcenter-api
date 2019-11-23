@@ -129,6 +129,12 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
         .required(false)
         .setDefault(false)
         .type(Boolean.class);
+
+    subparser.addArgument("-ssl")
+        .dest("ssl")
+        .required(false)
+        .setDefault(true)
+        .type(Boolean.class);
   }
 
 
@@ -155,6 +161,7 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
       rdsConfig.setHost(namespace.getString("Host"));
       rdsConfig.setPort(namespace.getInt("Port"));
       rdsConfig.setIamAuth(namespace.getBoolean("UseIAM"));
+      rdsConfig.setSsl(namespace.getBoolean("ssl"));
 
       LOGGER.info("[postgres] Host is {}", rdsConfig.getHost());
       LOGGER.info("[postgres] Port is {}", rdsConfig.getPort());
