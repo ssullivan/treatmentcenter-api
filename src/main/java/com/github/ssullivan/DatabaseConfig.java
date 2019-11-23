@@ -9,8 +9,10 @@ public class DatabaseConfig {
     private String password;
     private String databaseName;
 
+
     private String host = "localhost";
     private int port = 5432;
+
 
 
     public DatabaseConfig() {
@@ -56,5 +58,4 @@ public class DatabaseConfig {
     public void setPort(int port) {
         this.port = port;
     }
-
 }
