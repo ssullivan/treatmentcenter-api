@@ -182,16 +182,34 @@ task copyDockerResources(type: Copy) {
     include "*"
 }
 
+ext.prodImage = AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api"
+ext.devImage = AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/dev/treatmentcenter-api"
+ext.testImage = "test/treatmentcenter-api"
+
 // Use task types
 task buildImage(type: DockerBuildImage, dependsOn: [copyDockerResources, distTar]) {
     inputDir = new File(project.buildDir, "docker")
+
+
     buildArgs = ['API_VERSION':project.version]
-    images.add('test/myapp:latest')
+    images.addAll(["$prodImage:latest", "$prodImage:$project.version",
+                "$testImage:latest", "$testImage:$project.version",
+                "$devImage:latest", "$devImage:$project.version"])
+
     copy {
         from new File(project.buildDir, "distributions")
         into new File(project.buildDir, "docker")
     }
 }
+
+task pushImageProd(type: DockerPushImage) {
+    images.addAll(["$prodImage:latest", "$prodImage:$project.version"])
+}
+
+task pushImageDev(type: DockerPushImage) {
+    images.addAll(["$testImage:latest", "$testImage:$project.version"])
+}
+
 
 
 
