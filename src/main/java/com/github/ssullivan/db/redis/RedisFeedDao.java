@@ -15,11 +15,10 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class RedisFeedDao implements IFeedDao {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RedisFeedDao.class);
-
   public static final String CURRENT_FEED_KEY = "curr_feed";
   public static final String SEARCH_FEED_KEY = "search_feed";
   public static final String FEED_IDS_KEY = "feed_ids";
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisFeedDao.class);
   private IRedisConnectionPool pool;
 
   @Inject

@@ -3,7 +3,6 @@ package com.github.ssullivan.model.datafeeds;
 import com.github.ssullivan.model.Category;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.Service;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +48,8 @@ public class SamshaLocatorData {
   }
 
   public Set<String> facilityIds() {
-    return getFacilities().stream().map(Facility::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+    return getFacilities().stream().map(Facility::getId).filter(Objects::nonNull)
+        .collect(Collectors.toSet());
   }
 
   /**

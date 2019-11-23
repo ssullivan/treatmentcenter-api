@@ -31,9 +31,7 @@ import javax.inject.Singleton;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.OrderField;
 import org.jooq.SortField;
-import org.jooq.TableField;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -41,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 public class PgFindBySearchRequest implements IFindBySearchRequest {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PgFindBySearchRequest.class);
 
   private final DSLContext dsl;
@@ -52,10 +51,10 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
 
   @Inject
   public PgFindBySearchRequest(final DSLContext dslContext, IFeedDao feedDao,
-                               final IServiceConditionToSql conditionToSql,
-                               final IAvailableServiceController availableServiceController,
-                               final IServiceCodeLookupCache serviceCodeLookupCache,
-                               final ObjectMapper objectMapper) {
+      final IServiceConditionToSql conditionToSql,
+      final IAvailableServiceController availableServiceController,
+      final IServiceCodeLookupCache serviceCodeLookupCache,
+      final ObjectMapper objectMapper) {
     this.dsl = dslContext;
     this.objectMapper = objectMapper;
     this.feedDao = feedDao;
@@ -68,15 +67,21 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     if (geoRadiusCondition == null) {
       return DSL.trueCondition();
     }
-    return _ST_DWithin(geoRadiusCondition.getGeoPoint(), geoRadiusCondition.getRadius(), geoRadiusCondition.getGeoUnit());
+    return _ST_DWithin(geoRadiusCondition.getGeoPoint(), geoRadiusCondition.getRadius(),
+        geoRadiusCondition.getGeoUnit());
   }
 
-  public static Condition _ST_DWithin(final GeoPoint geoPoint, final double radius, final GeoUnit unit) {
-    return DSL.condition("ST_DWithin(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat() + ")'," +  unit.convertTo(GeoUnit.METER, radius) + ",true)");
+  public static Condition _ST_DWithin(final GeoPoint geoPoint, final double radius,
+      final GeoUnit unit) {
+    return DSL.condition(
+        "ST_DWithin(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat()
+            + ")'," + unit.convertTo(GeoUnit.METER, radius) + ",true)");
   }
 
   public static Field<?> _ST_Distance(final GeoPoint geoPoint) {
-    return DSL.field("ST_DistanceSphere(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat() + ")')");
+    return DSL.field(
+        "ST_DistanceSphere(location.geog, 'SRID=4326;POINT(" + geoPoint.lon() + " " + geoPoint.lat()
+            + ")')");
   }
 
   @Override
@@ -85,26 +90,31 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     return this.feedDao
         .searchFeedId()
         .map(searchFeedId -> find(searchFeedId, searchRequest, page))
-        .orElse(CompletableFuture.completedFuture(SearchResults.searchResults(0, new ArrayList<>())))
+        .orElse(
+            CompletableFuture.completedFuture(SearchResults.searchResults(0, new ArrayList<>())))
         .toCompletableFuture();
 
   }
 
   private Optional<Field<?>> getSortField(final String sortField) {
-    if (sortField == null || sortField.isEmpty()) return Optional.empty();
+    if (sortField == null || sortField.isEmpty()) {
+      return Optional.empty();
+    }
     return Stream.of(Tables.LOCATION.fields())
         .filter(it -> it.getName().equalsIgnoreCase(sortField))
         .findFirst();
   }
 
   private Optional<Field<?>> getDistanceField(final SearchRequest searchRequest) {
-    if (searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
+    if (searchRequest.getGeoRadiusCondition() != null
+        && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
       return Optional.of(_ST_Distance(searchRequest.getGeoRadiusCondition().getGeoPoint()));
     }
     return Optional.empty();
   }
 
-  private SortField<?> applySortDirection(final Field<?> orderField, final SortDirection sortDirection) {
+  private SortField<?> applySortDirection(final Field<?> orderField,
+      final SortDirection sortDirection) {
     if (sortDirection == SortDirection.ASC) {
       return orderField.asc();
     }
@@ -115,25 +125,25 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     final String sortField = searchRequest.getSortField();
     final SortDirection sortDirection = searchRequest.getSortDirection();
 
-
     final List<SortField<?>> orderFields = new ArrayList<>();
 
     // just going to make the default sort order radius when the user specifies score
     // at the moment
     if ("score".equalsIgnoreCase(sortField) && searchRequest.getCompositeFacilityScore() != null) {
-      orderFields.add(applySortDirection(searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache), sortDirection));
+      orderFields.add(applySortDirection(
+          searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache),
+          sortDirection));
       getDistanceField(searchRequest)
           .map(it -> applySortDirection(it, SortDirection.ASC))
           .ifPresent(orderFields::add);
       orderFields.add(Tables.LOCATION.ID.desc());
-    }
-    else if ("radius".equalsIgnoreCase(sortField)
-        && searchRequest.getGeoRadiusCondition() != null && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
+    } else if ("radius".equalsIgnoreCase(sortField)
+        && searchRequest.getGeoRadiusCondition() != null
+        && searchRequest.getGeoRadiusCondition().getGeoPoint() != null) {
       getDistanceField(searchRequest)
           .map(it -> applySortDirection(it, sortDirection))
           .ifPresent(orderFields::add);
-    }
-    else {
+    } else {
       getSortField(sortField)
           .map(it -> applySortDirection(it, sortDirection))
           .ifPresent(orderFields::add);
@@ -146,19 +156,24 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
     return Optional.of(orderFields);
   }
 
-  private CompletionStage<SearchResults<Facility>> find(final String feedId, SearchRequest searchRequest, Page page) {
-    final Condition servicesCondition = toSql.toCondition(Tables.LOCATION.SERVICES, searchRequest.getFinalSetOperation(), searchRequest.getConditions());
+  private CompletionStage<SearchResults<Facility>> find(final String feedId,
+      SearchRequest searchRequest, Page page) {
+    final Condition servicesCondition = toSql
+        .toCondition(Tables.LOCATION.SERVICES, searchRequest.getFinalSetOperation(),
+            searchRequest.getConditions());
     final Condition geoCondition = ST_DTWithin(searchRequest.getGeoRadiusCondition());
 
     final long totalHits = this.dsl.selectCount()
-            .from(Tables.LOCATION)
-            .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition).and(geoCondition))
-            .fetchOne()
-            .value1();
+        .from(Tables.LOCATION)
+        .where(Tables.LOCATION.FEED_ID.eq(ShortUuid.decode(feedId)).and(servicesCondition)
+            .and(geoCondition))
+        .fetchOne()
+        .value1();
 
     final Function<Facility, Facility> addRadius = applyToFacilityWithRadius(searchRequest);
 
-    final Field<Double> scoreField = searchRequest.getCompositeFacilityScore().toField(serviceCodeLookupCache).as("score");
+    final Field<Double> scoreField = searchRequest.getCompositeFacilityScore()
+        .toField(serviceCodeLookupCache).as("score");
 
     try {
       final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON, scoreField)
@@ -185,8 +200,7 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
       final SearchResults<Facility> searchResults = SearchResults
           .searchResults(totalHits, facilities);
       return CompletableFuture.completedFuture(searchResults);
-    }
-    catch (DataAccessException e) {
+    } catch (DataAccessException e) {
       LOGGER.error("Failed to query database for feed {} and page {}", feedId, page, e);
       final SearchResults<Facility> searchResults = SearchResults
           .searchResults(totalHits, new ArrayList<>());
@@ -206,7 +220,8 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
   /**
    * Higher order function to return a function that will change Facility to FacilityWithRadius.
    */
-  private Function<Facility, Facility> applyToFacilityWithRadius(final SearchRequest searchRequest) {
+  private Function<Facility, Facility> applyToFacilityWithRadius(
+      final SearchRequest searchRequest) {
 
     final GeoPoint geoPoint =
         searchRequest.getGeoRadiusCondition() != null ? searchRequest.getGeoRadiusCondition()

@@ -32,7 +32,7 @@ public class ScoreByMentalHealth implements IScoreFacility {
   @Override
   public Field<Double> toField(IServiceCodeLookupCache cache) {
     if (mentalHealthRelated) {
-      return PostgresArrayDSL.score(cache, 1.0,"MHSAF", "MHF", "CO");
+      return PostgresArrayDSL.score(cache, 1.0, "MHSAF", "MHF", "CO");
     }
     return DSL.zero().cast(Double.class);
   }

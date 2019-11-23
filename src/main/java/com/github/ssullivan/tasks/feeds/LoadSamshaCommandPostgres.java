@@ -140,7 +140,8 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
 
       final Runtime runtime = Runtime.getRuntime();
       LOGGER
-          .info("[jvm] Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",
+          .info(
+              "[jvm] Configured to run with total memory {} / free memory {} / max memory {} / cpu {}",
               runtime.totalMemory(),
               runtime.freeMemory(),
               runtime.maxMemory(),
@@ -155,16 +156,14 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
       rdsConfig.setPort(namespace.getInt("Port"));
       rdsConfig.setIamAuth(namespace.getBoolean("UseIAM"));
 
-
       LOGGER.info("[postgres] Host is {}", rdsConfig.getHost());
       LOGGER.info("[postgres] Port is {}", rdsConfig.getPort());
 
       final String awsAccessKey = namespace.getString("AccessKey");
       final String awsSecretKey = namespace.getString("SecretKey");
-      final String awsBucket = namespace.getString("Bucket") == null ? "test" : namespace.getString("Bucket");
+      final String awsBucket =
+          namespace.getString("Bucket") == null ? "test" : namespace.getString("Bucket");
       final String awsRegion = namespace.getString("Region");
-
-
 
       final File spreadsheetFile = namespace.get("File");
       final String spreadheetUrl = namespace.get("Url");
@@ -182,20 +181,19 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
       final String locatorUri = locatorUrl;
 
       this.injector = Guice.createInjector(new AbstractModule() {
-        @Override
-        protected void configure() {
-          // If we selected IAM we are running in AWS
-          if (namespace.get("UseIAM")) {
-            LOGGER.info("Configuring application for RDS");
-            install(new PsqlClientModule(rdsConfig));
-          }
-          else {
-            LOGGER.info("Configuring application for POSTGRES");
-            install(new PsqlClientModule(rdsConfig));
-          }
-        }
-      },
-      new AbstractModule() {
+                                             @Override
+                                             protected void configure() {
+                                               // If we selected IAM we are running in AWS
+                                               if (namespace.get("UseIAM")) {
+                                                 LOGGER.info("Configuring application for RDS");
+                                                 install(new PsqlClientModule(rdsConfig));
+                                               } else {
+                                                 LOGGER.info("Configuring application for POSTGRES");
+                                                 install(new PsqlClientModule(rdsConfig));
+                                               }
+                                             }
+                                           },
+          new AbstractModule() {
             @Override
             protected void configure() {
               bindConstant().annotatedWith(CrawlDelay.class).to(4096L);
@@ -233,8 +231,7 @@ public class LoadSamshaCommandPostgres extends ConfiguredCommand<AppConfig> {
         samshaEtlJob.extract();
         samshaEtlJob.transform();
         samshaEtlJob.load();
-      }
-      else {
+      } else {
         final ISamshaEtlJob samshaEtlJob = injector.getInstance(InMemorySamshaLocalEtl.class);
 
         samshaEtlJob.extract();

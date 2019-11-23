@@ -13,8 +13,8 @@ public class RedisConfig {
   private long timeout;
 
   /**
-   * Creates a new instance of {@link RedisConfig}.
-   * The hostname is localhost, the port is 6379 and the database is 0
+   * Creates a new instance of {@link RedisConfig}. The hostname is localhost, the port is 6379 and
+   * the database is 0
    */
   public RedisConfig() {
     this("localhost", 6379, 0);

@@ -51,3 +51,6 @@ node_modules
 *.p7b
 *.cert
 *.key
+*.xlsx
+*.bk
+data/samsha/facilities_geocoded.json

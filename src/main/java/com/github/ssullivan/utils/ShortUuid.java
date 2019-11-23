@@ -9,9 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ShortUuid {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ShortUuid.class);
+
   public static final Pattern ShortUuidValidator = Pattern
       .compile("^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{1,128}$");
+  private static final Logger LOGGER = LoggerFactory.getLogger(ShortUuid.class);
   private static final BigInteger MIN_128_INV = BigInteger.ONE.shiftLeft(127);
   private static final char[] BASE_58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
       .toCharArray();
@@ -40,11 +41,13 @@ public class ShortUuid {
     byte[] padded = new byte[16];
     int delta = 16 - original.length;
     byte zero = 0x00;
-    for (int i = 0; i < delta; ++i)
+    for (int i = 0; i < delta; ++i) {
       padded[i] = 0;
+    }
 
-    for (int i = 0; i < original.length; ++i)
+    for (int i = 0; i < original.length; ++i) {
       padded[i + delta] = original[i];
+    }
 
     return toUUID(padded);
   }
@@ -113,8 +116,7 @@ public class ShortUuid {
         lsb = lsb << 8 | data[i] & 0xff;
       }
       return new UUID(msb, lsb);
-    }
-    catch (ArrayIndexOutOfBoundsException e) {
+    } catch (ArrayIndexOutOfBoundsException e) {
       LOGGER.error("Failed to convert toUUID {}", data, e);
       throw e;
     }

@@ -10,7 +10,6 @@ import com.github.ssullivan.db.IFindBySearchRequest;
 import com.github.ssullivan.db.redis.IAsyncRedisConnectionPool;
 import com.github.ssullivan.db.redis.IRedisConnectionPool;
 import com.github.ssullivan.db.redis.ToFacilityWithRadiusConverter;
-import com.github.ssullivan.model.AvailableServices;
 import com.github.ssullivan.model.Facility;
 import com.github.ssullivan.model.GeoPoint;
 import com.github.ssullivan.model.GeoRadiusCondition;
@@ -53,11 +52,6 @@ public class FindBySearchRequest extends AbstractFindFacility implements IFindBy
 
   /**
    * Finds location based on the provided search request.
-   *
-   * @param searchRequest
-   * @param page
-   * @return
-   * @throws Exception
    */
   public CompletionStage<SearchResults<Facility>> find(SearchRequest searchRequest,
       Page page) throws Exception {

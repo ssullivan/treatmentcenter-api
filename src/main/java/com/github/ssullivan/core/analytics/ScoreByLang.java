@@ -175,7 +175,7 @@ public class ScoreByLang implements IScoreFacility {
   }
 
   @Override
-  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
     return PostgresArrayDSL.score(cache, weight(), selectedLangs);
   }
 
@@ -192,7 +192,6 @@ public class ScoreByLang implements IScoreFacility {
     if (!selectedLangs.isEmpty()) {
       return 1.0;
     }
-
 
     return 0;
   }

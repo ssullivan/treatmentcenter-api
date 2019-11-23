@@ -2,7 +2,6 @@ package com.github.ssullivan.tasks.feeds;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.github.ssullivan.db.IManageFeeds;
-import com.github.ssullivan.db.redis.RedisFeedManager;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.github.ssullivan.utils.ShortUuid;
 import java.io.IOException;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InMemorySamshaLocalEtl implements ISamshaEtlJob {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(SamshaLocatorEtl.class);
 
   private FetchSamshaDataFeed fetchSamshaDataFeed;
@@ -31,7 +31,7 @@ public class InMemorySamshaLocalEtl implements ISamshaEtlJob {
   public InMemorySamshaLocalEtl(FetchSamshaDataFeed fetchSamshaDataFeed,
       final TransformLocatorSpreadsheet transformLocatorSpreadsheet,
       final StoreSamshaLocatorData storeSamshaLocatorData,
-                                IManageFeeds manageFeeds) {
+      IManageFeeds manageFeeds) {
     this.fetchSamshaDataFeed = fetchSamshaDataFeed;
     this.transformLocatorSpreadsheet = transformLocatorSpreadsheet;
     this.storeSamshaLocatorData = storeSamshaLocatorData;
@@ -46,7 +46,8 @@ public class InMemorySamshaLocalEtl implements ISamshaEtlJob {
 
   @Override
   public void transform() throws IOException {
-    samshaLocatorData = this.transformLocatorSpreadsheet.apply(ShortUuid.randomShortUuid(), this.fetchSamshaDataFeed.newInputStream());
+    samshaLocatorData = this.transformLocatorSpreadsheet
+        .apply(ShortUuid.randomShortUuid(), this.fetchSamshaDataFeed.newInputStream());
   }
 
   @Override

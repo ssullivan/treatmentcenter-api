@@ -18,7 +18,6 @@ import com.github.ssullivan.model.crawler.RobotsTxt;
 import com.github.ssullivan.model.datafeeds.Feed;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Bytes;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -56,7 +55,8 @@ import org.slf4j.LoggerFactory;
  *
  * {bucket}/feeds/samsha/locations-{timestamp}.xlsx {bucket}/feeds/samsha.feed.json
  */
-public class FetchSamshaDataFeed implements ILoadSamshaSpreadsheet, Supplier<Optional<Tuple2<String, String>>>,
+public class FetchSamshaDataFeed implements ILoadSamshaSpreadsheet,
+    Supplier<Optional<Tuple2<String, String>>>,
     Function<Void, Optional<Tuple2<String, String>>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FetchSamshaDataFeed.class);
@@ -138,9 +138,8 @@ public class FetchSamshaDataFeed implements ILoadSamshaSpreadsheet, Supplier<Opt
         final ByteArrayOutputStream inMemBuffer = new ByteArrayOutputStream(8192 * 3);
         ByteStreams.copy(bufferedInputStream, inMemBuffer);
         this.cachedBytes = inMemBuffer.toByteArray();
-        return Optional.of(new Tuple2<>(bucket,  createObjectKey()));
-      }
-      else {
+        return Optional.of(new Tuple2<>(bucket, createObjectKey()));
+      } else {
         return Optional.of(handleStream(file.length(), bufferedInputStream));
       }
     } catch (IOException e) {

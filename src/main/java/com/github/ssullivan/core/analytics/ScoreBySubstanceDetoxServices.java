@@ -71,7 +71,6 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
   public Field<Double> toField(IServiceCodeLookupCache cache) {
     if (!initialDetox) {
 
-
       if (serviceCodes.contains(OUTPATIENT)) {
         return PostgresArrayDSL.score(cache, 1.0, OPIOIDS_DETOX);
       }
@@ -92,7 +91,8 @@ public class ScoreBySubstanceDetoxServices implements IScoreFacility {
         return PostgresArrayDSL.score(cache, 1.0, ALCOHOL_DETOX);
       }
 
-      return PostgresArrayDSL.score(cache, 1.0, BUPRENORPHINE_DETOX, HOSPITAL_INPATIENT, RESIDENTIAL);
+      return PostgresArrayDSL
+          .score(cache, 1.0, BUPRENORPHINE_DETOX, HOSPITAL_INPATIENT, RESIDENTIAL);
     }
     return DSL.zero().cast(Double.class);
   }

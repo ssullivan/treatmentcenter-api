@@ -1,6 +1,5 @@
 package com.github.ssullivan.db.redis.index;
 
-import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_CATEGORIES;
 import static com.github.ssullivan.db.redis.RedisConstants.INDEX_BY_SERVICES;
 import static com.github.ssullivan.db.redis.RedisConstants.isValidIdentifier;
 

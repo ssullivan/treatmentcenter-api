@@ -44,7 +44,7 @@ public class ScoreByAge implements IScoreFacility {
   }
 
   @Override
-  public Field<Double> toField(IServiceCodeLookupCache cache)  {
+  public Field<Double> toField(IServiceCodeLookupCache cache) {
     return PostgresArrayDSL.score(cache, 1.1, ADULT, CHILD, YOUNG_ADULTS);
   }
 

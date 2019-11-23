@@ -32,11 +32,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Caches Categories and Services from redis locally. This will asynchronously refresh cache entries
- * every 30 minutes after write. Additionally, it will pull in new categories and services every
- * 10 minutes.
+ * every 30 minutes after write. Additionally, it will pull in new categories and services every 10
+ * minutes.
  */
 @Singleton
 public class AvailableServiceController implements IAvailableServiceController, Managed {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AvailableServiceController.class);
   private final ExecutorService pool = Executors.newSingleThreadExecutor();
 
@@ -58,7 +59,8 @@ public class AvailableServiceController implements IAvailableServiceController, 
         .refreshAfterWrite(30, TimeUnit.MINUTES)
         .expireAfterWrite(3, TimeUnit.DAYS)
         .build(new CategoryCacheLoader(pool, categoryCodesDao));
-    this.serviceManager = new ServiceManager(Sets.newHashSet(new RefreshCache(this.cache, this.categoryCodesDao)));
+    this.serviceManager = new ServiceManager(
+        Sets.newHashSet(new RefreshCache(this.cache, this.categoryCodesDao)));
     this.serviceManager.addListener(new Listener() {
       @Override
       public void healthy() {
@@ -85,7 +87,9 @@ public class AvailableServiceController implements IAvailableServiceController, 
 
   @Override
   public Facility apply(final Facility facility) {
-    if (facility == null) return null;
+    if (facility == null) {
+      return null;
+    }
     try {
 
       // This prevents us from exploding when the cache doesn't contain the categories.
@@ -123,9 +127,10 @@ public class AvailableServiceController implements IAvailableServiceController, 
       }
 
       return facility;
-    }
-    catch (RuntimeException e) {
-      LOGGER.error("An unexpected exception occurred while trying set the available services for facility", e);
+    } catch (RuntimeException e) {
+      LOGGER.error(
+          "An unexpected exception occurred while trying set the available services for facility",
+          e);
       return facility;
     }
   }
@@ -146,7 +151,6 @@ public class AvailableServiceController implements IAvailableServiceController, 
     LOGGER.info("AvailableServiceController is starting");
     this.serviceManager.startAsync();
 
-
     refreshAll();
   }
 
@@ -162,6 +166,7 @@ public class AvailableServiceController implements IAvailableServiceController, 
    */
   private static final class RefreshCache extends AbstractScheduledService implements
       com.google.common.util.concurrent.Service {
+
     private LoadingCache<String, Category> cache;
     private ICategoryCodesDao dao;
 
@@ -194,6 +199,7 @@ public class AvailableServiceController implements IAvailableServiceController, 
    * CacheLoader that can async refresh the cache
    */
   private static final class CategoryCacheLoader extends CacheLoader<String, Category> {
+
     private final ListeningExecutorService executorService;
     private final ICategoryCodesDao catsDao;
 
@@ -209,7 +215,8 @@ public class AvailableServiceController implements IAvailableServiceController, 
     }
 
     @Override
-    public ListenableFuture<Category> reload(final String key, final Category oldValue) throws Exception {
+    public ListenableFuture<Category> reload(final String key, final Category oldValue)
+        throws Exception {
       return this.executorService.submit(() -> {
         LOGGER.info("Loading Category information for {}. Old Value was {}", key, oldValue);
         return this.catsDao.get(key);

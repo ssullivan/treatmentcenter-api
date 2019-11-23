@@ -1,6 +1,5 @@
 package com.github.ssullivan.db.postgres;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ssullivan.db.IFeedDao;
 import com.github.ssullivan.db.psql.Tables;
 import com.github.ssullivan.utils.ShortUuid;
@@ -43,16 +42,16 @@ public class PgFeedDao implements IFeedDao {
       final UUID feedId = ShortUuid.decode(id);
 
       innerDsl.insertInto(Tables.FEED_DETAIL)
-              .set(Tables.FEED_DETAIL.IS_SEARCH_FEED, true)
-              .set(Tables.FEED_DETAIL.ID, feedId)
-              .onDuplicateKeyUpdate()
-              .set(Tables.FEED_DETAIL.IS_SEARCH_FEED, true)
-              .execute();
+          .set(Tables.FEED_DETAIL.IS_SEARCH_FEED, true)
+          .set(Tables.FEED_DETAIL.ID, feedId)
+          .onDuplicateKeyUpdate()
+          .set(Tables.FEED_DETAIL.IS_SEARCH_FEED, true)
+          .execute();
 
       innerDsl.update(Tables.FEED_DETAIL)
-              .set(Tables.FEED_DETAIL.IS_SEARCH_FEED, false)
-              .where(Tables.FEED_DETAIL.ID.ne(feedId))
-              .execute();
+          .set(Tables.FEED_DETAIL.IS_SEARCH_FEED, false)
+          .where(Tables.FEED_DETAIL.ID.ne(feedId))
+          .execute();
     });
 
     return Optional.of("OK");
@@ -89,19 +88,18 @@ public class PgFeedDao implements IFeedDao {
 
     if (!searchFeedOption.isPresent()) {
       return pickRandomFeedId();
-    }
-    else {
+    } else {
       return searchFeedOption;
     }
   }
 
   private Optional<String> pickRandomFeedId() {
     return this.dsl.selectDistinct(Tables.LOCATION.FEED_ID)
-            .from(Tables.LOCATION)
-            .orderBy(Tables.LOCATION.ID)
-            .limit(1)
-            .fetchOptional(Tables.LOCATION.FEED_ID)
-            .map(ShortUuid::encode);
+        .from(Tables.LOCATION)
+        .orderBy(Tables.LOCATION.ID)
+        .limit(1)
+        .fetchOptional(Tables.LOCATION.FEED_ID)
+        .map(ShortUuid::encode);
 
   }
 

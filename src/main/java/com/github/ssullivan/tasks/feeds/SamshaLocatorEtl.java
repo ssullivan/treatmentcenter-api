@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.github.ssullivan.db.IManageFeeds;
-import com.github.ssullivan.db.redis.RedisFeedManager;
 import com.github.ssullivan.model.collections.Tuple2;
 import com.github.ssullivan.model.datafeeds.SamshaLocatorData;
 import com.google.common.base.Stopwatch;
@@ -102,7 +101,8 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
 
   @Override
   public void load() throws IOException {
-    this.samshaLocatorData.ifPresent(data -> LOGGER.info("NEW DATA FEED ID is {}", data.getFeedId()));
+    this.samshaLocatorData
+        .ifPresent(data -> LOGGER.info("NEW DATA FEED ID is {}", data.getFeedId()));
 
     final Stopwatch stopwatch = Stopwatch.createStarted();
     try {
@@ -121,8 +121,7 @@ public class SamshaLocatorEtl implements ISamshaEtlJob, IEtlJob {
             this.manageFeeds.expireOldFeeds(this.samshaLocatorData.get().getFeedId());
           } catch (Exception e) {
             LOGGER.error("Failed to expire old keys", e);
-          }
-          finally {
+          } finally {
             this.manageFeeds.persistFacilityIds(samshaLocatorData.get().facilityIds());
           }
         }
