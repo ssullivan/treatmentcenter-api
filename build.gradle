@@ -183,6 +183,8 @@ task copyDockerResources(type: Copy) {
     from 'docker/'
     into 'build/docker/'
     include "*"
+    exclude "*.tar"
+    exclude "*.zip"
 }
 
 ext.prodImage = AWS_ACCOUNT_ID + ".dkr.ecr." + AWS_DEFAULT_REGION + ".amazonaws.com/treatmentcenter-api"
