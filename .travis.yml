@@ -26,6 +26,7 @@ matrix:
             - postgresql-10-postgis-2.4-scripts
             - postgresql-contrib-10
       before_install:
+        - pip install --user awscli # install aws cli w/o sudo
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
         - sudo -u postgres psql -c 'CREATE DATABASE travis_ci_test'
         - sudo -u postgres psql -c "CREATE USER travis_ci_user WITH PASSWORD 'travis'"
@@ -44,25 +45,23 @@ matrix:
         - ./gradlew build
         - ./gradlew test
         - ./gradlew codeCoverageReport
-
-
+        - ./gradlew buildImage
       after_success:
         - bash <(curl -s https://codecov.io/bash)
         - pip install --user awscli # install aws cli w/o sudo
         - export PATH=$PATH:$HOME/.local/bin # put aws in the path
         - eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
-        - ./gradlew copyDockerDir
       deploy:
         - skip_cleanup: true
           provider: script
-          script: ./gradlew dockerTagImageProdLatest pushImageProdLatest
-          on:
-            branch: master
+          script: ./gradlew pushImageProd
+          all_branches: true
+          condition: ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} =~ ^release\/.*$
         - skip_cleanup: true
           provider: script
-          script: ./gradlew dockerTagImageDevLatest pushImageDevLatest
+          script: ./gradlew pushImageDev
           on:
-            branch: master
+            branch: "master"
     - language: node_js
       node_js:
         - "node"
