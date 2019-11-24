@@ -55,13 +55,13 @@ matrix:
         - skip_cleanup: true
           provider: script
           script: ./gradlew pushImageProd
-          on:
-            branch: master
+          all_branches: true
+          condition: ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} =~ ^release\/.*$
         - skip_cleanup: true
           provider: script
           script: ./gradlew pushImageDev
           on:
-            branch: "remove-neptune"
+            branch: "master"
     - language: node_js
       node_js:
         - "node"
