@@ -18,7 +18,7 @@ for CERT in xx*; do
     # extract a human-readable alias from the cert
     ALIAS=$(openssl x509 -noout -text -in $CERT |
                    perl -ne 'next unless /Subject:/; s/.*CN=//; print')
-    echo "importing $ALIAS"
+    echo "importing $ALIAS into $CACERTS_FILE"
     # import the cert into the default java keystore
     keytool -import \
             -keystore  $CACERTS_FILE \
