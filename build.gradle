@@ -53,7 +53,7 @@ apply plugin: 'application'
 apply plugin: 'jacoco'
 apply plugin: 'nu.studer.jooq'
 
-version = '1.17.1-SNAPSHOT'
+version = '1.18.0'
 group 'com.github.ssullivan'
 mainClassName = 'com.github.ssullivan.ApiApplication'
 
