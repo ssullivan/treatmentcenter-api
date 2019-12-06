@@ -51,12 +51,15 @@ matrix:
         - pip install --user awscli # install aws cli w/o sudo
         - export PATH=$PATH:$HOME/.local/bin # put aws in the path
         - eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
+        - ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
       deploy:
         - skip_cleanup: true
           provider: script
           script: ./gradlew pushImageProd
-          all_branches: true
-          condition: ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} =~ ^release\/.*$
+          on:
+            branches:
+              only:
+                - /^release\/v.*$/
         - skip_cleanup: true
           provider: script
           script: ./gradlew pushImageDev
