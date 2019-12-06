@@ -20,6 +20,7 @@ import com.github.ssullivan.model.SortDirection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -397,8 +398,20 @@ public class FacilitySearchResource {
         return;
       }
 
+      Builder scoreBuilder = new Builder()
+          .withServiceCodes(ServicesConditionFactory.serviceCodes(searchRequest.getConditions()))
+          .withDateOfBirth(null)
+          .withHearingSupport(Importance.SOMEWHAT)
+          .withLangSupport(Importance.SOMEWHAT)
+          .withMilitaryStatusSupport(Importance.SOMEWHAT)
+          .withMilitaryFamilySupport(Importance.SOMEWHAT)
+          .withSmokingCessationImportance(Importance.SOMEWHAT)
+          .withTraumaSupport(Sets.newHashSet());
+
       toGeoRadiusCondition(lat, lon, distance, distanceUnit, postalCode)
           .ifPresent(searchRequest::setGeoRadiusCondition);
+
+      searchRequest.setCompositeFacilityScore(scoreBuilder.build());
 
       this.facilitySearch.find(searchRequest, Page.page(offset, size))
           .whenComplete((result, error) -> {

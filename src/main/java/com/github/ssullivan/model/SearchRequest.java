@@ -1,10 +1,12 @@
 package com.github.ssullivan.model;
 
 import com.github.ssullivan.core.analytics.CompositeFacilityScore;
+import com.github.ssullivan.core.analytics.Importance;
 import com.github.ssullivan.utils.ShortUuid;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.List;
 
@@ -23,6 +25,7 @@ public class SearchRequest {
     this.finalSetOperation = SetOperation.INTERSECTION;
     this.sortField = "score";
     this.sortDirection = SortDirection.ASC;
+
   }
 
   public String getId() {

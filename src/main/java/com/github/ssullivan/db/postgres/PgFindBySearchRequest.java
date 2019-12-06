@@ -172,8 +172,13 @@ public class PgFindBySearchRequest implements IFindBySearchRequest {
 
     final Function<Facility, Facility> addRadius = applyToFacilityWithRadius(searchRequest);
 
-    final Field<Double> scoreField = searchRequest.getCompositeFacilityScore()
-        .toField(serviceCodeLookupCache).as("score");
+    Field<Double> scoreField = DSL.val(0.0);
+    if (searchRequest.getCompositeFacilityScore() != null) {
+      scoreField = searchRequest.getCompositeFacilityScore()
+          .toField(serviceCodeLookupCache).as("score");
+    }
+
+
 
     try {
       final List<Facility> facilities = this.dsl.select(Tables.LOCATION.JSON, scoreField)
