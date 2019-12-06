@@ -57,9 +57,7 @@ matrix:
           provider: script
           script: ./gradlew pushImageProd
           on:
-            branches:
-              only:
-                - /^release\/v.*$/
+            branch: "master"
         - skip_cleanup: true
           provider: script
           script: ./gradlew pushImageDev
