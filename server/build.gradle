@@ -1,0 +1,109 @@
+buildscript {
+    repositories { jcenter() }
+
+    dependencies {
+        classpath "com.netflix.nebula:nebula-docker-plugin:latest.release"
+    }
+}
+
+plugins {
+    id "net.ltgt.apt" version "0.17"
+}
+
+apply plugin: 'java'
+apply plugin: 'net.ltgt.apt'
+apply plugin: 'net.ltgt.apt-idea'
+apply plugin: 'checkstyle'
+apply plugin: 'application'
+apply plugin: 'com.bmuschko.docker-remote-api'
+apply plugin: 'nebula.docker'
+
+version = '1.0.0'
+group 'com.github.ssullivan'
+mainClassName = 'com.github.ssullivan.ApiApplication'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+    implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+    implementation "io.dropwizard:dropwizard-core:1.3.5"
+    implementation "io.dropwizard:dropwizard-logging:1.3.5"
+    implementation "org.elasticsearch.client:elasticsearch-rest-client-sniffer:6.3.1"
+    implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.3.1'
+    implementation 'com.google.inject:guice:4.2.0'
+    implementation 'com.google.inject.extensions:guice-servlet:4.2.0'
+    implementation 'org.glassfish.jersey.ext:jersey-bean-validation:2.25.1'
+    implementation 'org.glassfish.hk2:guice-bridge:2.5.0-b61'
+    implementation 'io.lettuce:lettuce-core:5.0.4.RELEASE'
+    implementation 'org.apache.commons:commons-pool2:2.4.3'
+    implementation 'com.fasterxml.uuid:java-uuid-generator:3.1.5'
+    implementation 'com.smoketurner:dropwizard-swagger:1.3.5-1'
+    implementation 'com.spotify:completable-futures:0.3.1'
+}
+
+
+checkstyle {
+    toolVersion = "8.9"
+}
+
+
+nebulaDocker {
+    maintainerEmail = 'sjsullivan7@gmail.com'
+    dockerBase = 'openjdk:8-alpine'
+    dockerUrl = 'unix:///var/run/docker.sock'
+    dockerRepo = [test: '', prod: '', dev: '']
+    dockerImage = {
+        arg('UID=7999')
+        arg('GID=7999')
+        environmentVariable('JAVA_OPTS', '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap')
+        runCommand('apk --no-cache update \\\n' +
+                '    && apk --no-cache upgrade \\\n' +
+                '    && apk --no-cache add \\\n' +
+                '\tca-certificates \\\n' +
+                '\tcurl \\\n' +
+                '        shadow \\\n' +
+                '        su-exec \\\n' +
+                '    && sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=30/ ${JAVA_HOME}/jre/lib/security/java.security \\\n' +
+                '    && addgroup -g $GID app_user \\\n' +
+                '    && adduser -D -s /bin/false -H -u $UID -G app_user app_user')
+        copyFile('docker-entrypoint.sh', '/')
+        entryPoint('/docker-entrypoint.sh')
+        runCommand('chown -R app_user.app_user /server-latest')
+        defaultCommand "/server-latest/bin/server"
+    }
+    afterEvaluate {
+        task copyResources(type: Copy) {
+            from 'docker/docker-entrypoint.sh'
+            into 'build/docker/'
+        }
+        createDockerfile.dependsOn(copyResources)
+    }
+}
+
+
+
+
+idea {
+    project {
+        // experimental: whether annotation processing will be configured in the IDE; only actually used with the 'idea' task.
+        configureAnnotationProcessing = true
+    }
+    module {
+        apt {
+            // whether generated sources dirs are added as generated sources root
+            addGeneratedSourcesDirs = true
+            // whether the annotationProcessor/apt and testAnnotationProcessor/testApt dependencies are added as module dependencies
+            addAptDependencies = true
+
+            // The following are mostly internal details; you shouldn't ever need to configure them.
+            // whether the compileOnly and testCompileOnly dependencies are added as module dependencies
+            addCompileOnlyDependencies = false // defaults to true in Gradle < 2.12
+            // the dependency scope used for apt and/or compileOnly dependencies (when enabled above)
+            mainDependenciesScope = "PROVIDED"
+            // defaults to "COMPILE" in Gradle < 3.4, or when using the Gradle integration in IntelliJ IDEA
+        }
+    }
+}

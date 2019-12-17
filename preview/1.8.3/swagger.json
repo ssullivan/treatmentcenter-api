@@ -1,0 +1,408 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "An OpenAPI to find treatment centers for substance abuse",
+    "version": "1.8.0",
+    "title": "Treatmentcenter API"
+  },
+  "host": "api.centerlocator.org",
+  "tags": [
+    {
+      "name": "categories"
+    },
+    {
+      "name": "search"
+    },
+    {
+      "name": "services"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/categories": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "List categories of treatments that a facility can provide",
+        "description": "",
+        "operationId": "listCategories",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Category"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/facilities/search": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Find treatment facilities by their services and location",
+        "description": "",
+        "operationId": "findFacilitiesByServiceCodes",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "name": "postalCode",
+            "in": "query",
+            "description": "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "serviceCode",
+            "in": "query",
+            "description": "The SAMSHA service code. service code prefixed with a single bang '!' will be negated",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "matchAny",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "the latitude coordinate according to WGS84",
+            "required": false,
+            "type": "number",
+            "maximum": 90,
+            "minimum": -90,
+            "format": "double"
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "description": "the longitude coordinate according to WGS84",
+            "required": false,
+            "type": "number",
+            "maximum": 180,
+            "minimum": -180,
+            "format": "double"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "description": "the radius distance",
+            "required": false,
+            "type": "number",
+            "default": 15,
+            "format": "double"
+          },
+          {
+            "name": "distanceUnit",
+            "in": "query",
+            "description": "the unit of the radius distance. (meters, kilometers, feet, miles)",
+            "required": false,
+            "type": "string",
+            "default": "mi",
+            "pattern": "m|km|ft|mi",
+            "enum": [
+              "m",
+              "km",
+              "ft",
+              "mi"
+            ]
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "the number of results to skip",
+            "required": false,
+            "type": "integer",
+            "default": 0,
+            "maximum": 9999,
+            "minimum": 0,
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "the number of results to return",
+            "required": false,
+            "type": "integer",
+            "default": 10,
+            "maximum": 9999,
+            "minimum": 0,
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search was completed successfully",
+            "schema": {
+              "$ref": "#/definitions/SearchResults"
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "500": {
+            "description": "An error occurred in the service while executing the search"
+          }
+        }
+      }
+    },
+    "/facilities/v2/search": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Find treatment facilities by their services and location",
+        "description": "",
+        "operationId": "findFacilitiesByServiceCodesV2",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "name": "postalCode",
+            "in": "query",
+            "description": "a U.S. PostalCode. If a (lat,lon) is specified that will take precedence",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "serviceCode",
+            "in": "query",
+            "description": "The SAMSHA service code. service code prefixed with a single bang '!' will be negated",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "matchAny",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "the latitude coordinate according to WGS84",
+            "required": false,
+            "type": "number",
+            "maximum": 90,
+            "minimum": -90,
+            "format": "double"
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "description": "the longitude coordinate according to WGS84",
+            "required": false,
+            "type": "number",
+            "maximum": 180,
+            "minimum": -180,
+            "format": "double"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "description": "the radius distance",
+            "required": false,
+            "type": "number",
+            "default": 15,
+            "format": "double"
+          },
+          {
+            "name": "distanceUnit",
+            "in": "query",
+            "description": "the unit of the radius distance. (meters, kilometers, feet, miles)",
+            "required": false,
+            "type": "string",
+            "default": "mi",
+            "pattern": "m|km|ft|mi",
+            "enum": [
+              "m",
+              "km",
+              "ft",
+              "mi"
+            ]
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "the number of results to skip",
+            "required": false,
+            "type": "integer",
+            "default": 0,
+            "maximum": 9999,
+            "minimum": 0,
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "the number of results to return",
+            "required": false,
+            "type": "integer",
+            "default": 10,
+            "maximum": 9999,
+            "minimum": 0,
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search was completed successfully",
+            "schema": {
+              "$ref": "#/definitions/SearchResults"
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "500": {
+            "description": "An error occurred in the service while executing the search"
+          }
+        }
+      }
+    },
+    "/services": {
+      "get": {
+        "tags": [
+          "services"
+        ],
+        "summary": "List services that a treatment facility can provide.",
+        "description": "",
+        "operationId": "listServices",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Category": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "EDU",
+          "description": "Unique code for this category"
+        },
+        "name": {
+          "type": "string",
+          "example": "Counseling Services and Education"
+        },
+        "serviceCodes": {
+          "type": "array",
+          "example": "[ABC,EDU]",
+          "description": "A list of service codes",
+          "uniqueItems": true,
+          "items": {
+            "type": "object"
+          }
+        },
+        "services": {
+          "type": "array",
+          "example": "[ABC,EDU]",
+          "description": "A list of services",
+          "uniqueItems": true,
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "SearchResults": {
+      "type": "object",
+      "properties": {
+        "totalHits": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of results found. This is the same as the number of hits returned",
+          "readOnly": true
+        },
+        "hits": {
+          "type": "array",
+          "description": "The results of the search operation",
+          "readOnly": true,
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "Service": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "FCO",
+          "description": "The unique code for this service"
+        },
+        "name": {
+          "type": "string",
+          "example": "Training and Education"
+        },
+        "description": {
+          "type": "string"
+        },
+        "categoryCode": {
+          "type": "string",
+          "example": "EDU",
+          "description": "The code of the category that this service belongs in"
+        }
+      }
+    }
+  }
+}
