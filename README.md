@@ -31,7 +31,31 @@
 5. Once you finish with the changes you can run tests using: `npm test`
 6. Share you changes with the rest of the world by pushing to GitHub :smile:
 
+## Build the image
+
+The build script uses the following environment variables to create the URL for the ECR registry URL.
+* AWS_ACCOUNT_ID
+* AWS_DEFAULT_REGION
+
+The `buildImage` task will create 3 images locally
+* $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/treatmentcenter-api
+* $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/dev/treatmentcenter-api
+* test/treatmentcenter-api
+
+```
+./gradlew buildImage
+```
+
+## Push the images to ECR
+```
+eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) 
+./gradlew pushImageProd
+./gradlew pushImageDev
+```
+
 ## Configuration of Container
+
+The dropwizard web application is configured to listen on port 8080 for its primary rest services and 8081 for its admin services.
 
 ### Environment Variables
 | Env | Default | Description |
@@ -39,31 +63,13 @@
 | CORS_ALLOWED_ORIGINS | https?://.*.centerlocator.org | Controls what domains are allowed to hit the service |
 | ENVIRONMENT | - | Controls what domain is used in the swagger docs |
 | POSTALCODES_US_PATH | /treatmentcenter-api-latest/data/US.txt | A list of lat/lon for postcal codes | 
-
-## Redis Key Structure
-
-| PREFIX | Type | Description |
-| ------ | ---- | ----------- |
-| index:facility_by_service:`{service}` | set | Stores facility ids associated with `{service}` |
-| index:facility_by_category:`{category}` | set | Stores facility ids associated with `{category}` |
-| index:facility_by_geo | geoset | Stores the facilities by lat,lon |
-| treatment:facilities:`{id}`  | hmap | Stores the key/values for the facility. `id` is a long |
-| search:counter | incr | Several of the searches rely on zinterstore methods. This is used to provide a uniq id to each request |
-
-## Loading Data
-This is process is still fairly manual and we are in the process of automating it. Sample data can be
-found in the /data folder in this repo.
-
-* Fetch spreadsheet from SAMSHA 
-* Convert spreadsheet into two JSON/JSONL files -> (`service_codes_records.json`, `facilities_geocoded.json.gz`)
-* Load service_code_records JSON using the Dropwizard task `LoadCategoriesAndServices`
-* Load facilities JSONL using the Dropwizard task `LoadTreatmentFacilities
-
-### Loading data into Redis/ElastiCache
-java -jar application.jar load-treatment-centers -f /path/json.gz --host localhost --port 6379
-
-
-## Querying with the Rest API
-
+| PG_HOST | localhost | the ip or fqdn of the postgres server |
+| PG_PORT | 5432 | the port that postgres is listening on |
+| PG_USER | postgres | the username to connect to postgres as |
+| PG_PASSWORD | - | the password to use when authenticating to postgres |
+| PG_DB | app_dev | the name of the database to connect to |
+| PG_IAM_AUTH | true | this setting is mututally exclusive with PG_PASSWORD |
+| AWS_REGION | us-east-1 | this setting is required when using IAM AUTH |
+| PG_SSL | true | this enforces ssl connections to the postgres server |
 
  
