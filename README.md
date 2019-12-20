@@ -53,9 +53,12 @@ eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
 ./gradlew pushImageDev
 ```
 
-## Configuration of Container
+
+## Configuration of Dropwizard Container
 
 The dropwizard web application is configured to listen on port 8080 for its primary rest services and 8081 for its admin services.
+The image is designed to be configured purely through environment variables. The following is an exhaustive list of all of the different
+settings that can be configured via environment variables.
 
 ### Environment Variables
 | Env | Default | Description |
@@ -72,4 +75,60 @@ The dropwizard web application is configured to listen on port 8080 for its prim
 | AWS_REGION | us-east-1 | this setting is required when using IAM AUTH |
 | PG_SSL | true | this enforces ssl connections to the postgres server |
 
- 
+## Running the Data Collection task
+
+The data collection task for fetching the SAMSHA data is configured as a Dropwizard command. The name of the command is
+`load-samsha-postgres`.
+
+```bash
+docker run --it test/treatmentcenter-api /treatmentcenter-api-latest/bin/treatmentcenter-api load-samsha-postgres 
+```
+
+It has the following command line flags:
+```bash
+usage: java -jar project.jar load-samsha-postgres [-f FILE] [-u URL]
+                             [-a ACCESSKEY] [-s SECRETKEY] [-b BUCKET]
+                             [-r REGION] [-e ENDPOINT] [--host HOST]
+                             [-p PORT] [-d DATABASE] [-U USERNAME]
+                             [-P PASSWORD] [-useIAM {true,false}]
+                             [-skipS3 {true,false}] [-ssl {true,false}]
+                             [-h] [file]
+
+Loads treatment center details into the database
+
+positional arguments:
+  file                   application configuration file
+
+named arguments:
+  -f FILE, --file FILE   Path to the locator spreadsheet on disk
+  -u URL, --url URL      URL to  the  SAMSHA  locator  spreasheet (default:
+                         https://findtreatment.samhsa.gov)
+  -a ACCESSKEY, --accesskey ACCESSKEY
+                         The AWS access key to use. (default: )
+  -s SECRETKEY, --secretkey SECRETKEY
+                         The AWS secret key to use. (default: )
+  -b BUCKET, --bucket BUCKET
+                         The AWS bucket to store data into
+  -r REGION, --region REGION
+                         The AWS region that the bucket lives (default: us-
+                         east-1)
+  -e ENDPOINT, --endpoint ENDPOINT
+                         The AWS API endpoint (default: )
+  --host HOST            The IP address or hostname  of the POSTGRES server
+                         (defaults to localhost)
+  -p PORT, --port PORT   The port number of  the  POSTGRES server (defaults
+                         to 5432) (default: 5432)
+  -d DATABASE, --database DATABASE
+                         The postgres  database  to  store  the  data  into
+                         (default 0) (default: postgres)
+  -U USERNAME, --username USERNAME
+                         (default: postgres)
+  -P PASSWORD, --password PASSWORD
+                         (default: )
+  -useIAM {true,false}   Set  this  flag  to   control   what  to  use  for
+                         authenticating to the  database backend. (default:
+                         false)
+  -skipS3 {true,false}   (default: false)
+  -ssl {true,false}      (default: true)
+  -h, --help             show this help message and exit
+```
