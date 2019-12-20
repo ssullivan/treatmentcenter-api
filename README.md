@@ -34,12 +34,14 @@
 ## Build the image
 
 The build script uses the following environment variables to create the URL for the ECR registry URL.
+The Dockerfile it uses for building the image is [here](https://github.com/ssullivan/treatmentcenter-api/blob/master/docker/Dockerfile).
+
 * AWS_ACCOUNT_ID
 * AWS_DEFAULT_REGION
 
 The `buildImage` task will create 3 images locally
-* $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/treatmentcenter-api
-* $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/dev/treatmentcenter-api
+* `$AWS_ACCOUNT_ID`.dkr.ecr.`$AWS_DEFAULT_REGION`.amazonaws.com/treatmentcenter-api
+* `$AWS_ACCOUNT_ID`.dkr.ecr.`$AWS_DEFAULT_REGION`.amazonaws.com/dev/treatmentcenter-api
 * test/treatmentcenter-api
 
 ```
