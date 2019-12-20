@@ -132,3 +132,27 @@ named arguments:
   -ssl {true,false}      (default: true)
   -h, --help             show this help message and exit
 ```
+
+The data collection command will store backups of the spreadsheet in S3 for debugging purposes if a processing error occurs.
+
+
+## RDS
+Instructions for configuring RDS with IAM DB authentication can be found [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.Enabling.html).
+
+### Example IAM Policy
+```json
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Action": [
+             "rds-db:connect"
+         ],
+         "Resource": [
+             "arn:aws:rds-db:us-east-2:1234567890:dbuser:db-ABCDEFGHIJKL01234/db_user"
+         ]
+      }
+   ]
+}
+```
