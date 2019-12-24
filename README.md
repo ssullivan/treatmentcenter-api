@@ -137,6 +137,9 @@ named arguments:
 
 The data collection command will store backups of the spreadsheet in S3 for debugging purposes if a processing error occurs.
 
+## Database
+
+This application has been developed to use PostGres 10.X as the database. The database migrations its using can be found [here](https://github.com/ssullivan/treatmentcenter-api/blob/master/src/main/resources/db/migration/V1__CreatCategoriesTable.sql).
 
 ## RDS
 Instructions for configuring RDS with IAM DB authentication can be found [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.Enabling.html).
