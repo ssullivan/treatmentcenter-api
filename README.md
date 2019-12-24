@@ -79,8 +79,8 @@ settings that can be configured via environment variables.
 
 ## Running the Data Collection task
 
-The data collection task for fetching the SAMSHA data is configured as a Dropwizard command. The name of the command is
-`load-samsha-postgres`.
+The data [collection task](https://github.com/ssullivan/treatmentcenter-api/blob/master/src/main/java/com/github/ssullivan/tasks/feeds/LoadSamshaCommandPostgres.java) for fetching the SAMSHA data is configured as a Dropwizard command. The name of the command is
+`load-samsha-postgres`. The source for parsing the spreadhseet is [TransformLocatorSpreadsheet.java](https://github.com/ssullivan/treatmentcenter-api/blob/master/src/main/java/com/github/ssullivan/tasks/feeds/TransformLocatorSpreadsheet.java)
 
 ```bash
 docker run --it test/treatmentcenter-api /treatmentcenter-api-latest/bin/treatmentcenter-api load-samsha-postgres 
