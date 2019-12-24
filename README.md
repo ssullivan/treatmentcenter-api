@@ -141,6 +141,7 @@ The data collection command will store backups of the spreadsheet in S3 for debu
 ## RDS
 Instructions for configuring RDS with IAM DB authentication can be found [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.Enabling.html).
 
+
 ### Example IAM Policy
 ```json
 {
@@ -157,4 +158,32 @@ Instructions for configuring RDS with IAM DB authentication can be found [here](
       }
    ]
 }
+```
+
+### Installing extensions
+Detailed instructions on configuring RDS with PostGIs can be found [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.PostgreSQL.CommonDBATasks.html#Appendix.PostgreSQL.CommonDBATasks.PostGIS).
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
+CREATE EXTENSION IF NOT EXISTS intarray;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+```
+
+### Granting connection permissions
+```sql
+CREATE USER your_database_user WITH LOGIN;
+GRANT USAGE ON SCHEMA public TO your_database_user;
+```
+
+### Granting access to the GIS schemas
+```sql
+GRANT USAGE ON SCHEMA topology TO your_database_user;
+GRANT USAGE ON SCHEMA tiger TO your_database_user;
+GRANT USAGE ON SCHEMA tiger_data TO your_database_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA topology TO your_database_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA tiger TO your_database_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA tiger_data TO your_database_user;
 ```
