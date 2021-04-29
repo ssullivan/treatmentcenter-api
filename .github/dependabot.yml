@@ -1,0 +1,36 @@
+version: 2
+updates:
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.glassfish.jersey.ext:jersey-bean-validation
+    versions:
+    - ">= 2.28.a, < 2.29"
+  - dependency-name: org.glassfish.jersey.media:jersey-media-multipart
+    versions:
+    - ">= 2.28.a, < 2.29"
+  - dependency-name: org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2
+    versions:
+    - ">= 2.28.a, < 2.29"
+  - dependency-name: com.google.auto.value:auto-value-annotations
+    versions:
+    - 1.7.4
+    - 1.7.5
+    - "1.8"
+  - dependency-name: org.mockito:mockito-core
+    versions:
+    - 3.7.7
+    - 3.8.0
+  - dependency-name: org.mockito:mockito-junit-jupiter
+    versions:
+    - 3.7.7
+    - 3.8.0
+  - dependency-name: org.junit.jupiter:junit-jupiter-api
+    versions:
+    - 5.7.0
+  - dependency-name: com.kohlschutter.junixsocket:junixsocket-native
+    versions:
+    - 2.3.2
